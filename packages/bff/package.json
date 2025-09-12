@@ -5,11 +5,15 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsc -b",
     "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@fmork/backend-core": "^1.0.2"
   }
 }
-

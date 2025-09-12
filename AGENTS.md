@@ -19,6 +19,24 @@ Agents should always consult these documents before scaffolding or modifying cod
 
 ## 📝 Coding Guidelines (TypeScript)
 
+Put functionality into well-designed, focused classes. Inject depedencies through constructors, follwing the following pattern:
+
+```typescript
+interface MyClassProps {
+  // depdencies go here
+}
+
+export class MyClass {
+  private readonly props: MyClassProps;
+
+  constructor(props: MyClassProps) {
+    this.props = props;
+  }
+}
+```
+
+Use the interface `ILogWriter` found in the @fmork/backend-core package for all logging purposes.
+
 ### TypeScript Best Practices
 
 - Strict mode (`"strict": true`) in `tsconfig`.
@@ -104,8 +122,8 @@ Agents should always consult these documents before scaffolding or modifying cod
 
 - **Dependency Injection** with `tsyringe`.
 
-  - Per-invocation container.
-  - Heavy clients (DynamoDB, S3, EventBridge) cached in module scope.
+  - Do not use a DI container framework.
+  - Create an `init.ts` file in the `src` directory for each project where dependencies are set up.
 
 - **Handler philosophy**
 
