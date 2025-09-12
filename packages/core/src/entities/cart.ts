@@ -1,5 +1,6 @@
 import type { CartDto, CartItemDto, CartState } from '../types';
 
+/** Represents a shopping cart snapshot with items, state, and expiry. */
 export class Cart implements CartDto {
   public readonly id: CartDto['id'];
   public readonly tenantId: CartDto['tenantId'];

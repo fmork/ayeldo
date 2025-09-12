@@ -1,5 +1,6 @@
 import type { ImageDto } from '../types';
 
+/** Metadata for an image asset within an album. */
 export class Image {
   public readonly id: ImageDto['id'];
   public readonly tenantId: ImageDto['tenantId'];

@@ -12,6 +12,7 @@ export interface PolicyContext {
   readonly isMember?: boolean;
 }
 
+/** Evaluates access permissions based on mode and context flags. */
 export class PolicyEvaluator {
   evaluate(ctx: PolicyContext): boolean {
     if (ctx.mode === 'public') return true;
@@ -20,4 +21,3 @@ export class PolicyEvaluator {
     return false;
   }
 }
-

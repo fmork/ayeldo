@@ -1,5 +1,6 @@
 import type { PriceItemDto, PriceListDto } from '../types';
 
+/** Price entry for a SKU with label and unit price. */
 export class PriceItem implements PriceItemDto {
   public readonly sku: string;
   public readonly label: string;
@@ -11,6 +12,7 @@ export class PriceItem implements PriceItemDto {
   }
 }
 
+/** Tenant-scoped list of price items used for checkout. */
 export class PriceList implements PriceListDto {
   public readonly id: PriceListDto['id'];
   public readonly tenantId: PriceListDto['tenantId'];

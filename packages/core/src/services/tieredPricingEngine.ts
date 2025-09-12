@@ -6,6 +6,7 @@ export interface PriceCartResult {
   readonly totalCents: number;
 }
 
+/** Prices a cart by SKU, producing order lines and a total. */
 export class TieredPricingEngine {
   priceCart(params: { cart: CartDto; priceList: PriceListDto }): PriceCartResult {
     const { cart, priceList } = params;
@@ -35,4 +36,3 @@ export class TieredPricingEngine {
     return { lines, totalCents };
   }
 }
-

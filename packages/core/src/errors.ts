@@ -1,3 +1,4 @@
+/** Base class for domain-specific errors. */
 export class DomainError extends Error {
   constructor(message: string) {
     super(message);
@@ -5,8 +6,11 @@ export class DomainError extends Error {
   }
 }
 
+/** Thrown when a requested entity cannot be found. */
 export class NotFoundError extends DomainError {}
+/** Thrown when input fails domain validation rules. */
 export class ValidationError extends DomainError {}
+/** Error for illegal state transitions in aggregates. */
 export class InvalidStateTransitionError extends DomainError {
   public readonly from: string;
   public readonly action: string;
@@ -16,4 +20,5 @@ export class InvalidStateTransitionError extends DomainError {
     this.action = action;
   }
 }
+/** Thrown when pricing cannot be resolved or applied. */
 export class PricingError extends DomainError {}

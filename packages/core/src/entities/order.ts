@@ -1,5 +1,6 @@
 import type { OrderDto, OrderLineDto, OrderState } from '../types';
 
+/** Represents a finalized order with lines, totals, and state. */
 export class Order implements OrderDto {
   public readonly id: OrderDto['id'];
   public readonly tenantId: OrderDto['tenantId'];
