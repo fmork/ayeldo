@@ -12,7 +12,7 @@ Work top-down. For each step, ask Codex to scaffold the files and code as descri
   - ✅ Create `pnpm-workspace.yaml`
   - ✅ Add `.editorconfig`, `.gitignore`, `.nvmrc`
   - ✅ Add root `tsconfig.base.json` (strict mode)
-- ☐ Add packages (empty scaffolds)
+- ✅ Add packages (empty scaffolds)
   - ✅ `packages/types`
   - ✅ `packages/core`
   - ✅ `packages/infra-aws`
@@ -20,11 +20,11 @@ Work top-down. For each step, ask Codex to scaffold the files and code as descri
   - ✅ `packages/bff`
   - ✅ `packages/api`
   - ✅ `packages/services`
-- ☐ Add apps/infra
+- ✅ Add apps/infra
   - ✅ `apps/web` (React/Next.js SPA)
   - ✅ `infra/cdk` (AWS CDK app)
-- ☐ Tooling
-  - ☐ Install dev deps: `typescript`, `eslint`, `@typescript-eslint/*`, `prettier`, `jest`, `zod`, `ts-node`
+- ✅ Tooling
+  - ✅ Install dev deps: `typescript`, `eslint`, `@typescript-eslint/*`, `prettier`, `jest`, `zod`, `ts-node`
   - ✅ Root scripts: `build`, `lint`, `format`, `test`, `typecheck`
 
 Codex prompt: Scaffold a pnpm monorepo with the package/app folders above, a strict tsconfig base shared via references, and shared ESLint + Prettier configs.
