@@ -24,8 +24,8 @@ Work top-down. For each step, ask Codex to scaffold the files and code as descri
   - ✅ `apps/web` (React/Next.js SPA)
   - ✅ `infra/cdk` (AWS CDK app)
 - ☐ Tooling
-  - ☐ Install dev deps: `typescript`, `eslint`, `@typescript-eslint/*`, `prettier`, `vitest`, `zod`, `ts-node`
-  - ☐ Root scripts: `build`, `lint`, `format`, `test`, `typecheck`
+  - ☐ Install dev deps: `typescript`, `eslint`, `@typescript-eslint/*`, `prettier`, `jest`, `zod`, `ts-node`
+  - ✅ Root scripts: `build`, `lint`, `format`, `test`, `typecheck`
 
 Codex prompt: Scaffold a pnpm monorepo with the package/app folders above, a strict tsconfig base shared via references, and shared ESLint + Prettier configs.
 

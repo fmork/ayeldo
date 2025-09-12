@@ -35,6 +35,8 @@ export class MyClass {
 }
 ```
 
+### Logging
+
 Use the interface `ILogWriter` found in the @fmork/backend-core package for all logging purposes.
 
 ### TypeScript Best Practices
@@ -140,7 +142,7 @@ Use the interface `ILogWriter` found in the @fmork/backend-core package for all 
 
 ## 🧪 Testing Rules
 
-- **Vitest** for unit tests.
+- **jest** for unit tests.
 - All domain logic (pricing, order state machine, policies) must have tests.
 - **LocalStack** for integration tests of repos and S3 flows.
 - Contract tests for events (validate against schemas).

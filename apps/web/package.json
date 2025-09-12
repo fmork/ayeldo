@@ -1,0 +1,10 @@
+{
+  "name": "@ayeldo/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  }
+}
+

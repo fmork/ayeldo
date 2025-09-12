@@ -9,7 +9,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc -b",
-    "clean": "rimraf dist"
+    "clean": "rm -rf dist",
+    "test": "jest -c ../../jest.config.ts --passWithNoTests"
   }
 }
-
