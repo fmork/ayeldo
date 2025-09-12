@@ -1,0 +1,15 @@
+{
+  "name": "@ayeldo/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rimraf dist"
+  }
+}
+

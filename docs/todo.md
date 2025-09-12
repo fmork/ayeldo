@@ -7,22 +7,22 @@ Work top-down. For each step, ask Codex to scaffold the files and code as descri
 
 ## 0) Project Bootstrap
 
-- ☐ Create repo & workspace
-  - ☐ `pnpm init -y`
-  - ☐ Create `pnpm-workspace.yaml`
-  - ☐ Add `.editorconfig`, `.gitignore`, `.nvmrc`
-  - ☐ Add root `tsconfig.base.json` (strict mode)
+- ✅ Create repo & workspace
+  - ✅ `pnpm init -y`
+  - ✅ Create `pnpm-workspace.yaml`
+  - ✅ Add `.editorconfig`, `.gitignore`, `.nvmrc`
+  - ✅ Add root `tsconfig.base.json` (strict mode)
 - ☐ Add packages (empty scaffolds)
-  - ☐ `packages/types`
-  - ☐ `packages/core`
-  - ☐ `packages/infra-aws`
-  - ☐ `packages/utils`
-  - ☐ `packages/bff`
-  - ☐ `packages/api`
-  - ☐ `packages/services`
+  - ✅ `packages/types`
+  - ✅ `packages/core`
+  - ✅ `packages/infra-aws`
+  - ✅ `packages/utils`
+  - ✅ `packages/bff`
+  - ✅ `packages/api`
+  - ✅ `packages/services`
 - ☐ Add apps/infra
-  - ☐ `apps/web` (React/Next.js SPA)
-  - ☐ `infra/cdk` (AWS CDK app)
+  - ✅ `apps/web` (React/Next.js SPA)
+  - ✅ `infra/cdk` (AWS CDK app)
 - ☐ Tooling
   - ☐ Install dev deps: `typescript`, `eslint`, `@typescript-eslint/*`, `prettier`, `vitest`, `zod`, `ts-node`
   - ☐ Root scripts: `build`, `lint`, `format`, `test`, `typecheck`

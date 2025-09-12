@@ -1,0 +1,23 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .: {}
+
+  packages/api: {}
+
+  packages/bff: {}
+
+  packages/core: {}
+
+  packages/infra-aws: {}
+
+  packages/services: {}
+
+  packages/types: {}
+
+  packages/utils: {}
