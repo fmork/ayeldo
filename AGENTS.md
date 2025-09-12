@@ -51,7 +51,7 @@ Use the interface `ILogWriter` found in the @fmork/backend-core package for all 
 - Don't use parameter properties in class constructors.
 - Don't use user-defined types.
 - Use `as const` instead of literal types and type annotations.
-- Use either `Array<T>` consistently for array declarations.
+- Use `T[]` consistently for array declarations.
 - Initialize each enum member value explicitly.
 - Use `export type` for types.
 - Use `import type` for types.
@@ -78,13 +78,11 @@ Use the interface `ILogWriter` found in the @fmork/backend-core package for all 
 ## 🏗 Architecture Rules
 
 - **BFF pattern**
-
   - Browser never sees OIDC tokens.
   - BFF performs token exchange and issues HttpOnly session cookies.
   - BFF calls Domain API using internal auth (signed JWT or API key).
 
 - **Layered separation**
-
   - **Domain (`core`)** is **pure** (no AWS imports).
   - **Ports** define contracts for repos, services, publishers.
   - **Infra (`infra-aws`)** implements ports with AWS SDK.
@@ -100,18 +98,15 @@ Use the interface `ILogWriter` found in the @fmork/backend-core package for all 
 ## 🗄 Data & Infrastructure Principles
 
 - **DynamoDB single-table** design
-
   - Typed prefixes for keys (e.g., `TENANT#id`, `ALBUM#id`, `ORDER#id`).
   - Secondary indexes for album tree, images by album, orders by user.
   - TTL on carts and sessions.
 
 - **EventBridge**
-
   - Domain events (`UserCreated`, `ImageUploaded`, `OrderPaid`, …).
   - Each event includes `id`, `type`, `occurredAt`, `tenantId`, and `payload`.
 
 - **S3 & CloudFront**
-
   - S3 for asset storage (originals, derivatives).
   - Short-lived signed URLs for downloads.
 
@@ -123,12 +118,10 @@ Use the interface `ILogWriter` found in the @fmork/backend-core package for all 
 ## 🎨 Style & Structure
 
 - **Dependency Injection** with `tsyringe`.
-
   - Do not use a DI container framework.
   - Create an `init.ts` file in the `src` directory for each project where dependencies are set up.
 
 - **Handler philosophy**
-
   - BFF and API handlers should be **thin**.
   - Validate input with `zod`.
   - Delegate to domain services via ports.

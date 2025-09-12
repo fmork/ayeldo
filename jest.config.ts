@@ -1,4 +1,5 @@
 import type { Config } from 'jest';
+import * as path from 'node:path';
 
 const config: Config = {
   preset: 'ts-jest/presets/default-esm',
@@ -10,10 +11,9 @@ const config: Config = {
   transform: {
     '^.+\\.(ts|tsx)$': [
       'ts-jest',
-      { tsconfig: 'tsconfig.base.json', useESM: true },
+      { tsconfig: path.join(__dirname, 'tsconfig.base.json'), useESM: true },
     ],
   },
 };
 
 export default config;
-

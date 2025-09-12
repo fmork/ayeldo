@@ -33,11 +33,11 @@ Codex prompt: Scaffold a pnpm monorepo with the package/app folders above, a str
 
 ## 1) Shared Types & Events (`packages/types`)
 
-- ☐ Create `src/events.ts`: event envelope (ULID id, ISO timestamps, tenantId)
-- ☐ Create `src/dtos.ts`: DTOs for Album, Image, Cart, Order, PriceList
-- ☐ Create `src/state.ts`: order/cart state enums
-- ☐ Create `src/schemas.ts`: zod schemas for DTOs/events
-- ☐ Unit tests for schema parsing
+- ✅ Create `src/events.ts`: event envelope (ULID id, ISO timestamps, tenantId)
+- ✅ Create `src/dtos.ts`: DTOs for Album, Image, Cart, Order, PriceList
+- ✅ Create `src/state.ts`: order/cart state enums
+- ✅ Create `src/schemas.ts`: zod schemas for DTOs/events
+- ✅ Unit tests for schema parsing
 
 Codex prompt: Implement strongly typed event envelopes and zod schemas for Album/Image/Cart/Order/PriceList DTOs; include happy/sad-path tests with vitest.
 
