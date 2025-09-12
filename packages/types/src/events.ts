@@ -20,16 +20,18 @@ export const isoTimestampSchema = z.string().datetime({ offset: true });
 
 export const tenantIdSchema = z.string().min(1);
 
-export function makeEventEnvelopeSchema<T extends z.ZodTypeAny>(
-  typeLiteral: string,
-  payloadSchema: T,
-) {
+export function makeEventEnvelopeSchema<
+  TPayload extends z.ZodTypeAny,
+  TType extends string,
+>(
+  typeLiteral: TType,
+  payloadSchema: TPayload,
+): z.ZodType<EventEnvelope<TType, z.infer<TPayload>>> {
   return z.object({
     id: ulidSchema,
     type: z.literal(typeLiteral),
     occurredAt: isoTimestampSchema,
     tenantId: tenantIdSchema,
     payload: payloadSchema,
-  });
+  }) as z.ZodType<EventEnvelope<TType, z.infer<TPayload>>>;
 }
-

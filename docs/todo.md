@@ -45,13 +45,13 @@ Codex prompt: Implement strongly typed event envelopes and zod schemas for Album
 
 ## 2) Domain Core (`packages/core`)
 
-- ☐ Entities & value objects: `Album`, `Image`, `PriceList`, `Cart`, `Order`
-- ☐ Ports: `IAlbumRepo`, `IImageRepo`, `IPriceListRepo`, `ICartRepo`, `IOrderRepo`
-- ☐ Services:
-  - ☐ `TieredPricingEngine`
-  - ☐ `OrderStateMachine` (pure function)
-  - ☐ `PolicyEvaluator` (public/hidden/restricted; stub)
-- ☐ Domain error types
+- ✅ Entities & value objects: `Album`, `Image`, `PriceList`, `Cart`, `Order`
+- ✅ Ports: `IAlbumRepo`, `IImageRepo`, `IPriceListRepo`, `ICartRepo`, `IOrderRepo`
+- ✅ Services:
+  - ✅ `TieredPricingEngine`
+  - ✅ `OrderStateMachine` (pure function)
+  - ✅ `PolicyEvaluator` (public/hidden/restricted; stub)
+- ✅ Domain error types
 
 Codex prompt: Create domain entities and ports (no AWS imports). Implement TieredPricingEngine and a pure OrderStateMachine with unit tests.
 
