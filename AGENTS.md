@@ -14,6 +14,7 @@ Agents should always consult these documents before scaffolding or modifying cod
 - `docs/dynamo.md` → DynamoDB single-table design
 - `docs/events.md` → Event definitions and schemas
 - `docs/security.md` → Security practices
+- `docs/dependency-injection.md` → specifics around dependency injection
 
 ---
 
@@ -37,7 +38,11 @@ export class MyClass {
 
 ### Logging
 
-Use the interface `ILogWriter` found in the @fmork/backend-core package for all logging purposes.
+Use the `ILogWriter` interface from `@fmork/backend-core` for all logging. Instantiate loggers via `@ayeldo/utils`' pino-backed adapter (`createRootLogger`) and create request-scoped child loggers with `withRequestId(logger, requestId)`.
+
+### Outgoing HTTP requests
+
+Code that needs to make HTTP requests should take a dependency on `HttpClient` from `@fmork/backend-core`. The type is described in `docs/type-snapshots/HttpClient.d.ts`. DI should inject an instance of `AxiosHttpClient`.
 
 ### TypeScript Best Practices
 
@@ -117,9 +122,10 @@ Use the interface `ILogWriter` found in the @fmork/backend-core package for all 
 
 ## 🎨 Style & Structure
 
-- **Dependency Injection** with `tsyringe`.
+- **Dependency Injection: Manual (no container)**
   - Do not use a DI container framework.
-  - Create an `init.ts` file in the `src` directory for each project where dependencies are set up.
+  - Create an `init.ts` in `src/` for each project (`bff`, `api`, `services`) that wires dependencies explicitly and returns singletons.
+  - Pass dependencies through constructors and keep runtime instances to one per process where appropriate.
 
 - **Handler philosophy**
   - BFF and API handlers should be **thin**.
@@ -169,6 +175,7 @@ When Codex (or another AI agent) generates code, it should:
 2. **Follow coding rules** (strict TS, zod validation, async/await, no any).
 3. **Respect architecture** (BFF → API → Services, ports, events).
 4. **Produce tests** for new domain logic.
-5. **Document** new features in `docs/` as needed.
+5. **Verify correctness** so that generated code does not contain errors.
+6. **Document** new features in `docs/` as needed.
 
 ---

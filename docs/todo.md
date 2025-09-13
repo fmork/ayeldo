@@ -57,14 +57,15 @@ Codex prompt: Create domain entities and ports (no AWS imports). Implement Tiere
 
 ---
 
-## 3) Utils & DI (`packages/utils`)
+## 3) Utils & DI (`packages/utils`) — Manual DI
 
-- ☐ `ioc/common.ts`: tsyringe DI, instance-cached AWS clients (DynamoDB, S3, EventBridge)
-- ☐ `logging.ts`: pino logger with requestId
-- ☐ `http.ts`: API Gateway helpers (JSON responses, error mapping)
-- ☐ `env.ts`: zod-validated env loader
+- ✅ `src/init.ts` in each app (`packages/bff`, `packages/api`, `packages/services`): manual wiring of singletons; instantiate dependencies explicitly and pass via constructors.
+- ✅ `awsClients.ts`: module-cached AWS SDK clients (DynamoDB, S3, EventBridge).
+- ✅ `logging.ts`: use `ILogWriter` (from @fmork/backend-core); root pino-backed logger and request-scoped wrapper (`withRequestId`).
+- ✅ `http.ts`: API Gateway helpers (JSON responses, error mapping)
+- ✅ `env.ts`: zod-validated env loader
 
-Codex prompt: Implement a DI bootstrap with tsyringe using instanceCachingFactory for AWS SDK clients; add zod-based env loader and simple API response helpers.
+Codex prompt: Implement manual DI (no container). Create `src/init.ts` per app that assembles repositories/services/publishers using shared utils (`awsClients`, `logging`, `env`). Ensure one instance per runtime where appropriate and pass dependencies explicitly via constructors.
 
 ---
 
