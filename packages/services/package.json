@@ -11,5 +11,10 @@
     "build": "tsc -b",
     "clean": "rm -rf dist",
     "test": "jest -c ../../jest.config.ts --passWithNoTests"
+  },
+  "dependencies": {
+    "@ayeldo/types": "workspace:*",
+    "@ayeldo/core": "workspace:*",
+    "@ayeldo/utils": "workspace:*"
   }
 }

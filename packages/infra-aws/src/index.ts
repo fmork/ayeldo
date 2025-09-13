@@ -6,3 +6,5 @@ export * from './repos/imageRepoDdb';
 export * from './repos/priceListRepoDdb';
 export * from './repos/cartRepoDdb';
 export * from './repos/orderRepoDdb';
+export * from './eventBridgePublisher';
+export * from './repos/statsRepoDdb';

@@ -9,3 +9,5 @@ export * from './ports/repositories';
 export * from './services/tieredPricingEngine';
 export * from './services/orderStateMachine';
 export * from './services/policyEvaluator';
+export * from './ports/events';
+export * from './ports/analytics';

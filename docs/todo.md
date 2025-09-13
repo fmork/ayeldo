@@ -88,12 +88,12 @@ Codex prompt: Implement DynamoDB repositories with strict key prefixes and Local
 
 ## 5) Event Bus & Analytics
 
-- ☐ Event publisher abstraction (`IEventPublisher`)
-- ☐ EventBridge implementation
-- ☐ Analytics service:
-  - ☐ Consume `ViewRecorded`, `DownloadRecorded`, etc.
-  - ☐ Update stats counters in DynamoDB
-  - ☐ Ensure idempotency by event id
+- ✅ Event publisher abstraction (`IEventPublisher`)
+- ✅ EventBridge implementation
+- ✅ Analytics service:
+  - ✅ Consume `ViewRecorded`, `DownloadRecorded`, `OrderPaid`
+  - ✅ Update stats counters in DynamoDB
+  - ✅ Ensure idempotency by event id
 
 Codex prompt: Create an analytics lambda that consumes events and updates counters; ensure idempotency by event id.
 

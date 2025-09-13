@@ -52,18 +52,31 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2
 
-  packages/core:
+  packages/core: {}
+
+  packages/infra-aws:
     dependencies:
-      '@fmork/backend-core':
-        specifier: ^1.0.2
-        version: 1.0.2
-      pino:
-        specifier: ^9.2.0
-        version: 9.9.5
+      '@aws-sdk/client-eventbridge':
+        specifier: ^3.634.0
+        version: 3.888.0
+      '@ayeldo/core':
+        specifier: workspace:*
+        version: link:../core
+      '@ayeldo/types':
+        specifier: workspace:*
+        version: link:../types
 
-  packages/infra-aws: {}
-
-  packages/services: {}
+  packages/services:
+    dependencies:
+      '@ayeldo/core':
+        specifier: workspace:*
+        version: link:../core
+      '@ayeldo/types':
+        specifier: workspace:*
+        version: link:../types
+      '@ayeldo/utils':
+        specifier: workspace:*
+        version: link:../utils
 
   packages/types: {}
 
