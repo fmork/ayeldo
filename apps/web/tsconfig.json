@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["vite/client", "react", "react-dom"]
+  },
+  "include": [
+    "src",
+    "vite.config.ts",
+    "index.html"
+  ]
+}
+
