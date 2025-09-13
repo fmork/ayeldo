@@ -10,6 +10,6 @@
   "scripts": {
     "build": "tsc -b",
     "clean": "rm -rf dist",
-    "test": "jest -c ../../jest.config.ts --passWithNoTests"
+    "test": "jest -c ../../jest.config.ts --rootDir ../../"
   }
 }
