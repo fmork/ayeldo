@@ -11,5 +11,13 @@
     "build": "tsc -b",
     "clean": "rm -rf dist",
     "test": "jest -c ../../jest.config.ts --passWithNoTests"
+  },
+  "dependencies": {
+    "@ayeldo/types": "workspace:*",
+    "@ayeldo/core": "workspace:*",
+    "@ayeldo/utils": "workspace:*",
+    "@ayeldo/infra-aws": "workspace:*",
+    "@aws-sdk/client-eventbridge": "^3.634.0",
+    "@aws-sdk/client-s3": "^3.634.0"
   }
 }

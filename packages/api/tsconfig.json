@@ -5,10 +5,20 @@
     "rootDir": "src",
     "composite": true,
     "declaration": true,
-    "disableSourceOfProjectReferenceRedirect": true
+    "disableSourceOfProjectReferenceRedirect": true,
+    "paths": {
+      "@ayeldo/utils": ["../utils/dist"],
+      "@ayeldo/core": ["../core/dist"],
+      "@ayeldo/types": ["../types/dist"],
+      "@ayeldo/infra-aws": ["../infra-aws/dist"]
+    }
   },
   "include": ["src"],
+  "exclude": ["src/**/*.test.ts"],
   "references": [
-    { "path": "../utils" }
+    { "path": "../types" },
+    { "path": "../core" },
+    { "path": "../utils" },
+    { "path": "../infra-aws" }
   ]
 }

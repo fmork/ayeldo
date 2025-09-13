@@ -8,6 +8,12 @@ const config: Config = {
   testMatch: ['<rootDir>/packages/**/src/**/*.test.ts'],
   testPathIgnorePatterns: ['/node_modules/', '<rootDir>/apps/web/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'json'],
+  moduleNameMapper: {
+    '^@ayeldo/types$': '<rootDir>/packages/types/src/index.ts',
+    '^@ayeldo/core$': '<rootDir>/packages/core/src/index.ts',
+    '^@ayeldo/utils$': '<rootDir>/packages/utils/src/index.ts',
+    '^@ayeldo/infra-aws$': '<rootDir>/packages/infra-aws/src/index.ts',
+  },
   transform: {
     '^.+\\.(ts|tsx)$': [
       'ts-jest',

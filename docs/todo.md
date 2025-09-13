@@ -101,10 +101,10 @@ Codex prompt: Create an analytics lambda that consumes events and updates counte
 
 ## 6) Image Upload Flow
 
-- ☐ Define `ImageUploadService` port
-- ☐ S3 adapter for presigned POST
-- ☐ API endpoint: register image → return presigned POST
-- ☐ Completion endpoint: mark uploaded → emit `ImageUploaded`
+- ✅ Define upload URL provider port (presigned POST)
+- ✅ S3 adapter for presigned POST
+- ✅ API endpoint: register image → return presigned POST
+- ✅ Completion endpoint: emit `ImageUploaded`
 
 Codex prompt: Scaffold image upload endpoints: POST `/images:register`, POST `/images/:id/complete`; use presigned POST and emit ImageUploaded.
 

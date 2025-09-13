@@ -11,3 +11,4 @@ export * from './services/orderStateMachine';
 export * from './services/policyEvaluator';
 export * from './ports/events';
 export * from './ports/analytics';
+export * from './ports/storage';

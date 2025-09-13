@@ -73,7 +73,26 @@ importers:
         specifier: ^5.4.1
         version: 5.4.20(@types/node@24.3.2)
 
-  packages/api: {}
+  packages/api:
+    dependencies:
+      '@aws-sdk/client-eventbridge':
+        specifier: ^3.634.0
+        version: 3.888.0
+      '@aws-sdk/client-s3':
+        specifier: ^3.634.0
+        version: 3.888.0
+      '@ayeldo/core':
+        specifier: workspace:*
+        version: link:../core
+      '@ayeldo/infra-aws':
+        specifier: workspace:*
+        version: link:../infra-aws
+      '@ayeldo/types':
+        specifier: workspace:*
+        version: link:../types
+      '@ayeldo/utils':
+        specifier: workspace:*
+        version: link:../utils
 
   packages/bff:
     dependencies:
@@ -86,6 +105,12 @@ importers:
   packages/infra-aws:
     dependencies:
       '@aws-sdk/client-eventbridge':
+        specifier: ^3.634.0
+        version: 3.888.0
+      '@aws-sdk/client-s3':
+        specifier: ^3.634.0
+        version: 3.888.0
+      '@aws-sdk/s3-presigned-post':
         specifier: ^3.634.0
         version: 3.888.0
       '@ayeldo/core':
@@ -256,6 +281,10 @@ packages:
     resolution: {integrity: sha512-VdSMrIqJ3yjJb/fY+YAxrH/lCVv0iL8uA+lbMNfQGtO5tB3Zx6SU9LEpUwBNX8fPK1tUpI65CNE4w42+MY/7Mg==}
     engines: {node: '>=18.0.0'}
 
+  '@aws-sdk/s3-presigned-post@3.888.0':
+    resolution: {integrity: sha512-gY8cmB2eR9o4a0Y3Eshfe9LTJLXH1PELH9Rdc7hr4UNubIu4QbBI6HIXOv39HwQpil1q9SXUTSpuKbZG4DhxGQ==}
+    engines: {node: '>=18.0.0'}
+
   '@aws-sdk/signature-v4-multi-region@3.888.0':
     resolution: {integrity: sha512-FmOHUaJzEhqfcpyh0L7HLwYcYopK13Dbmuf+oUyu56/RoeB1nLnltH1VMQVj8v3Am2IwlGR+/JpFyrdkErN+cA==}
     engines: {node: '>=18.0.0'}
@@ -274,6 +303,10 @@ packages:
 
   '@aws-sdk/util-endpoints@3.887.0':
     resolution: {integrity: sha512-kpegvT53KT33BMeIcGLPA65CQVxLUL/C3gTz9AzlU/SDmeusBHX4nRApAicNzI/ltQ5lxZXbQn18UczzBuwF1w==}
+    engines: {node: '>=18.0.0'}
+
+  '@aws-sdk/util-format-url@3.887.0':
+    resolution: {integrity: sha512-ABDSP6KsrdD+JC7qwMqUpLXqPidvfgT+Q+W8sGGuk/IBy7smgZDOdYSZLE4VBbQpH3N/zSJuslAWhL2x37Qwww==}
     engines: {node: '>=18.0.0'}
 
   '@aws-sdk/util-locate-window@3.873.0':
@@ -3495,6 +3528,20 @@ snapshots:
       '@smithy/util-middleware': 4.1.1
       tslib: 2.8.1
 
+  '@aws-sdk/s3-presigned-post@3.888.0':
+    dependencies:
+      '@aws-sdk/client-s3': 3.888.0
+      '@aws-sdk/types': 3.887.0
+      '@aws-sdk/util-format-url': 3.887.0
+      '@smithy/middleware-endpoint': 4.2.1
+      '@smithy/signature-v4': 5.2.1
+      '@smithy/types': 4.5.0
+      '@smithy/util-hex-encoding': 4.1.0
+      '@smithy/util-utf8': 4.1.0
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - aws-crt
+
   '@aws-sdk/signature-v4-multi-region@3.888.0':
     dependencies:
       '@aws-sdk/middleware-sdk-s3': 3.888.0
@@ -3531,6 +3578,13 @@ snapshots:
       '@smithy/types': 4.5.0
       '@smithy/url-parser': 4.1.1
       '@smithy/util-endpoints': 3.1.1
+      tslib: 2.8.1
+
+  '@aws-sdk/util-format-url@3.887.0':
+    dependencies:
+      '@aws-sdk/types': 3.887.0
+      '@smithy/querystring-builder': 4.1.1
+      '@smithy/types': 4.5.0
       tslib: 2.8.1
 
   '@aws-sdk/util-locate-window@3.873.0':
