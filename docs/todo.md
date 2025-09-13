@@ -161,16 +161,16 @@ Codex prompt: Implement policy evaluation with three modes; integrate guard in a
 
 ## 11) Web App (SPA)
 
-- ☐ Vite + React + TypeScript app talking only to BFF
-- ☐ Routes with `react-router-dom`:
-  - ☐ `/login`
-  - ☐ `/albums/:id`
-  - ☐ `/cart`
-  - ☐ `/checkout/result`
-- ☐ State + API: `@reduxjs/toolkit` with RTK Query
-  - ☐ Configure `fetchBaseQuery` with `baseUrl=VITE_BFF_BASE_URL`, `credentials: 'include'`, and `X-CSRF-Token` header
-  - ☐ Expose generated hooks and use tag-based cache invalidation
-- ☐ Vite config: `VITE_BFF_BASE_URL` and dev proxy to BFF
+- ✅ Vite + React + TypeScript app talking only to BFF
+- ✅ Routes with `react-router-dom`:
+  - ✅ `/login`
+  - ✅ `/albums/:id`
+  - ✅ `/cart`
+  - ✅ `/checkout/result`
+- ✅ State + API: `@reduxjs/toolkit` with RTK Query
+  - ✅ Configure `fetchBaseQuery` with `baseUrl=VITE_BFF_BASE_URL`, `credentials: 'include'`, and `X-CSRF-Token` header
+  - ✅ Expose generated hooks and use tag-based cache invalidation
+- ✅ Vite config: `VITE_BFF_BASE_URL` and dev proxy to BFF
 
 Codex prompt: Scaffold a Vite React app with the routes above, add Redux Toolkit store and an RTK Query API slice configured with credentials + CSRF header to call the BFF, and configure a Vite dev proxy to the BFF origin.
 
