@@ -185,7 +185,7 @@ When Codex (or another AI agent) generates code, it should:
 2. **Follow coding rules** (strict TS, zod validation, async/await, no any).
 3. **Respect architecture** (BFF → API → Services, ports, events).
 4. **Produce tests** for new domain logic.
-5. **Verify correctness** so that generated code does not contain errors.
+5. **Verify correctness** so that generated code does not contain errors. Run `scripts/build.sh` to verify that nothing is broken.
 6. **Document** new features in `docs/` as needed.
 
 ---
