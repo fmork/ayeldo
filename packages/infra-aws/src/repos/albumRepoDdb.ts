@@ -1,0 +1,45 @@
+import type { IAlbumRepo } from '@ayeldo/core';
+import { Album } from '@ayeldo/core';
+import type { TenantId } from '@ayeldo/types';
+import { pkTenant, skAlbum } from '../keys';
+import type { DdbClient } from '../ddbClient';
+import { fromAlbumItem, toAlbumItem, type AlbumItem } from '../marshalling';
+
+export interface AlbumRepoDdbProps {
+  readonly tableName: string;
+  readonly client: DdbClient;
+}
+
+export class AlbumRepoDdb implements IAlbumRepo {
+  private readonly tableName: string;
+  private readonly client: DdbClient;
+  constructor(props: AlbumRepoDdbProps) {
+    this.tableName = props.tableName;
+    this.client = props.client;
+  }
+
+  async getById(tenantId: TenantId, id: string): Promise<Album | undefined> {
+    const { item } = await this.client.get<AlbumItem>({
+      tableName: this.tableName,
+      key: { PK: pkTenant(tenantId), SK: skAlbum(id) },
+    });
+    return item ? new Album(fromAlbumItem(item)) : undefined;
+  }
+
+  async put(entity: Album): Promise<void> {
+    const dto = {
+      id: entity.id,
+      tenantId: entity.tenantId,
+      title: entity.title,
+      ...(entity.description !== undefined
+        ? { description: entity.description }
+        : {}),
+      ...(entity.parentAlbumId !== undefined
+        ? { parentAlbumId: entity.parentAlbumId }
+        : {}),
+      createdAt: entity.createdAt,
+    };
+    const item = toAlbumItem(dto);
+    await this.client.put({ tableName: this.tableName, item });
+  }
+}

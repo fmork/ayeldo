@@ -71,18 +71,15 @@ Codex prompt: Implement manual DI (no container). Create `src/init.ts` per app t
 
 ## 4) DynamoDB Single-Table (`packages/infra-aws`)
 
-- ☐ Document design in `docs/dynamo.md`
-- ☐ Repositories:
-  - ☐ `AlbumRepoDdb`
-  - ☐ `ImageRepoDdb`
-  - ☐ `PriceListRepoDdb`
-  - ☐ `CartRepoDdb`
-  - ☐ `OrderRepoDdb`
-- ☐ Secondary indexes:
-  - ☐ GSI1 for album tree
-  - ☐ GSI2 for images by album
-  - ☐ GSI3 for orders by user
-- ☐ Marshalling helpers
+- ✅ Document design in `docs/dynamo.md`
+- ✅ Repositories (get/put):
+  - ✅ `AlbumRepoDdb`
+  - ✅ `ImageRepoDdb`
+  - ✅ `PriceListRepoDdb`
+  - ✅ `CartRepoDdb`
+  - ✅ `OrderRepoDdb`
+- ✅ Marshalling helpers (`keys.ts`, `marshalling.ts`)
+- ☐ Secondary indexes: GSI wiring in CDK and queries
 - ☐ LocalStack integration tests
 
 Codex prompt: Implement DynamoDB repositories with strict key prefixes and LocalStack tests; no use of `any`, all fields typed.

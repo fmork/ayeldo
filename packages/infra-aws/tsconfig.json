@@ -4,8 +4,12 @@
     "outDir": "dist",
     "rootDir": "src",
     "composite": true,
-    "declaration": true
+    "declaration": true,
+    "disableSourceOfProjectReferenceRedirect": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "references": [
+    { "path": "../types" },
+    { "path": "../core" }
+  ]
 }
-
