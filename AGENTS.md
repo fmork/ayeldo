@@ -42,7 +42,10 @@ Use the `ILogWriter` interface from `@fmork/backend-core` for all logging. Insta
 
 ### Outgoing HTTP requests
 
-Code that needs to make HTTP requests should take a dependency on `HttpClient` from `@fmork/backend-core`. The type is described in `docs/type-snapshots/HttpClient.d.ts`. DI should inject an instance of `AxiosHttpClient`.
+Code that needs to make HTTP requests should take a dependency on `HttpClient` from `@fmork/backend-core`. The type is described in `docs/type-snapshots/HttpClient.d.ts`.
+
+- Backend (BFF/API/Services): inject an `HttpClient` implementation (Axios or fetch/undici-based) via manual DI.
+- Frontend (Web/Vite): use a small typed fetch wrapper that calls only the BFF with `credentials: 'include'` and an `X-CSRF-Token` header.
 
 ### TypeScript Best Practices
 
@@ -126,6 +129,13 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
   - Do not use a DI container framework.
   - Create an `init.ts` in `src/` for each project (`bff`, `api`, `services`) that wires dependencies explicitly and returns singletons.
   - Pass dependencies through constructors and keep runtime instances to one per process where appropriate.
+
+- **Frontend (React/Vite)**
+  - React 18 + Vite + TypeScript (strict). Target modern browsers.
+  - Routing with `react-router-dom` for: `/login`, `/albums/:id`, `/cart`, `/checkout/result`.
+  - API access via a typed fetch wrapper that talks only to the BFF. Always send `credentials: 'include'` and an `X-CSRF-Token` header.
+  - Configuration via Vite env (`VITE_BFF_BASE_URL`); in dev, set a Vite proxy to the BFF origin to simplify CORS and cookie forwarding.
+  - Do not expose OIDC tokens in the browser. BFF issues and manages HttpOnly session cookies.
 
 - **Handler philosophy**
   - BFF and API handlers should be **thin**.
