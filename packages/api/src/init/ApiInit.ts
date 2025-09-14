@@ -11,9 +11,10 @@ import {
 import { Server } from '@fmork/backend-core/dist/server';
 import { ReferenceClaimAuthorizedApiController } from '../controllers/referenceClaimAuthorizedApiController';
 import { CartController } from '../controllers/cartController';
-import { CartRepoDdb, PriceListRepoDdb, DdbDocumentClientAdapter, EventBridgePublisher } from '@ayeldo/infra-aws';
+import { CartRepoDdb, PriceListRepoDdb, DdbDocumentClientAdapter, EventBridgePublisher, OrderRepoDdb } from '@ayeldo/infra-aws';
 import type { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
+import { OrderController } from '../controllers/orderController';
 
 // Root logger using @ayeldo/utils pino adapter (implements ILogWriter shape)
 export const logWriter: ILogWriter = createRootLogger('api', 'info');
@@ -46,6 +47,7 @@ const ddbEndpoint = process.env['DDB_ENDPOINT'];
 const ddb = new DdbDocumentClientAdapter({ region, ...(ddbEndpoint ? { endpoint: ddbEndpoint } : {}) });
 const cartRepo = new CartRepoDdb({ tableName, client: ddb });
 const priceListRepo = new PriceListRepoDdb({ tableName, client: ddb });
+const orderRepo = new OrderRepoDdb({ tableName, client: ddb });
 // Event publisher (EventBridge)
 const ebClient = getEventBridgeClient(region) as unknown as EventBridgeClient;
 const eventPublisher = new EventBridgePublisher({ client: ebClient, eventBusName });
@@ -72,13 +74,21 @@ export const cartController = new CartController({
   publisher: eventPublisher,
 });
 
+export const orderController = new OrderController({
+  baseUrl: '',
+  logWriter,
+  cartRepo,
+  priceListRepo,
+  orderRepo,
+});
+
 const requestLogger = new RequestLogMiddleware({ logWriter });
 const serverPort: number = process.env['PORT']
   ? Number.parseInt(process.env['PORT'] as string, 10)
   : 3000;
 
 export const server = new Server({
-  controllers: [referencePublicApiController, referenceClaimAuthorizedApiController, cartController],
+  controllers: [referencePublicApiController, referenceClaimAuthorizedApiController, cartController, orderController],
   port: serverPort,
   requestLogger,
   logWriter,

@@ -1,0 +1,47 @@
+import { z } from 'zod';
+import type { ILogWriter } from '@fmork/backend-core/dist/logging';
+import { PublicController } from '@fmork/backend-core/dist/controllers';
+import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
+import { createOrderFromCart } from '../handlers/orders';
+import type { ICartRepo, IOrderRepo, IPriceListRepo } from '@ayeldo/core';
+import { TieredPricingEngine } from '@ayeldo/core';
+
+export interface OrderControllerProps {
+  readonly baseUrl: string;
+  readonly logWriter: ILogWriter;
+  readonly cartRepo: ICartRepo;
+  readonly priceListRepo: IPriceListRepo;
+  readonly orderRepo: IOrderRepo;
+}
+
+export class OrderController extends PublicController {
+  private readonly cartRepo: ICartRepo;
+  private readonly priceListRepo: IPriceListRepo;
+  private readonly orderRepo: IOrderRepo;
+  private readonly engine: TieredPricingEngine;
+
+  public constructor(props: OrderControllerProps) {
+    super(props.baseUrl, props.logWriter);
+    this.cartRepo = props.cartRepo;
+    this.priceListRepo = props.priceListRepo;
+    this.orderRepo = props.orderRepo;
+    this.engine = new TieredPricingEngine();
+  }
+
+  public initialize(): HttpRouter {
+    // POST /tenants/:tenantId/carts/:cartId/order — create order from cart
+    this.addPost('/tenants/:tenantId/carts/:cartId/order', async (req, res) => {
+      const params = z.object({ tenantId: z.string().min(1), cartId: z.string().min(1) }).parse(
+        (req as unknown as { params: { tenantId: string; cartId: string } }).params,
+      );
+      await this.performRequest(
+        () => createOrderFromCart(params, { cartRepo: this.cartRepo, priceListRepo: this.priceListRepo, orderRepo: this.orderRepo, engine: this.engine }),
+        res,
+        () => 201,
+      );
+    });
+
+    return this.getRouter();
+  }
+}
+
