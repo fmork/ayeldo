@@ -2,10 +2,13 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": ".",
-    "composite": false,
-    "skipLibCheck": true
+    "target": "es2022",
+    "baseUrl": "./",
+    "strictPropertyInitialization": false
   },
-  "include": ["src/**/*", "bin/**/*"],
-  "exclude": ["dist"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts"
+  ]
 }
