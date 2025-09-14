@@ -18,6 +18,7 @@ import { ReferencePublicApiController } from '../controllers/referencePublicApiC
 import { OrderController } from '../controllers/orderController';
 import { PaymentController } from '../controllers/paymentController';
 import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake';
+import { SignedUrlProviderFake } from '../storage/signedUrlProviderFake';
 
 // Root logger using @ayeldo/utils pino adapter (implements ILogWriter shape)
 export const logWriter: ILogWriter = createRootLogger('api', 'info');
@@ -63,6 +64,8 @@ const ebClient = getEventBridgeClient(region) as unknown as EventBridgeClient;
 const eventPublisher = new EventBridgePublisher({ client: ebClient, eventBusName });
 // Payments provider (Stripe fake)
 const payments = new StripePaymentProviderFake();
+// Download URL provider (fake)
+const download = new SignedUrlProviderFake();
 
 // Instantiate controllers
 export const referencePublicApiController = new ReferencePublicApiController({
@@ -92,6 +95,7 @@ export const orderController = new OrderController({
   cartRepo,
   priceListRepo,
   orderRepo,
+  download,
 });
 
 export const paymentController = new PaymentController({

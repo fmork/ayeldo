@@ -14,3 +14,11 @@ export interface IUploadUrlProvider {
   }): Promise<PresignedPostPayload>;
 }
 
+export interface SignedUrlPayload {
+  readonly url: string;
+  readonly expiresAtIso: string;
+}
+
+export interface IDownloadUrlProvider {
+  getSignedUrl(params: { readonly key: string; readonly expiresSeconds?: number }): Promise<SignedUrlPayload>;
+}

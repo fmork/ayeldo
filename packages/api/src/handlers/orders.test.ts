@@ -1,5 +1,5 @@
 import { describe, expect, test, jest } from '@jest/globals';
-import { createOrderFromCart, getOrder } from './orders';
+import { createOrderFromCart, getOrder, fulfillOrder } from './orders';
 import { TieredPricingEngine } from '@ayeldo/core';
 
 describe('createOrderFromCart', () => {
@@ -91,3 +91,51 @@ describe('getOrder', () => {
   });
 });
 
+describe('fulfillOrder', () => {
+  test('transitions paid to fulfilled and returns a signed URL', async () => {
+    const order = {
+      id: 'o-fulfill',
+      tenantId: 't-fulfill',
+      cartId: 'c1',
+      state: 'paid',
+      lines: [],
+      totalCents: 100,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as const;
+    const put = jest.fn(async () => {});
+    const orderRepo = { getById: async () => order, put } as any;
+    const download = {
+      getSignedUrl: jest.fn(async ({ key }: { key: string }) => ({ url: `https://downloads/${key}`, expiresAtIso: new Date(Date.now() + 60_000).toISOString() })),
+    } as any;
+
+    const out = await fulfillOrder({ tenantId: 't-fulfill', orderId: 'o-fulfill' }, { orderRepo, download });
+    expect(put).toHaveBeenCalledTimes(1);
+    const saved = (put as jest.Mock).mock.calls[0][0];
+    expect(saved.state).toBe('fulfilled');
+    expect(out.downloadUrl).toMatch(/^https:\/\/downloads\//);
+    expect(typeof out.expiresAtIso).toBe('string');
+  });
+
+  test('throws on invalid state transition', async () => {
+    const order = {
+      id: 'o-bad',
+      tenantId: 't-bad',
+      cartId: 'c1',
+      state: 'created',
+      lines: [],
+      totalCents: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as const;
+    const orderRepo = { getById: async () => order, put: jest.fn() } as any;
+    const download = { getSignedUrl: jest.fn() } as any;
+    await expect(fulfillOrder({ tenantId: 't-bad', orderId: 'o-bad' }, { orderRepo, download })).rejects.toThrow();
+  });
+
+  test('throws when order missing', async () => {
+    const orderRepo = { getById: async () => undefined, put: jest.fn() } as any;
+    const download = { getSignedUrl: jest.fn() } as any;
+    await expect(fulfillOrder({ tenantId: 't1', orderId: 'nope' }, { orderRepo, download })).rejects.toThrow('Order not found');
+  });
+});

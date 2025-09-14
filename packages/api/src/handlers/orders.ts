@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import type { ICartRepo, IOrderRepo, IPriceListRepo } from '@ayeldo/core';
-import { Order, TieredPricingEngine } from '@ayeldo/core';
+import type { ICartRepo, IDownloadUrlProvider, IOrderRepo, IPriceListRepo } from '@ayeldo/core';
+import { Order, TieredPricingEngine, nextOrderState, OrderAction } from '@ayeldo/core';
 import type { OrderDto } from '@ayeldo/types';
 import { makeUlid } from '@ayeldo/utils';
 
@@ -75,4 +75,25 @@ export async function getOrder(
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   } as const;
+}
+
+export const fulfillOrderSchema = z.object({ tenantId: z.string().min(1), orderId: z.string().min(1) });
+
+export type FulfillOrderInput = z.infer<typeof fulfillOrderSchema>;
+
+export async function fulfillOrder(
+  input: FulfillOrderInput,
+  deps: { orderRepo: IOrderRepo; download: IDownloadUrlProvider },
+): Promise<{ downloadUrl: string; expiresAtIso: string }> {
+  const { tenantId, orderId } = fulfillOrderSchema.parse(input);
+  const existing = await deps.orderRepo.getById(tenantId, orderId);
+  if (!existing) throw new Error('Order not found');
+
+  const next = nextOrderState(existing.state, OrderAction.Fulfill);
+  const updated = { ...existing, state: next, updatedAt: new Date().toISOString() };
+  await deps.orderRepo.put(updated);
+
+  const key = `tenants/${tenantId}/orders/${orderId}/download.zip`;
+  const signed = await deps.download.getSignedUrl({ key, expiresSeconds: 5 * 60 });
+  return { downloadUrl: signed.url, expiresAtIso: signed.expiresAtIso };
 }
