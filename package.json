@@ -18,7 +18,10 @@
     "test": "jest -c jest.config.ts",
     "test:web": "pnpm --filter apps/web run test",
     "test:packages": "pnpm -r run test",
-    "typecheck": "tsc -b --pretty false"
+    "typecheck": "tsc -b --pretty false",
+    "build:lambdas": "node scripts/build-artifacts.mjs",
+    "build:web": "OUT_DIR=../../infra/cdk/assets/web pnpm --filter @ayeldo/web run build",
+    "build:artifacts": "pnpm run build:lambdas && pnpm run build:web"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
@@ -31,6 +34,7 @@
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "esbuild": "^0.21.5"
   }
 }

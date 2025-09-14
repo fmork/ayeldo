@@ -1,7 +1,6 @@
 import { Duration, Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HttpApi, HttpMethod, CorsHttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import path from 'path';
@@ -14,20 +13,14 @@ export class ApiStack extends Stack {
     const __filename = fileURLToPath(import.meta.url);
     const __dirnameLocal = path.dirname(__filename);
 
-    const handler = new NodejsFunction(this, 'ApiHandler', {
-      entry: path.join(__dirnameLocal, '../../../packages/api/src/functions/http-handler/handler.ts'),
-      handler: 'main',
-      runtime: Runtime.NODEJS_20_X,
+    // Use prebuilt artifact from Option A bundling
+    const assetsDir = path.join(__dirnameLocal, '../../assets/lambdas/api-http-handler');
+    const handler = new lambda.Function(this, 'ApiHandler', {
+      code: lambda.Code.fromAsset(assetsDir),
+      handler: 'index.main',
+      runtime: lambda.Runtime.NODEJS_20_X,
       memorySize: 512,
       timeout: Duration.seconds(15),
-      bundling: {
-        target: 'node20',
-        minify: true,
-        sourceMap: true,
-        // Ensure monorepo paths resolve; include workspace packages
-        // Adjust as needed depending on your packaging strategy
-        externalModules: [],
-      },
       environment: {
         NODE_OPTIONS: '--enable-source-maps',
       },
