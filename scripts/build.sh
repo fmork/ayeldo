@@ -14,6 +14,3 @@ pnpm run typecheck
 
 # Run tests (packages only; web uses vitest separately)
 pnpm run test
-
-# Prebuild deployment artifacts (Lambdas + web assets)
-pnpm run build:artifacts

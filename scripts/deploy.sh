@@ -23,11 +23,9 @@ fi
 
 echo "Deploying environment '$FMORK_SITE_ENVIRONMENT_NAME' in region '$FMORK_SITE_AWS_REGION' in account '$FMORK_SITE_AWS_ACCOUNT_ID'"
 
-cd packages/frontend
+cd apps/web
 
 # Create .env file
-echo "VITE_OIDC_CLIENT_ID=$FMORK_SITE_OIDC_CLIENT_ID" >> .env
-echo "VITE_OIDC_AUTHORITY=$FMORK_SITE_OIDC_AUTHORITY" >> .env
 echo "VITE_BFF_BASE_URL=https://$FMORK_SITE_API_HOST_NAME" >> .env
 echo "VITE_STATIC_SITE_URL=https://$FMORK_SITE_STATIC_HOST_NAME" >> .env
 
@@ -36,10 +34,9 @@ echo ".env-----"
 cat .env
 echo "-----"
 
-# Build the frontend
-pnpm run build
-
-cd ../../packages/infrastructure
+cd ../..
+# Prebuild deployment artifacts (Lambdas + web assets)
+pnpm run build:artifacts
 
 echo
 echo Deploying...
