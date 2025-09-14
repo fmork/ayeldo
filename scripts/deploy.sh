@@ -40,8 +40,9 @@ pnpm run build:artifacts
 
 echo
 echo Deploying...
-pnpm run cdk-synth
-pnpm run cdk-deploy
+cd infra/cdk
+pnpm run synth
+pnpm run deploy
 
 echo
 echo Done.
