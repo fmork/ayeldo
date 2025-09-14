@@ -1,6 +1,8 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/cdk.ts",
+  "app": "npx ts-node --prefer-ts-exts ./bin/cdk.ts",
+  "requireApproval": "never",
   "context": {
-    "@aws-cdk/core:newStyleStackSynthesis": true
+    "@aws-cdk/core:newStyleStackSynthesis": true,
+    "@aws-cdk/aws-cloudfront:defaultSecurityPolicy": "TLSv1.2_2021"
   }
 }
