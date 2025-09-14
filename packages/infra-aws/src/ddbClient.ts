@@ -15,8 +15,26 @@ export interface UpdateParams {
   readonly values?: Record<string, unknown>; // ExpressionAttributeValues
 }
 
+export interface QueryParams {
+  readonly tableName: string;
+  readonly indexName?: string; // optional GSI name
+  readonly keyCondition: string; // KeyConditionExpression
+  readonly names?: Record<string, string>; // ExpressionAttributeNames
+  readonly values: Record<string, unknown>; // ExpressionAttributeValues
+  readonly filter?: string; // FilterExpression
+  readonly scanIndexForward?: boolean; // sort order
+  readonly limit?: number;
+  readonly exclusiveStartKey?: Record<string, unknown>;
+}
+
+export interface QueryResult<TItem extends object> {
+  readonly items: ReadonlyArray<TItem>;
+  readonly lastEvaluatedKey?: Record<string, unknown>;
+}
+
 export interface DdbClient {
   get<TItem extends object>(params: GetParams): Promise<{ item?: TItem }>;
   put<TItem extends object>(params: PutParams<TItem>): Promise<void>;
   update?(params: UpdateParams): Promise<void>;
+  query<TItem extends object>(params: QueryParams): Promise<QueryResult<TItem>>;
 }

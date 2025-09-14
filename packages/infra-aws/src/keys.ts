@@ -45,3 +45,5 @@ export function gsi2ImageByAlbum(albumId: string, imageId: string): Gsi2Key {
   return { GSI2PK: skAlbum(albumId), GSI2SK: skImage(imageId) };
 }
 
+export const GSI1_NAME = 'GSI1' as const; // Album tree (parent -> child)
+export const GSI2_NAME = 'GSI2' as const; // Images by album
