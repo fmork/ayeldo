@@ -1,5 +1,9 @@
 version: 0.2
 
+env:
+  secrets-manager:
+    NODE_AUTH_TOKEN: 'github/read_registry:GITHUB_ACCESS_TOKEN'
+
 phases:
   install:
     runtime-versions:
