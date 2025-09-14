@@ -53,6 +53,7 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
 - Don't use TypeScript enums.
 - Don't export imported variables.
 - Always add type annotations to variables, parameters, and class properties unless they are initialized with literal expressions.
+- Always add access modifiers to members in classes.
 - Always add type annotations to function return types.
 - Don't use TypeScript namespaces.
 - Don't use non-null assertions with the `!` postfix operator.
