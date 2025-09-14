@@ -15,14 +15,12 @@
     "test": "jest -c ../../jest.config.ts --passWithNoTests"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.634.0",
+    "@aws-sdk/lib-dynamodb": "^3.888.0",
     "@aws-sdk/client-eventbridge": "^3.634.0",
     "@aws-sdk/client-s3": "^3.634.0",
     "@aws-sdk/s3-presigned-post": "^3.634.0",
     "@ayeldo/core": "workspace:*",
     "@ayeldo/types": "workspace:*"
-  },
-  "devDependencies": {
-    "@aws-sdk/client-dynamodb": "^3.634.0",
-    "@aws-sdk/lib-dynamodb": "^3.888.0"
   }
 }

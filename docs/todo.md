@@ -112,9 +112,9 @@ Codex prompt: Scaffold image upload endpoints: POST `/images:register`, POST `/i
 
 ## 7) Pricing & Carts
 
-- ☐ Implement cart repo (anonymous session + TTL)
-- ☐ API route: price cart using `TieredPricingEngine`
-- ☐ BFF routes: add/remove/list cart items
+- ✅ Implement cart repo (anonymous session + TTL)
+- ✅ API route: price cart using `TieredPricingEngine`
+- ✅ BFF routes: add/remove/list cart items
 - ☐ Emit `CartUpdated`
 
 Codex prompt: Expose BFF cart endpoints (add/remove/list) that call API for pricing; include CSRF validation.

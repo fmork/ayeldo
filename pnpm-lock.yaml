@@ -131,20 +131,36 @@ importers:
 
   packages/bff:
     dependencies:
+      '@ayeldo/utils':
+        specifier: workspace:*
+        version: link:../utils
       '@fmork/backend-core':
         specifier: ^2.0.0
         version: 2.0.0
+      serverless-http:
+        specifier: ^3.2.0
+        version: 3.2.0
+    devDependencies:
+      '@types/express':
+        specifier: ^5.0.3
+        version: 5.0.3
 
   packages/core: {}
 
   packages/infra-aws:
     dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: ^3.634.0
+        version: 3.888.0
       '@aws-sdk/client-eventbridge':
         specifier: ^3.634.0
         version: 3.888.0
       '@aws-sdk/client-s3':
         specifier: ^3.634.0
         version: 3.888.0
+      '@aws-sdk/lib-dynamodb':
+        specifier: ^3.888.0
+        version: 3.888.0(@aws-sdk/client-dynamodb@3.888.0)
       '@aws-sdk/s3-presigned-post':
         specifier: ^3.634.0
         version: 3.888.0
@@ -154,13 +170,6 @@ importers:
       '@ayeldo/types':
         specifier: workspace:*
         version: link:../types
-    devDependencies:
-      '@aws-sdk/client-dynamodb':
-        specifier: ^3.634.0
-        version: 3.888.0
-      '@aws-sdk/lib-dynamodb':
-        specifier: ^3.888.0
-        version: 3.888.0(@aws-sdk/client-dynamodb@3.888.0)
 
   packages/services:
     dependencies:

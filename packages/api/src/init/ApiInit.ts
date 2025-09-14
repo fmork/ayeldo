@@ -10,6 +10,8 @@ import {
 } from '@fmork/backend-core/dist/security';
 import { Server } from '@fmork/backend-core/dist/server';
 import { ReferenceClaimAuthorizedApiController } from '../controllers/referenceClaimAuthorizedApiController';
+import { CartController } from '../controllers/cartController';
+import { CartRepoDdb, PriceListRepoDdb, DdbDocumentClientAdapter } from '@ayeldo/infra-aws';
 import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
 
 // Root logger using @ayeldo/utils pino adapter (implements ILogWriter shape)
@@ -35,7 +37,15 @@ const claimBasedAuthorizer = new ClaimBasedAuthorizer({
   claimNames: ['cognito:groups', 'groups', 'roles'],
 });
 
-// Instantiate reference controllers
+// DynamoDB repos
+const tableName = process.env['TABLE_NAME'] || 'AppTable';
+const region = process.env['AWS_REGION'] || 'us-east-1';
+const ddbEndpoint = process.env['DDB_ENDPOINT'];
+const ddb = new DdbDocumentClientAdapter({ region, ...(ddbEndpoint ? { endpoint: ddbEndpoint } : {}) });
+const cartRepo = new CartRepoDdb({ tableName, client: ddb });
+const priceListRepo = new PriceListRepoDdb({ tableName, client: ddb });
+
+// Instantiate controllers
 export const referencePublicApiController = new ReferencePublicApiController({
   baseUrl: '',
   jsonUtil,
@@ -49,13 +59,20 @@ export const referenceClaimAuthorizedApiController = new ReferenceClaimAuthorize
   authorizer: claimBasedAuthorizer.createAuthorizer,
 });
 
+export const cartController = new CartController({
+  baseUrl: '',
+  logWriter,
+  cartRepo,
+  priceListRepo,
+});
+
 const requestLogger = new RequestLogMiddleware({ logWriter });
 const serverPort: number = process.env['PORT']
   ? Number.parseInt(process.env['PORT'] as string, 10)
   : 3000;
 
 export const server = new Server({
-  controllers: [referencePublicApiController, referenceClaimAuthorizedApiController],
+  controllers: [referencePublicApiController, referenceClaimAuthorizedApiController, cartController],
   port: serverPort,
   requestLogger,
   logWriter,

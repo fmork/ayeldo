@@ -15,6 +15,11 @@
     "test": "jest -c ../../jest.config.ts --passWithNoTests"
   },
   "dependencies": {
-    "@fmork/backend-core": "^2.0.0"
+    "@fmork/backend-core": "^2.0.0",
+    "@ayeldo/utils": "workspace:*",
+    "serverless-http": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3"
   }
 }
