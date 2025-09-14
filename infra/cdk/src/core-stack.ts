@@ -5,12 +5,13 @@ import {
   AllowedMethods,
   CachePolicy,
   Distribution,
-  OriginAccessIdentity,
+  S3OriginAccessControl,
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
-import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
-import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { AnyPrincipal, Effect, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, CacheControl, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import type { Construct } from 'constructs';
 import fs from 'fs';
@@ -57,10 +58,19 @@ export class CoreStack extends Stack {
       enforceSSL: true,
       removalPolicy: RemovalPolicy.DESTROY, // dev default; adjust in prod
       autoDeleteObjects: true, // dev convenience; remove for prod
+      cors: [
+        {
+          allowedHeaders: ['Authorization'],
+          allowedMethods: [HttpMethods.GET],
+          allowedOrigins: [`https://${props?.domainConfig?.webHost ?? 'website'}`],
+          maxAge: 300,
+        },
+      ],
     });
 
-    const oai = new OriginAccessIdentity(this, 'WebOAI');
-    this.webBucket.grantRead(oai);
+    const originAccessControl = new S3OriginAccessControl(this, 'WebDistributionAccessControl', {
+      description: `OAC for ${props?.domainConfig?.webHost ?? 'website'}`,
+    });
 
     // Optionally attach custom domain + ACM cert (created in us-east-1 via CertStack)
     const distributionExtraProps =
@@ -77,7 +87,9 @@ export class CoreStack extends Stack {
 
     this.webDistribution = new Distribution(this, 'WebDistribution', {
       defaultBehavior: {
-        origin: new S3Origin(this.webBucket, { originAccessIdentity: oai }),
+        origin: S3BucketOrigin.withOriginAccessControl(this.webBucket, {
+          originAccessControl: originAccessControl,
+        }),
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         cachePolicy: CachePolicy.CACHING_OPTIMIZED,
@@ -85,7 +97,49 @@ export class CoreStack extends Stack {
       enableLogging: false,
       comment: 'Web distribution for SPA assets',
       ...distributionExtraProps,
+      errorResponses: [
+        {
+          httpStatus: 404,
+          responseHttpStatus: 200,
+          responsePagePath: '/index.html',
+        },
+        {
+          httpStatus: 403,
+          responseHttpStatus: 200,
+          responsePagePath: '/index.html',
+        },
+      ],
     });
+
+    // Grant CloudFront access to S3 bucket using OAC
+    this.webBucket.addToResourcePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        principals: [new ServicePrincipal('cloudfront.amazonaws.com')],
+        actions: ['s3:GetObject', 's3:GetBucketLocation', 's3:ListBucket'],
+        resources: [this.webBucket.bucketArn, `${this.webBucket.bucketArn}/*`],
+        conditions: {
+          StringEquals: {
+            'AWS:SourceArn': `arn:aws:cloudfront::${Stack.of(this).account}:distribution/${this.webDistribution.distributionId}`,
+          },
+        },
+      }),
+    );
+
+    // Deny direct access to .env file (excluding CloudFront)
+    this.webBucket.addToResourcePolicy(
+      new PolicyStatement({
+        effect: Effect.DENY,
+        principals: [new AnyPrincipal()],
+        actions: ['s3:GetObject'],
+        resources: [`${this.webBucket.bucketArn}/.env`],
+        conditions: {
+          StringNotEquals: {
+            'AWS:SourceArn': `arn:aws:cloudfront::${Stack.of(this).account}:distribution/${this.webDistribution.distributionId}`,
+          },
+        },
+      }),
+    );
 
     // Deploy SPA build artifacts (if present) to S3 and invalidate CloudFront
     // We intentionally do not set explicit resource names (AGENTS.md)
