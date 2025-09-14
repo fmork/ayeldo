@@ -6,18 +6,19 @@
   "scripts": {
     "build": "tsc -b",
     "cdk": "cdk",
-    "synth": "cdk synth",
+    "synth": "cdk synth --verbose",
     "deploy": "cdk deploy"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
-    "aws-cdk-lib": "^2.153.0",
     "constructs": "^10.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
   },
   "dependencies": {
     "aws-cdk": "^2.1029.1",
+    "aws-cdk-lib": "^2.153.0",
+    "constructs": "^10.4.2",
     "source-map-support": "^0.5.13"
   }
 }
