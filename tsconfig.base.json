@@ -2,13 +2,21 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@ayeldo/types": ["packages/types/src"],
-      "@ayeldo/core": ["packages/core/src"],
-      "@ayeldo/utils": ["packages/utils/src"]
+      "@ayeldo/types": [
+        "packages/types/src"
+      ],
+      "@ayeldo/core": [
+        "packages/core/src"
+      ],
+      "@ayeldo/utils": [
+        "packages/utils/src"
+      ]
     },
     "target": "ES2022",
-    "module": "ESNext",
-    "lib": ["ES2022"],
+    "module": "commonjs",
+    "lib": [
+      "ES2022"
+    ],
     "moduleResolution": "Bundler",
     "strict": true,
     "noFallthroughCasesInSwitch": true,
