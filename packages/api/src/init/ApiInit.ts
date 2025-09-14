@@ -15,6 +15,8 @@ import { CartRepoDdb, PriceListRepoDdb, DdbDocumentClientAdapter, EventBridgePub
 import type { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
 import { OrderController } from '../controllers/orderController';
+import { PaymentController } from '../controllers/paymentController';
+import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake';
 
 // Root logger using @ayeldo/utils pino adapter (implements ILogWriter shape)
 export const logWriter: ILogWriter = createRootLogger('api', 'info');
@@ -51,6 +53,8 @@ const orderRepo = new OrderRepoDdb({ tableName, client: ddb });
 // Event publisher (EventBridge)
 const ebClient = getEventBridgeClient(region) as unknown as EventBridgeClient;
 const eventPublisher = new EventBridgePublisher({ client: ebClient, eventBusName });
+// Payments provider (Stripe fake)
+const payments = new StripePaymentProviderFake();
 
 // Instantiate controllers
 export const referencePublicApiController = new ReferencePublicApiController({
@@ -82,13 +86,26 @@ export const orderController = new OrderController({
   orderRepo,
 });
 
+export const paymentController = new PaymentController({
+  baseUrl: '',
+  logWriter,
+  orderRepo,
+  payments,
+});
+
 const requestLogger = new RequestLogMiddleware({ logWriter });
 const serverPort: number = process.env['PORT']
   ? Number.parseInt(process.env['PORT'] as string, 10)
   : 3000;
 
 export const server = new Server({
-  controllers: [referencePublicApiController, referenceClaimAuthorizedApiController, cartController, orderController],
+  controllers: [
+    referencePublicApiController,
+    referenceClaimAuthorizedApiController,
+    cartController,
+    orderController,
+    paymentController,
+  ],
   port: serverPort,
   requestLogger,
   logWriter,

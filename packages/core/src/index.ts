@@ -12,3 +12,4 @@ export * from './services/policyEvaluator';
 export * from './ports/events';
 export * from './ports/analytics';
 export * from './ports/storage';
+export * from './ports/payments';
