@@ -1,4 +1,5 @@
-import { createRootLogger, getEventBridgeClient } from '@ayeldo/utils';
+import { createRootLogger, getEventBridgeClient, loadEnv } from '@ayeldo/utils';
+import { z } from 'zod';
 import { AxiosHttpClient } from '@fmork/backend-core/dist/IO';
 import { JsonUtil } from '@fmork/backend-core/dist/Json';
 import type { ILogWriter } from '@fmork/backend-core/dist/logging';
@@ -40,6 +41,13 @@ const claimBasedAuthorizer = new ClaimBasedAuthorizer({
   logWriter,
   claimNames: ['cognito:groups', 'groups', 'roles'],
 });
+
+// Env
+const env = loadEnv(
+  z.object({
+    STRIPE_WEBHOOK_SECRET: z.string().min(1).default('dev_stripe_webhook_secret'),
+  }),
+);
 
 // DynamoDB repos
 const tableName = process.env['TABLE_NAME'] || 'AppTable';
@@ -91,6 +99,7 @@ export const paymentController = new PaymentController({
   logWriter,
   orderRepo,
   payments,
+  stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
 });
 
 const requestLogger = new RequestLogMiddleware({ logWriter });

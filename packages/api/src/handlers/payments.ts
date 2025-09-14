@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { IOrderRepo, IPaymentProvider } from '@ayeldo/core';
 import { nextOrderState, OrderAction } from '@ayeldo/core';
 import type { CheckoutSession } from '@ayeldo/core';
+import { createHmac } from 'crypto';
 
 export const createCheckoutSessionSchema = z.object({
   tenantId: z.string().min(1),
@@ -39,3 +40,42 @@ export async function createCheckoutSession(
   return { session };
 }
 
+export const stripeWebhookPayloadSchema = z.object({
+  tenantId: z.string().min(1),
+  orderId: z.string().min(1),
+  eventType: z.enum(['payment_succeeded', 'payment_failed']),
+});
+
+export type StripeWebhookPayload = z.infer<typeof stripeWebhookPayloadSchema>;
+
+export interface StripeWebhookDeps {
+  readonly orderRepo: IOrderRepo;
+  readonly signatureHeader: string;
+  readonly secret: string;
+}
+
+function verifyHmacSignature(body: unknown, header: string, secret: string): boolean {
+  const bodyJson: string = JSON.stringify(body);
+  const expected = createHmac('sha256', secret).update(bodyJson).digest('hex');
+  const presented = header.startsWith('sha256=') ? header.slice('sha256='.length) : header;
+  return presented === expected;
+}
+
+export async function handleStripeWebhook(
+  payload: StripeWebhookPayload,
+  deps: StripeWebhookDeps,
+): Promise<{ ok: true }> {
+  const parsed = stripeWebhookPayloadSchema.parse(payload);
+  if (!verifyHmacSignature(parsed, deps.signatureHeader, deps.secret)) {
+    throw new Error('Invalid signature');
+  }
+
+  const existing = await deps.orderRepo.getById(parsed.tenantId, parsed.orderId);
+  if (!existing) throw new Error('Order not found');
+
+  const action = parsed.eventType === 'payment_succeeded' ? OrderAction.PaymentSucceeded : OrderAction.PaymentFailed;
+  const next = nextOrderState(existing.state, action);
+  const updated = { ...existing, state: next, updatedAt: new Date().toISOString() };
+  await deps.orderRepo.put(updated);
+  return { ok: true };
+}

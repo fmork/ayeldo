@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { ILogWriter } from '@fmork/backend-core/dist/logging';
 import { PublicController } from '@fmork/backend-core/dist/controllers';
 import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
-import { createCheckoutSession } from '../handlers/payments';
+import { createCheckoutSession, stripeWebhookPayloadSchema, handleStripeWebhook } from '../handlers/payments';
 import type { IOrderRepo, IPaymentProvider } from '@ayeldo/core';
 
 export interface PaymentControllerProps {
@@ -10,16 +10,19 @@ export interface PaymentControllerProps {
   readonly logWriter: ILogWriter;
   readonly orderRepo: IOrderRepo;
   readonly payments: IPaymentProvider;
+  readonly stripeWebhookSecret: string;
 }
 
 export class PaymentController extends PublicController {
   private readonly orderRepo: IOrderRepo;
   private readonly payments: IPaymentProvider;
+  private readonly stripeWebhookSecret: string;
 
   public constructor(props: PaymentControllerProps) {
     super(props.baseUrl, props.logWriter);
     this.orderRepo = props.orderRepo;
     this.payments = props.payments;
+    this.stripeWebhookSecret = props.stripeWebhookSecret;
   }
 
   public initialize(): HttpRouter {
@@ -38,7 +41,21 @@ export class PaymentController extends PublicController {
       );
     });
 
+    // POST /webhooks/stripe — verify signature and update order state
+    this.addPost('/webhooks/stripe', async (req, res) => {
+      const body = stripeWebhookPayloadSchema.parse((req as unknown as { body: unknown }).body);
+      const signatureHeader = (req as unknown as { headers: Record<string, string | string[] | undefined> }).headers[
+        'x-stripe-signature'
+      ];
+      const signature = Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
+      const sig = z.string().min(1).parse(signature);
+      await this.performRequest(
+        () => handleStripeWebhook(body, { orderRepo: this.orderRepo, signatureHeader: sig, secret: this.stripeWebhookSecret }),
+        res,
+        () => 200,
+      );
+    });
+
     return this.getRouter();
   }
 }
-
