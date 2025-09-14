@@ -1,5 +1,6 @@
 import type { StackProps } from 'aws-cdk-lib';
 import { CfnOutput, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import {
   AllowedMethods,
   CachePolicy,
@@ -19,6 +20,7 @@ import type { DomainConfig } from './domain';
 
 export interface CoreStackProps extends StackProps {
   readonly domainConfig?: DomainConfig;
+  readonly certificateArn?: string; // from CertStack (us-east-1)
 }
 
 export class CoreStack extends Stack {
@@ -62,6 +64,19 @@ export class CoreStack extends Stack {
     const oai = new OriginAccessIdentity(this, 'WebOAI');
     this.webBucket.grantRead(oai);
 
+    // Optionally attach custom domain + ACM cert (created in us-east-1 via CertStack)
+    const distributionExtraProps =
+      props?.domainConfig && props?.certificateArn
+        ? {
+            certificate: Certificate.fromCertificateArn(
+              this,
+              'WebCertFromArn',
+              props.certificateArn,
+            ),
+            domainNames: [props.domainConfig.webHost],
+          }
+        : {};
+
     this.webDistribution = new Distribution(this, 'WebDistribution', {
       defaultBehavior: {
         origin: new S3Origin(this.webBucket, { originAccessIdentity: oai }),
@@ -71,6 +86,7 @@ export class CoreStack extends Stack {
       },
       enableLogging: false,
       comment: 'Web distribution for SPA assets',
+      ...distributionExtraProps,
     });
 
     // Deploy SPA build artifacts (if present) to S3 and invalidate CloudFront

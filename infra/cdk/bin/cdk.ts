@@ -3,6 +3,7 @@ import { App, Tags } from 'aws-cdk-lib';
 import 'source-map-support/register.js';
 import { AnalyticsStack } from '../src/analytics-stack';
 import { ApiStack } from '../src/api-stack';
+import { CertStack } from '../src/cert-stack';
 import { CoreStack } from '../src/core-stack';
 import { computeDomainConfig } from '../src/domain';
 import { EventsStack } from '../src/events-stack';
@@ -33,13 +34,31 @@ const region = process.env['CDK_DEFAULT_REGION'] as string | undefined;
 
 const env = account && region ? { env: { account, region } } : {};
 
+// If domain is configured, create a certificate stack in us-east-1 for CloudFront
+let certStack: CertStack | undefined;
+if (domainConfig && account) {
+  certStack = new CertStack(app, `AyeldoCertStack-${envName}`, {
+    env: { account, region: 'us-east-1' },
+    domainConfig,
+    crossRegionReferences: true,
+  });
+  Tags.of(certStack).add('Environment', envName);
+  Tags.of(certStack).add('Service', 'ayeldo');
+}
+
 // Core infra: DynamoDB, S3, CloudFront
 const core = new CoreStack(app, `AyeldoCoreStack-${envName}`, {
   ...(env as { env?: { account?: string; region?: string } }),
   ...(domainConfig ? { domainConfig } : {}),
+  ...(certStack ? { certificateArn: certStack.certificateArn } : {}),
+  crossRegionReferences: true,
 });
 Tags.of(core).add('Environment', envName);
 Tags.of(core).add('Service', 'ayeldo');
+if (certStack) {
+  core.addDependency(certStack);
+}
+if (certStack) core.addDependency(certStack);
 
 // Events (EventBridge bus)
 const events = new EventsStack(app, `AyeldoEventsStack-${envName}`, env);
