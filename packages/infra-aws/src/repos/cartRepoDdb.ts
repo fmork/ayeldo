@@ -13,12 +13,12 @@ export interface CartRepoDdbProps {
 export class CartRepoDdb implements ICartRepo {
   private readonly tableName: string;
   private readonly client: DdbClient;
-  constructor(props: CartRepoDdbProps) {
+  public constructor(props: CartRepoDdbProps) {
     this.tableName = props.tableName;
     this.client = props.client;
   }
 
-  async getById(tenantId: TenantId, id: string): Promise<Cart | undefined> {
+  public async getById(tenantId: TenantId, id: string): Promise<Cart | undefined> {
     const { item } = await this.client.get<CartItem>({
       tableName: this.tableName,
       key: { PK: pkTenant(tenantId), SK: skCart(id) },
@@ -26,7 +26,7 @@ export class CartRepoDdb implements ICartRepo {
     return item ? new Cart(fromCartItem(item)) : undefined;
   }
 
-  async put(entity: Cart): Promise<void> {
+  public async put(entity: Cart): Promise<void> {
     const dto = {
       id: entity.id,
       tenantId: entity.tenantId,

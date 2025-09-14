@@ -13,12 +13,12 @@ export interface StatsRepoDdbProps {
 export class StatsRepoDdb implements IStatsRepo {
   private readonly tableName: string;
   private readonly client: DdbClient;
-  constructor(props: StatsRepoDdbProps) {
+  public constructor(props: StatsRepoDdbProps) {
     this.tableName = props.tableName;
     this.client = props.client;
   }
 
-  async ensureIdempotent(eventId: Ulid, ttlSeconds?: number): Promise<boolean> {
+  public async ensureIdempotent(eventId: Ulid, ttlSeconds?: number): Promise<boolean> {
     const key = { PK: `EVENT#${eventId}`, SK: `EVENT#${eventId}` } as const;
     const { item } = await this.client.get<{ PK: string; SK: string }>({ tableName: this.tableName, key });
     if (item) return false;
@@ -28,7 +28,7 @@ export class StatsRepoDdb implements IStatsRepo {
     return true;
   }
 
-  async incrementMetric(metric: string, params: { tenantId: TenantId; subjectId: string; occurredAtIso?: string; delta?: number }): Promise<void> {
+  public async incrementMetric(metric: string, params: { tenantId: TenantId; subjectId: string; occurredAtIso?: string; delta?: number }): Promise<void> {
     const pk = `STAT#${metric}#TENANT#${params.tenantId}`;
     const sk = `SUBJECT#${params.subjectId}`;
     const delta = params.delta ?? 1;
@@ -46,4 +46,3 @@ export class StatsRepoDdb implements IStatsRepo {
     });
   }
 }
-

@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
 
 export class CoreStack extends Stack {
-  readonly table: Table;
+  public readonly table: Table;
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);

@@ -7,23 +7,23 @@ import pino, { type Logger as PinoLogger } from 'pino';
 export class PinoLogWriter {
   private readonly logger: PinoLogger;
 
-  constructor(logger?: PinoLogger) {
+  public constructor(logger?: PinoLogger) {
     this.logger = logger ?? pino();
   }
 
-  debug(text: string): void {
+  public debug(text: string): void {
     this.logger.debug(text);
   }
 
-  info(text: string): void {
+  public info(text: string): void {
     this.logger.info(text);
   }
 
-  warn(text: string): void {
+  public warn(text: string): void {
     this.logger.warn(text);
   }
 
-  error(text: string, error: Error): void {
+  public error(text: string, error: Error): void {
     this.logger.error(error, text);
   }
 
@@ -32,9 +32,8 @@ export class PinoLogWriter {
    * Note: ILogWriter does not expose child; we keep this internal helper
    * to support request-scoped loggers without changing the interface.
    */
-  createChild(bindings: Record<string, unknown>): PinoLogWriter {
+  public createChild(bindings: Record<string, unknown>): PinoLogWriter {
     const child = this.logger.child(bindings);
     return new PinoLogWriter(child);
   }
 }
-

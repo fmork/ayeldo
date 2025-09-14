@@ -13,12 +13,12 @@ export interface OrderRepoDdbProps {
 export class OrderRepoDdb implements IOrderRepo {
   private readonly tableName: string;
   private readonly client: DdbClient;
-  constructor(props: OrderRepoDdbProps) {
+  public constructor(props: OrderRepoDdbProps) {
     this.tableName = props.tableName;
     this.client = props.client;
   }
 
-  async getById(tenantId: TenantId, id: string): Promise<Order | undefined> {
+  public async getById(tenantId: TenantId, id: string): Promise<Order | undefined> {
     const { item } = await this.client.get<OrderItem>({
       tableName: this.tableName,
       key: { PK: pkTenant(tenantId), SK: skOrder(id) },
@@ -26,7 +26,7 @@ export class OrderRepoDdb implements IOrderRepo {
     return item ? new Order(fromOrderItem(item)) : undefined;
   }
 
-  async put(entity: Order): Promise<void> {
+  public async put(entity: Order): Promise<void> {
     const dto = {
       id: entity.id,
       tenantId: entity.tenantId,
@@ -41,4 +41,3 @@ export class OrderRepoDdb implements IOrderRepo {
     await this.client.put({ tableName: this.tableName, item });
   }
 }
-

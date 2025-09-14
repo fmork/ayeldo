@@ -13,13 +13,13 @@ export class EventBridgePublisher implements IEventPublisher {
   private readonly eventBusName: string;
   private readonly source: string;
 
-  constructor(props: EventBridgePublisherProps) {
+  public constructor(props: EventBridgePublisherProps) {
     this.client = props.client;
     this.eventBusName = props.eventBusName;
     this.source = props.source ?? 'ayeldo.domain';
   }
 
-  async publish<TType extends string, TPayload extends object>(event: EventEnvelope<TType, TPayload>): Promise<void> {
+  public async publish<TType extends string, TPayload extends object>(event: EventEnvelope<TType, TPayload>): Promise<void> {
     const command = new PutEventsCommand({
       Entries: [
         {
@@ -34,4 +34,3 @@ export class EventBridgePublisher implements IEventPublisher {
     await this.client.send(command);
   }
 }
-

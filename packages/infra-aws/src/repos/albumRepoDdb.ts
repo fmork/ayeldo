@@ -13,12 +13,12 @@ export interface AlbumRepoDdbProps {
 export class AlbumRepoDdb implements IAlbumRepo {
   private readonly tableName: string;
   private readonly client: DdbClient;
-  constructor(props: AlbumRepoDdbProps) {
+  public constructor(props: AlbumRepoDdbProps) {
     this.tableName = props.tableName;
     this.client = props.client;
   }
 
-  async getById(tenantId: TenantId, id: string): Promise<Album | undefined> {
+  public async getById(tenantId: TenantId, id: string): Promise<Album | undefined> {
     const { item } = await this.client.get<AlbumItem>({
       tableName: this.tableName,
       key: { PK: pkTenant(tenantId), SK: skAlbum(id) },
@@ -26,7 +26,7 @@ export class AlbumRepoDdb implements IAlbumRepo {
     return item ? new Album(fromAlbumItem(item)) : undefined;
   }
 
-  async listChildren(tenantId: TenantId, parentAlbumId: string): Promise<readonly Album[]> {
+  public async listChildren(tenantId: TenantId, parentAlbumId: string): Promise<readonly Album[]> {
     const tenantPk = pkTenant(tenantId);
     const parentKey = skAlbum(parentAlbumId);
     const { items } = await this.client.query<AlbumItem>({
@@ -41,7 +41,7 @@ export class AlbumRepoDdb implements IAlbumRepo {
     return items.map((i) => new Album(fromAlbumItem(i)));
   }
 
-  async put(entity: Album): Promise<void> {
+  public async put(entity: Album): Promise<void> {
     const dto = {
       id: entity.id,
       tenantId: entity.tenantId,

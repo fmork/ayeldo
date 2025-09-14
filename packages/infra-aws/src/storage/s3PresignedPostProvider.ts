@@ -11,12 +11,12 @@ export class S3PresignedPostProvider implements IUploadUrlProvider {
   private readonly bucketName: string;
   private readonly client: S3Client;
 
-  constructor(props: S3PresignedPostProviderProps) {
+  public constructor(props: S3PresignedPostProviderProps) {
     this.bucketName = props.bucketName;
     this.client = props.client;
   }
 
-  async createPresignedPost(params: {
+  public async createPresignedPost(params: {
     readonly key: string;
     readonly contentType: string;
     readonly expiresSeconds?: number;
@@ -45,4 +45,3 @@ export class S3PresignedPostProvider implements IUploadUrlProvider {
     };
   }
 }
-

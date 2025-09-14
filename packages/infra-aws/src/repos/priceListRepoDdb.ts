@@ -13,12 +13,12 @@ export interface PriceListRepoDdbProps {
 export class PriceListRepoDdb implements IPriceListRepo {
   private readonly tableName: string;
   private readonly client: DdbClient;
-  constructor(props: PriceListRepoDdbProps) {
+  public constructor(props: PriceListRepoDdbProps) {
     this.tableName = props.tableName;
     this.client = props.client;
   }
 
-  async getById(tenantId: TenantId, id: string): Promise<PriceList | undefined> {
+  public async getById(tenantId: TenantId, id: string): Promise<PriceList | undefined> {
     const { item } = await this.client.get<PriceListItem>({
       tableName: this.tableName,
       key: { PK: pkTenant(tenantId), SK: skPriceList(id) },
@@ -26,7 +26,7 @@ export class PriceListRepoDdb implements IPriceListRepo {
     return item ? new PriceList(fromPriceListItem(item)) : undefined;
   }
 
-  async put(entity: PriceList): Promise<void> {
+  public async put(entity: PriceList): Promise<void> {
     const dto = {
       id: entity.id,
       tenantId: entity.tenantId,

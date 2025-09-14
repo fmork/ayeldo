@@ -11,12 +11,12 @@ export class AnalyticsConsumer {
   private readonly stats: IStatsRepo;
   private readonly logger: PinoLogWriter;
 
-  constructor(props: AnalyticsConsumerProps) {
+  public constructor(props: AnalyticsConsumerProps) {
     this.stats = props.statsRepo;
     this.logger = props.logger;
   }
 
-  async handle(event: EventEnvelope<string, any>): Promise<void> {
+  public async handle(event: EventEnvelope<string, any>): Promise<void> {
     const first = await this.stats.ensureIdempotent(event.id, 7 * 24 * 3600);
     if (!first) {
       this.logger.debug(`analytics: duplicate event ${event.id}, skipping`);
@@ -72,4 +72,3 @@ export class AnalyticsConsumer {
     }
   }
 }
-

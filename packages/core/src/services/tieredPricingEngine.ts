@@ -8,7 +8,7 @@ export interface PriceCartResult {
 
 /** Prices a cart by SKU, producing order lines and a total. */
 export class TieredPricingEngine {
-  priceCart(params: { cart: CartDto; priceList: PriceListDto }): PriceCartResult {
+  public priceCart(params: { cart: CartDto; priceList: PriceListDto }): PriceCartResult {
     const { cart, priceList } = params;
     const priceBySku: Record<string, number> = Object.create(null);
     for (const item of priceList.items) {

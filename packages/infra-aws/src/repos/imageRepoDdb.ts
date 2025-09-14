@@ -13,12 +13,12 @@ export interface ImageRepoDdbProps {
 export class ImageRepoDdb implements IImageRepo {
   private readonly tableName: string;
   private readonly client: DdbClient;
-  constructor(props: ImageRepoDdbProps) {
+  public constructor(props: ImageRepoDdbProps) {
     this.tableName = props.tableName;
     this.client = props.client;
   }
 
-  async getById(tenantId: TenantId, id: string): Promise<Image | undefined> {
+  public async getById(tenantId: TenantId, id: string): Promise<Image | undefined> {
     const { item } = await this.client.get<ImageItem>({
       tableName: this.tableName,
       key: { PK: pkTenant(tenantId), SK: skImage(id) },
@@ -26,7 +26,7 @@ export class ImageRepoDdb implements IImageRepo {
     return item ? new Image(fromImageItem(item)) : undefined;
   }
 
-  async listByAlbum(tenantId: TenantId, albumId: string): Promise<readonly Image[]> {
+  public async listByAlbum(tenantId: TenantId, albumId: string): Promise<readonly Image[]> {
     const tenantPk = pkTenant(tenantId);
     const albumKey = skAlbum(albumId);
     const { items } = await this.client.query<ImageItem>({
@@ -41,7 +41,7 @@ export class ImageRepoDdb implements IImageRepo {
     return items.map((i) => new Image(fromImageItem(i)));
   }
 
-  async put(entity: Image): Promise<void> {
+  public async put(entity: Image): Promise<void> {
     const dto = {
       id: entity.id,
       tenantId: entity.tenantId,
