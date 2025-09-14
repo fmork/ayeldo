@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+echo "GitHub Access Token is set: ${GITHUB_ACCESS_TOKEN:+yes}"
+
 # Install workspace dependencies deterministically (single pass)
 pnpm install --frozen-lockfile --prefer-offline
 
