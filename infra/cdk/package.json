@@ -7,7 +7,7 @@
     "build": "tsc -b",
     "cdk": "cdk",
     "synth": "cdk synth --verbose",
-    "deploy": "cdk deploy"
+    "deploy": "cdk deploy --all --require-approval never"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
