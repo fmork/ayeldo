@@ -1,14 +1,13 @@
-import { randomUUID } from 'node:crypto';
-import { describe, beforeAll, afterAll, it, expect } from '@jest/globals';
 import { Album, Image } from '@ayeldo/core';
 import type { DdbClient, QueryParams, QueryResult } from '../ddbClient';
 import { AlbumRepoDdb } from '../repos/albumRepoDdb';
 import { ImageRepoDdb } from '../repos/imageRepoDdb';
 
 // Only run when LocalStack is available
-const hasLocalstack = !!process.env.LOCALSTACK_URL;
-const ddbEndpoint = process.env.LOCALSTACK_URL ?? '';
-const region = process.env.AWS_REGION ?? 'us-east-1';
+const env = ((globalThis as unknown as { process?: { env?: Record<string, string> } }).process?.env ?? {}) as Record<string, string>;
+const hasLocalstack = !!env.LOCALSTACK_URL;
+const ddbEndpoint = env.LOCALSTACK_URL ?? '';
+const region = env.AWS_REGION ?? 'us-east-1';
 
 // Wrap AWS SDK v3 as a DdbClient implementation
 class SdkDdbClient implements DdbClient {
@@ -45,7 +44,7 @@ class SdkDdbClient implements DdbClient {
     const out = await doc.send(
       new GetCommand({ TableName: params.tableName, Key: { PK: params.key.PK, SK: params.key.SK } })
     );
-    return { item: out.Item as TItem | undefined };
+    return out.Item ? { item: out.Item as TItem } : {};
   }
 
   async put<TItem extends object>(params: { tableName: string; item: TItem }): Promise<void> {
@@ -104,8 +103,6 @@ async function createTableWithGsis(tableName: string, endpoint: string, regionNa
         { AttributeName: 'SK', AttributeType: 'S' },
         { AttributeName: 'GSI1PK', AttributeType: 'S' },
         { AttributeName: 'GSI1SK', AttributeType: 'S' },
-        { AttributeName: 'GSI2PK', AttributeType: 'S' },
-        { AttributeName: 'GSI2SK', AttributeType: 'S' },
       ],
       KeySchema: [
         { AttributeName: 'PK', KeyType: 'HASH' },
@@ -117,14 +114,6 @@ async function createTableWithGsis(tableName: string, endpoint: string, regionNa
           KeySchema: [
             { AttributeName: 'GSI1PK', KeyType: 'HASH' },
             { AttributeName: 'GSI1SK', KeyType: 'RANGE' },
-          ],
-          Projection: { ProjectionType: 'ALL' },
-        },
-        {
-          IndexName: 'GSI2',
-          KeySchema: [
-            { AttributeName: 'GSI2PK', KeyType: 'HASH' },
-            { AttributeName: 'GSI2SK', KeyType: 'RANGE' },
           ],
           Projection: { ProjectionType: 'ALL' },
         },
@@ -151,7 +140,7 @@ async function deleteTable(tableName: string, endpoint: string, regionName: stri
 const maybeDescribe: typeof describe = hasLocalstack ? describe : describe.skip;
 
 maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
-  const tableName = `AyeldoTest-${Date.now()}-${randomUUID().slice(0, 8)}`;
+  const tableName = `AyeldoTest-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   const tenantA = 'tenantA';
   const tenantB = 'tenantB';
   const now = new Date().toISOString();
@@ -193,7 +182,7 @@ maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
     expect(ids).toEqual([childId1, childId2].sort());
   });
 
-  it('lists images by album via GSI2 and filters by tenant', async () => {
+  it('lists images by album via GSI1 and filters by tenant', async () => {
     const albumId = 'album1';
     const img1 = 'img1';
     const img2 = 'img2';
@@ -256,4 +245,3 @@ if (!hasLocalstack) {
     });
   });
 }
-

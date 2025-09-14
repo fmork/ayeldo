@@ -24,15 +24,8 @@ export class CoreStack extends Stack {
       projectionType: ProjectionType.ALL,
     });
 
-    // GSI2: Images by album
-    this.table.addGlobalSecondaryIndex({
-      indexName: 'GSI2',
-      partitionKey: { name: 'GSI2PK', type: AttributeType.STRING },
-      sortKey: { name: 'GSI2SK', type: AttributeType.STRING },
-      projectionType: ProjectionType.ALL,
-    });
+    // NOTE: Images by album also use GSI1 with SK prefixed by IMAGE#
 
     new CfnOutput(this, 'TableName', { value: this.table.tableName });
   }
 }
-

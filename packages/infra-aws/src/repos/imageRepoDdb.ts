@@ -1,7 +1,7 @@
 import type { IImageRepo } from '@ayeldo/core';
 import { Image } from '@ayeldo/core';
 import type { TenantId } from '@ayeldo/types';
-import { GSI2_NAME, pkTenant, skAlbum, skImage } from '../keys';
+import { GSI1_NAME, pkTenant, skAlbum, skImage } from '../keys';
 import type { DdbClient } from '../ddbClient';
 import { fromImageItem, toImageItem, type ImageItem } from '../marshalling';
 
@@ -31,9 +31,9 @@ export class ImageRepoDdb implements IImageRepo {
     const albumKey = skAlbum(albumId);
     const { items } = await this.client.query<ImageItem>({
       tableName: this.tableName,
-      indexName: GSI2_NAME,
+      indexName: GSI1_NAME,
       keyCondition: '#gpk = :gpk',
-      names: { '#gpk': 'GSI2PK', '#pk': 'PK' },
+      names: { '#gpk': 'GSI1PK', '#pk': 'PK' },
       values: { ':gpk': albumKey, ':pk': tenantPk },
       filter: '#pk = :pk',
       scanIndexForward: true,

@@ -1,5 +1,5 @@
 import type { AlbumDto, CartDto, ImageDto, OrderDto, PriceListDto } from '@ayeldo/types';
-import { gsi1AlbumChild, gsi2ImageByAlbum, pkTenant, skAlbum, skCart, skImage, skOrder, skPriceList } from './keys';
+import { gsi1AlbumChild, gsi1ImageByAlbum, pkTenant, skAlbum, skCart, skImage, skOrder, skPriceList } from './keys';
 
 export interface BaseItem {
   readonly PK: string;
@@ -27,8 +27,8 @@ export type ImageItem = BaseItem & {
   readonly sizeBytes: number;
   readonly width: number;
   readonly height: number;
-  readonly GSI2PK: string;
-  readonly GSI2SK: string;
+  readonly GSI1PK: string;
+  readonly GSI1SK: string;
 };
 
 export type PriceListItem = BaseItem & {
@@ -105,7 +105,7 @@ export function toImageItem(dto: ImageDto): ImageItem {
     sizeBytes: dto.sizeBytes,
     width: dto.width,
     height: dto.height,
-    ...gsi2ImageByAlbum(dto.albumId, dto.id),
+    ...gsi1ImageByAlbum(dto.albumId, dto.id),
   };
 }
 

@@ -8,6 +8,7 @@
     "disableSourceOfProjectReferenceRedirect": true
   },
   "include": ["src"],
+  "exclude": ["src/**/*.test.ts"],
   "references": [
     { "path": "../types" },
     { "path": "../core" }
