@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { ICartRepo, IDownloadUrlProvider, IOrderRepo, IPriceListRepo } from '@ayeldo/core';
-import { Order, TieredPricingEngine, nextOrderState, OrderAction } from '@ayeldo/core';
+import { Order, type TieredPricingEngine, nextOrderState, OrderAction } from '@ayeldo/core';
 import type { OrderDto } from '@ayeldo/types';
 import { makeUlid } from '@ayeldo/utils';
 

@@ -28,12 +28,32 @@ export interface TokenResponse {
 
 export class OidcClientOpenId {
   private readonly cfg: OidcOpenIdConfig;
-  private readonly client: any;
+  private readonly client: {
+    authorizationUrl: (input: {
+      scope: string;
+      state: string;
+      nonce: string;
+      code_challenge: string;
+      code_challenge_method: string;
+      redirect_uri: string;
+    }) => string;
+    callback: (
+      redirectUri: string,
+      params: { code: string; state: string },
+      checks: { state: string; nonce: string; code_verifier: string }
+    ) => Promise<{
+      access_token?: string;
+      id_token?: string;
+      refresh_token?: string;
+      expires_in?: number;
+      token_type?: string;
+    }>;
+  };
 
   public constructor(cfg: OidcOpenIdConfig) {
     // Lazy require to avoid type resolution issues if not yet installed in dev
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { Issuer } = require('openid-client') as typeof import('openid-client');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/consistent-type-imports
+    const { Issuer } = require('openid-client');
     const issuer = new Issuer({
       issuer: cfg.issuer,
       authorization_endpoint: cfg.authUrl,

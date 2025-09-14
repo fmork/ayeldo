@@ -1,6 +1,7 @@
 import type { ISessionStore, IStateStore } from '../stores/sessionStore';
 import type { SessionRecord, TokenBundle } from '../types/session';
-import { encryptTokens, decryptTokens, randomId, signHs256Jwt, base64url } from './crypto';
+import { encryptTokens, randomId, signHs256Jwt, base64url } from './crypto';
+import * as crypto from 'node:crypto';
 import type { OidcClientOpenId } from './oidcOpenIdClient';
 import type { ILogWriter } from '@fmork/backend-core/dist/logging';
 
@@ -16,7 +17,6 @@ export interface SessionServiceProps {
 }
 
 function toCodeChallenge(verifier: string): string {
-  const crypto = require('node:crypto') as typeof import('node:crypto');
   const hash = crypto.createHash('sha256').update(verifier).digest();
   return base64url(hash);
 }
@@ -76,15 +76,19 @@ export class SessionService {
     const ttl = nowSec + 7 * 24 * 3600; // 7 days default
     const rec: SessionRecord = {
       sid,
-      sub: profile.sub,
-      email: profile.email,
-      name: profile.name,
-      roles: profile['cognito:groups'] ?? profile.roles,
+      sub: profile.sub ?? '',
+      ...(profile.email !== undefined ? { email: profile.email } : {}),
+      ...(profile.name !== undefined ? { name: profile.name } : {}),
+      ...(typeof (profile as Record<string, unknown>)['cognito:groups'] !== 'undefined'
+        ? { roles: (profile as Record<string, unknown>)['cognito:groups'] as readonly string[] }
+        : profile.roles !== undefined
+        ? { roles: profile.roles }
+        : {}),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       ttl,
       tokensEnc: enc,
-    };
+    } as const;
     await this.store.putSession(rec);
     const profileOut: { sub: string; email?: string; name?: string } = { sub: rec.sub };
     if (rec.email !== undefined) profileOut.email = rec.email;
@@ -116,12 +120,12 @@ export class SessionService {
     return signHs256Jwt(this.bffJwtSecretB64, payload);
   }
 
-  private parseIdToken(idToken: string): any {
+  private parseIdToken(idToken: string): { sub?: string; email?: string; name?: string; roles?: readonly string[] } {
     try {
       const parts = idToken.split('.');
       if (parts.length < 2) return {};
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8')) as any;
-      return payload;
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8')) as unknown;
+      return (payload as { sub?: string; email?: string; name?: string; roles?: readonly string[] });
     } catch {
       return {};
     }

@@ -28,7 +28,7 @@ export interface QueryParams {
 }
 
 export interface QueryResult<TItem extends object> {
-  readonly items: ReadonlyArray<TItem>;
+  readonly items: readonly TItem[];
   readonly lastEvaluatedKey?: Record<string, unknown>;
 }
 

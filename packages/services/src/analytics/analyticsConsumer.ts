@@ -1,6 +1,6 @@
 import type { EventEnvelope } from '@ayeldo/types';
 import type { IStatsRepo } from '@ayeldo/core';
-import { PinoLogWriter } from '@ayeldo/utils';
+import type { PinoLogWriter } from '@ayeldo/utils';
 
 export interface AnalyticsConsumerProps {
   readonly statsRepo: IStatsRepo;
@@ -16,7 +16,7 @@ export class AnalyticsConsumer {
     this.logger = props.logger;
   }
 
-  public async handle(event: EventEnvelope<string, any>): Promise<void> {
+  public async handle(event: EventEnvelope<string, unknown>): Promise<void> {
     const first = await this.stats.ensureIdempotent(event.id, 7 * 24 * 3600);
     if (!first) {
       this.logger.debug(`analytics: duplicate event ${event.id}, skipping`);
@@ -25,9 +25,8 @@ export class AnalyticsConsumer {
     try {
       switch (event.type) {
         case 'ViewRecorded': {
-          const subjectId: string | undefined = (event.payload && (event.payload.imageId ?? event.payload.albumId)) as
-            | string
-            | undefined;
+          const p = event.payload as Record<string, unknown>;
+          const subjectId: string | undefined = (p?.['imageId'] as string | undefined) ?? (p?.['albumId'] as string | undefined);
           if (subjectId) {
             await this.stats.incrementMetric('views', {
               tenantId: event.tenantId,
@@ -39,7 +38,8 @@ export class AnalyticsConsumer {
           break;
         }
         case 'DownloadRecorded': {
-          const subjectId: string | undefined = (event.payload && event.payload.imageId) as string | undefined;
+          const p = event.payload as Record<string, unknown>;
+          const subjectId: string | undefined = p?.['imageId'] as string | undefined;
           if (subjectId) {
             await this.stats.incrementMetric('downloads', {
               tenantId: event.tenantId,
@@ -51,7 +51,8 @@ export class AnalyticsConsumer {
           break;
         }
         case 'OrderPaid': {
-          const subjectId: string = (event.payload?.orderId as string | undefined) ?? 'aggregate';
+          const p = event.payload as Record<string, unknown>;
+          const subjectId: string = (p?.['orderId'] as string | undefined) ?? 'aggregate';
           await this.stats.incrementMetric('buys', {
             tenantId: event.tenantId,
             subjectId,

@@ -2,4 +2,5 @@ dist
 node_modules
 coverage
 cdk.out
-
+docs
+infra/cdk/assets

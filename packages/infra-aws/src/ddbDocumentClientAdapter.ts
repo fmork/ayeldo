@@ -12,16 +12,16 @@ export interface DdbDocumentClientAdapterProps {
 export class DdbDocumentClientAdapter implements DdbClient {
   private readonly region: string;
   private readonly endpoint: string | undefined;
-  private docClientPromise: Promise<any> | undefined;
+  private docClientPromise: Promise<unknown> | undefined;
 
   public constructor(props: DdbDocumentClientAdapterProps) {
     this.region = props.region;
     this.endpoint = props.endpoint;
   }
 
-  private async getDoc(): Promise<any> {
+  private async getDoc(): Promise<unknown> {
     if (!this.docClientPromise) {
-      this.docClientPromise = (async () => {
+      this.docClientPromise = (async (): Promise<unknown> => {
         const { DynamoDBClient } = await import('@aws-sdk/client-dynamodb');
         const { DynamoDBDocumentClient } = await import('@aws-sdk/lib-dynamodb');
         const client = new DynamoDBClient({
@@ -38,20 +38,22 @@ export class DdbDocumentClientAdapter implements DdbClient {
   }
 
   public async get<TItem extends object>(params: GetParams): Promise<{ item?: TItem }> {
-    const doc = await this.getDoc();
+    const doc = (await this.getDoc()) as { send: (cmd: unknown) => Promise<unknown> };
     const { GetCommand } = await import('@aws-sdk/lib-dynamodb');
-    const out = await doc.send(new GetCommand({ TableName: params.tableName, Key: params.key }));
+    const out = (await doc.send(new GetCommand({ TableName: params.tableName, Key: params.key }))) as {
+      Item?: unknown;
+    };
     return out.Item ? { item: out.Item as TItem } : {};
   }
 
   public async put<TItem extends object>(params: PutParams<TItem>): Promise<void> {
-    const doc = await this.getDoc();
+    const doc = (await this.getDoc()) as { send: (cmd: unknown) => Promise<unknown> };
     const { PutCommand } = await import('@aws-sdk/lib-dynamodb');
     await doc.send(new PutCommand({ TableName: params.tableName, Item: params.item }));
   }
 
   public async update(params: UpdateParams): Promise<void> {
-    const doc = await this.getDoc();
+    const doc = (await this.getDoc()) as { send: (cmd: unknown) => Promise<unknown> };
     const { UpdateCommand } = await import('@aws-sdk/lib-dynamodb');
     await doc.send(
       new UpdateCommand({
@@ -59,13 +61,13 @@ export class DdbDocumentClientAdapter implements DdbClient {
         Key: params.key,
         UpdateExpression: params.update,
         ExpressionAttributeNames: params.names,
-        ExpressionAttributeValues: params.values as Record<string, any> | undefined,
+        ExpressionAttributeValues: params.values as Record<string, unknown> | undefined,
       })
     );
   }
 
   public async query<TItem extends object>(params: QueryParams): Promise<QueryResult<TItem>> {
-    const doc = await this.getDoc();
+    const doc = (await this.getDoc()) as { send: (cmd: unknown) => Promise<unknown> };
     const { QueryCommand } = await import('@aws-sdk/lib-dynamodb');
     const out = await doc.send(
       new QueryCommand({
@@ -74,13 +76,19 @@ export class DdbDocumentClientAdapter implements DdbClient {
         KeyConditionExpression: params.keyCondition,
         FilterExpression: params.filter,
         ExpressionAttributeNames: params.names,
-        ExpressionAttributeValues: params.values as Record<string, any>,
+        ExpressionAttributeValues: params.values as Record<string, unknown>,
         ScanIndexForward: params.scanIndexForward,
         Limit: params.limit,
-        ExclusiveStartKey: params.exclusiveStartKey as any,
+        ExclusiveStartKey: params.exclusiveStartKey as Record<string, unknown> | undefined,
       })
     );
-    return { items: (out.Items ?? []) as TItem[], lastEvaluatedKey: out.LastEvaluatedKey as any };
+    const outTyped = (out as {
+      Items?: unknown[];
+      LastEvaluatedKey?: Record<string, unknown>;
+    }) ?? { Items: [], LastEvaluatedKey: undefined };
+    const items = (outTyped.Items ?? []) as TItem[];
+    return outTyped.LastEvaluatedKey !== undefined
+      ? { items, lastEvaluatedKey: outTyped.LastEvaluatedKey }
+      : { items };
   }
 }
-

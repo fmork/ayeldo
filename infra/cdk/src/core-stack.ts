@@ -1,5 +1,6 @@
-import { Stack, StackProps, CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import { Stack, CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
+import type { StackProps } from 'aws-cdk-lib';
+import type { Construct } from 'constructs';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
 
 export class CoreStack extends Stack {

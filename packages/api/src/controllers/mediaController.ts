@@ -37,8 +37,10 @@ export class MediaController extends PublicController {
 
     // GET /tenants/:tenantId/albums/:albumId
     this.addGet('/tenants/:tenantId/albums/:albumId', async (req, res) => {
-      const params = z.object({ tenantId: z.string().min(1), albumId: z.string().min(1) }).parse((req as any).params);
-      const access = accessQuery.parse((req as any).query);
+      const params = z
+        .object({ tenantId: z.string().min(1), albumId: z.string().min(1) })
+        .parse((req as unknown as { params: { tenantId: unknown; albumId: unknown } }).params);
+      const access = accessQuery.parse((req as unknown as { query: unknown }).query);
       await this.performRequest(
         () => getAlbum({ ...params, access }, { albumRepo: this.albumRepo, policy: this.policy }),
         res,
@@ -48,8 +50,10 @@ export class MediaController extends PublicController {
 
     // GET /tenants/:tenantId/albums/:albumId/images
     this.addGet('/tenants/:tenantId/albums/:albumId/images', async (req, res) => {
-      const params = z.object({ tenantId: z.string().min(1), albumId: z.string().min(1) }).parse((req as any).params);
-      const access = accessQuery.parse((req as any).query);
+      const params = z
+        .object({ tenantId: z.string().min(1), albumId: z.string().min(1) })
+        .parse((req as unknown as { params: { tenantId: unknown; albumId: unknown } }).params);
+      const access = accessQuery.parse((req as unknown as { query: unknown }).query);
       await this.performRequest(
         () => listAlbumImages({ ...params, access }, { imageRepo: this.imageRepo, policy: this.policy }),
         res,
@@ -60,4 +64,3 @@ export class MediaController extends PublicController {
     return this.getRouter();
   }
 }
-

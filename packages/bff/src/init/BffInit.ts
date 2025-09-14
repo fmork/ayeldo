@@ -6,6 +6,7 @@ import { Server } from '@fmork/backend-core/dist/server';
 import { CartBffController } from '../controllers/cartBffController';
 import { getEnv } from '../init';
 import { OidcClientOpenId } from '../services/oidcOpenIdClient';
+import type { OidcOpenIdConfig } from '../services/oidcOpenIdClient';
 import { SessionService } from '../services/sessionService';
 import { MemorySessionStore, MemoryStateStore } from '../stores/sessionStore';
 import { AuthBffController } from '../controllers/authBffController';
@@ -14,7 +15,7 @@ export const logWriter: ILogWriter = createRootLogger('bff', 'info');
 
 const httpClient = new AxiosHttpClient({ logWriter });
 const env = getEnv();
-const oidcCfg: any = {
+const oidcCfg: OidcOpenIdConfig = {
   issuer: env.OIDC_ISSUER_URL,
   authUrl: env.OIDC_AUTH_URL,
   tokenUrl: env.OIDC_TOKEN_URL,
@@ -22,8 +23,8 @@ const oidcCfg: any = {
   clientSecret: env.OIDC_CLIENT_SECRET,
   redirectUri: env.OIDC_REDIRECT_URI,
   scopes: env.OIDC_SCOPES,
+  ...(env.OIDC_JWKS_URL ? { jwksUrl: env.OIDC_JWKS_URL } : {}),
 };
-if (env.OIDC_JWKS_URL) oidcCfg.jwksUrl = env.OIDC_JWKS_URL;
 const oidc = new OidcClientOpenId(oidcCfg);
 const sessions = new SessionService({
   store: new MemorySessionStore(),

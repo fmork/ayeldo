@@ -1,4 +1,4 @@
-import { JsonUtil } from '@fmork/backend-core/dist/Json';
+import type { JsonUtil } from '@fmork/backend-core/dist/Json';
 import { PublicController } from '@fmork/backend-core/dist/controllers';
 import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
 import { z } from 'zod';

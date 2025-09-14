@@ -1,5 +1,6 @@
-import { Duration, Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import { Duration, Stack, CfnOutput } from 'aws-cdk-lib';
+import type { StackProps } from 'aws-cdk-lib';
+import type { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HttpApi, HttpMethod, CorsHttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';

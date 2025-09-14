@@ -30,10 +30,13 @@ export class CartController extends PublicController {
 
   public initialize(): HttpRouter {
     // Simple CSRF header check middleware
-    const requireCsrf = (handler: (req: any, res: any) => Promise<void>) => async (req: any, res: any) => {
-      const token = (req.headers?.['x-csrf-token'] ?? (req.headers as any)?.['X-CSRF-Token']) as string | undefined;
+    const requireCsrf = <R>(handler: (req: unknown, res: R) => Promise<void>) => async (req: unknown, res: R) => {
+      const headers = (req as { headers?: Record<string, unknown> }).headers ?? {};
+      const token = (headers['x-csrf-token'] ?? headers['X-CSRF-Token']) as string | undefined;
       if (!token || token.length === 0) {
-        res.status(403).json({ error: 'Missing CSRF token' });
+        (res as unknown as { status: (code: number) => { json: (body: unknown) => void } })
+          .status(403)
+          .json({ error: 'Missing CSRF token' });
         return;
       }
       await handler(req, res);

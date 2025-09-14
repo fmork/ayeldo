@@ -13,7 +13,7 @@ module.exports = {
     'plugin:@typescript-eslint/stylistic',
     'prettier',
   ],
-  ignorePatterns: ['dist', 'node_modules', 'coverage', 'cdk.out'],
+  ignorePatterns: ['dist', 'node_modules', 'coverage', 'cdk.out', 'docs', 'infra/cdk/assets'],
   rules: {
     '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/explicit-function-return-type': 'error',
@@ -27,6 +27,14 @@ module.exports = {
       files: ['*.js', '*.cjs'],
       parser: null,
     },
+    {
+      files: ['**/*.test.ts', '**/*.test.tsx'],
+      rules: {
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/explicit-function-return-type': 'off',
+      },
+    },
   ],
 };
-

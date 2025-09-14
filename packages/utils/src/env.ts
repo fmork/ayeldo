@@ -11,7 +11,7 @@ export type BaseEnv = z.infer<typeof baseEnvSchema>;
 
 export function loadEnv(): BaseEnv;
 export function loadEnv<TShape extends z.ZodRawShape>(schema: z.ZodObject<TShape>): z.infer<z.ZodObject<TShape>> & BaseEnv;
-export function loadEnv(schema?: z.ZodObject<any>): any {
+export function loadEnv<TShape extends z.ZodRawShape>(schema?: z.ZodObject<TShape>): BaseEnv & z.infer<z.ZodObject<TShape>> {
   const merged = schema ? baseEnvSchema.merge(schema) : baseEnvSchema;
-  return merged.parse(process.env);
+  return merged.parse(process.env) as BaseEnv & z.infer<z.ZodObject<TShape>>;
 }

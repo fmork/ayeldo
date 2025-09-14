@@ -1,14 +1,15 @@
 const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 
 function getRandomBytes(len: number): Uint8Array {
-  if (typeof globalThis !== 'undefined' && (globalThis as any).crypto && typeof (globalThis as any).crypto.getRandomValues === 'function') {
+  const g = globalThis as unknown as { crypto?: { getRandomValues?: (out: Uint8Array) => void } };
+  if (typeof globalThis !== 'undefined' && g.crypto && typeof g.crypto.getRandomValues === 'function') {
     const out = new Uint8Array(len);
-    (globalThis as any).crypto.getRandomValues(out);
+    g.crypto.getRandomValues?.(out);
     return out;
   }
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const nodeCrypto = require('node:crypto') as typeof import('node:crypto');
+    const nodeCrypto = require('node:crypto') as unknown as { randomBytes: (n: number) => Uint8Array };
     return nodeCrypto.randomBytes(len);
   } catch {
     // Fallback — not cryptographically strong but avoids hard dependency
@@ -33,4 +34,3 @@ export function makeUlid(): string {
   }
   return out;
 }
-

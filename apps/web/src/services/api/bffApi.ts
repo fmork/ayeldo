@@ -4,7 +4,8 @@ import { getCsrfToken } from '../csrf/getCsrfToken';
 export const bffApi = createApi({
   reducerPath: 'bffApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: (import.meta as any).env.VITE_BFF_BASE_URL as string | undefined,
+    baseUrl: (import.meta as unknown as { env: Record<string, string | undefined> }).env
+      .VITE_BFF_BASE_URL as string | undefined,
     credentials: 'include',
     prepareHeaders: (headers) => {
       const csrf = getCsrfToken();
@@ -15,4 +16,3 @@ export const bffApi = createApi({
   tagTypes: ['Album', 'Image', 'Cart', 'Order', 'PriceList'],
   endpoints: () => ({}),
 });
-

@@ -1,10 +1,9 @@
-import type { NextFunction, Request, Response } from 'express';
 import { ClaimAuthorizedController } from '@fmork/backend-core/dist/controllers';
 import type { AuthorizationRequirement } from '@fmork/backend-core/dist/security';
 import type { HttpMiddleware, HttpRouter } from '@fmork/backend-core/dist/controllers/http';
 import { z } from 'zod';
 import type { ILogWriter } from '@fmork/backend-core/dist/logging';
-import { JsonUtil } from '@fmork/backend-core/dist/Json';
+import type { JsonUtil } from '@fmork/backend-core/dist/Json';
 
 // Minimal reference admin service to illustrate usage; replace with your real service
 export interface ExampleAdminService<T = unknown> {

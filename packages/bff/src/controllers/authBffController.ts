@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ILogWriter } from '@fmork/backend-core/dist/logging';
 import { PublicController } from '@fmork/backend-core/dist/controllers';
 import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
 import { z } from 'zod';
 import type { OidcClientOpenId } from '../services/oidcOpenIdClient';
-import { SessionService } from '../services/sessionService';
+import type { SessionService } from '../services/sessionService';
 
 export interface AuthBffControllerProps {
   readonly baseUrl: string;

@@ -33,31 +33,31 @@ export type ImageItem = BaseItem & {
 
 export type PriceListItem = BaseItem & {
   readonly type: 'PriceList';
-  readonly items: ReadonlyArray<{ sku: string; label: string; unitPriceCents: number }>;
+  readonly items: readonly { sku: string; label: string; unitPriceCents: number }[];
 };
 
-export type CartItemRecord = { imageId: string; sku: string; quantity: number };
+export interface CartItemRecord { imageId: string; sku: string; quantity: number }
 export type CartItem = BaseItem & {
   readonly type: 'Cart';
   readonly state: CartDto['state'];
   readonly priceListId: string;
-  readonly items: ReadonlyArray<CartItemRecord>;
+  readonly items: readonly CartItemRecord[];
   readonly expiresAt?: string;
   readonly ttl?: number;
 };
 
-export type OrderItemRecord = {
+export interface OrderItemRecord {
   imageId: string;
   sku: string;
   quantity: number;
   unitPriceCents: number;
   lineTotalCents: number;
-};
+}
 export type OrderItem = BaseItem & {
   readonly type: 'Order';
   readonly cartId: string;
   readonly state: OrderDto['state'];
-  readonly lines: ReadonlyArray<OrderItemRecord>;
+  readonly lines: readonly OrderItemRecord[];
   readonly totalCents: number;
 };
 

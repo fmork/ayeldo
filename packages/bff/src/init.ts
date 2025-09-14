@@ -35,9 +35,10 @@ let loggerCache: PinoLogWriter | undefined;
 export function getEnv(): BffEnv {
   if (!envCache) {
     const parsed = loadEnv(bffEnvSchema) as unknown as Record<string, unknown>;
-    if (parsed['OIDC_JWKS_URL'] === undefined) {
+    const hasKey = Object.prototype.hasOwnProperty.call(parsed, 'OIDC_JWKS_URL');
+    if (hasKey && parsed['OIDC_JWKS_URL'] === undefined) {
       // Ensure the optional key is omitted rather than set to undefined to satisfy exactOptionalPropertyTypes
-      delete (parsed as any)['OIDC_JWKS_URL'];
+      delete parsed['OIDC_JWKS_URL'];
     }
     envCache = parsed as unknown as BffEnv;
   }

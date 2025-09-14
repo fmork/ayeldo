@@ -1,4 +1,5 @@
-import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
+import type { EventBridgeClient } from '@aws-sdk/client-eventbridge';
+import { PutEventsCommand } from '@aws-sdk/client-eventbridge';
 import type { IEventPublisher } from '@ayeldo/core';
 import type { EventEnvelope } from '@ayeldo/types';
 
