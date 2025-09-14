@@ -136,12 +136,12 @@ Codex prompt: Implement Stripe session creation and webhook processing with type
 
 ## 9) BFF Auth & Session
 
-- ☐ Route: `/auth/login` → redirect to Cognito
-- ☐ Route: `/auth/callback` → code exchange server-side
-- ☐ Store tokens in `SESSION#sid` (encrypted, TTL)
-- ☐ Issue HttpOnly session cookie
-- ☐ Middleware: `requireSession` + `csrfGuard`
-- ☐ BFF → API auth (short-lived signed JWT)
+- ✅ Route: `/auth/login` → redirect to Cognito
+- ✅ Route: `/auth/callback` → code exchange server-side
+- ✅ Store tokens in `SESSION#sid` (encrypted, TTL)
+- ✅ Issue HttpOnly session cookie
+- ✅ Middleware: `requireSession` + `csrfGuard`
+- ✅ BFF → API auth (short-lived signed JWT)
 
 Codex prompt: Implement BFF session management with Cognito code exchange (no tokens in browser), DynamoDB session store, and CSRF protection.
 

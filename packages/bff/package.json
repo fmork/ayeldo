@@ -17,6 +17,7 @@
   "dependencies": {
     "@fmork/backend-core": "^2.0.0",
     "@ayeldo/utils": "workspace:*",
+    "openid-client": "^5.6.5",
     "serverless-http": "^3.2.0"
   },
   "devDependencies": {

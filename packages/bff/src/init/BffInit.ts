@@ -5,23 +5,52 @@ import { RequestLogMiddleware } from '@fmork/backend-core/dist/middleWare';
 import { Server } from '@fmork/backend-core/dist/server';
 import { CartBffController } from '../controllers/cartBffController';
 import { getEnv } from '../init';
+import { OidcClientOpenId } from '../services/oidcOpenIdClient';
+import { SessionService } from '../services/sessionService';
+import { MemorySessionStore, MemoryStateStore } from '../stores/sessionStore';
+import { AuthBffController } from '../controllers/authBffController';
 
 export const logWriter: ILogWriter = createRootLogger('bff', 'info');
 
 const httpClient = new AxiosHttpClient({ logWriter });
+const env = getEnv();
+const oidcCfg: any = {
+  issuer: env.OIDC_ISSUER_URL,
+  authUrl: env.OIDC_AUTH_URL,
+  tokenUrl: env.OIDC_TOKEN_URL,
+  clientId: env.OIDC_CLIENT_ID,
+  clientSecret: env.OIDC_CLIENT_SECRET,
+  redirectUri: env.OIDC_REDIRECT_URI,
+  scopes: env.OIDC_SCOPES,
+};
+if (env.OIDC_JWKS_URL) oidcCfg.jwksUrl = env.OIDC_JWKS_URL;
+const oidc = new OidcClientOpenId(oidcCfg);
+const sessions = new SessionService({
+  store: new MemorySessionStore(),
+  states: new MemoryStateStore(),
+  encKeyB64: env.SESSION_ENC_KEY,
+  encKid: 'v1',
+  bffJwtSecretB64: env.BFF_JWT_SECRET,
+  issuer: 'bff',
+  audience: 'api',
+  logger: logWriter,
+});
 
 export const cartBffController = new CartBffController({
   baseUrl: '',
   logWriter,
-  apiBaseUrl: getEnv().API_BASE_URL,
+  apiBaseUrl: env.API_BASE_URL,
   httpClient,
+  sessions,
 });
+
+export const authBffController = new AuthBffController({ baseUrl: '', logWriter, oidc, sessions });
 
 const requestLogger = new RequestLogMiddleware({ logWriter });
 const serverPort: number = process.env['PORT'] ? Number.parseInt(process.env['PORT'] as string, 10) : 3001;
 
 export const server = new Server({
-  controllers: [cartBffController],
+  controllers: [authBffController, cartBffController],
   port: serverPort,
   requestLogger,
   logWriter,
@@ -32,4 +61,3 @@ export const server = new Server({
     credentials: true,
   },
 });
-
