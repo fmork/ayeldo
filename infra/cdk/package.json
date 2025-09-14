@@ -2,7 +2,7 @@
   "name": "@ayeldo/infra-cdk",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "build": "tsc -b",
     "cdk": "cdk",

@@ -7,7 +7,6 @@ import type { EventBus } from 'aws-cdk-lib/aws-events';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import type { Construct } from 'constructs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import type { DomainConfig } from './domain';
 
 export interface ApiStackProps extends StackProps {
@@ -20,11 +19,10 @@ export class ApiStack extends Stack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirnameLocal = path.dirname(__filename);
+    const __dirnameLocal = __dirname;
 
     // Use prebuilt artifact from Option A bundling
-    const assetsDir = path.join(__dirnameLocal, '../../assets/lambdas/api-http-handler');
+    const assetsDir = path.resolve(__dirnameLocal, '../assets/lambdas/api-http-handler');
     const handler = new lambda.Function(this, 'ApiHandler', {
       code: lambda.Code.fromAsset(assetsDir),
       handler: 'index.main',
@@ -47,7 +45,7 @@ export class ApiStack extends Stack {
     const api = new HttpApi(this, 'HttpApi', {
       createDefaultStage: true,
       corsPreflight: {
-        allowCredentials: true,
+        allowCredentials: false,
         allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
         allowMethods: [
           CorsHttpMethod.GET,

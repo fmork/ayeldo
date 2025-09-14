@@ -1,5 +1,5 @@
 {
-  "app": "node --loader ts-node/esm --no-warnings=ExperimentalWarning ./bin/cdk.ts",
+  "app": "npx ts-node --prefer-ts-exts bin/app.ts",
   "requireApproval": "never",
   "context": {
     "@aws-cdk/core:newStyleStackSynthesis": true,

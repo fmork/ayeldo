@@ -3,17 +3,12 @@
   "compilerOptions": {
     "outDir": "dist",
     "target": "es2022",
+    "module": "CommonJS",
     "baseUrl": "./",
     "strictPropertyInitialization": false
   },
   "ts-node": {
-    "esm": true,
-    "transpileOnly": true,
-    "compilerOptions": {
-      "module": "ESNext",
-      "moduleResolution": "Bundler",
-      "allowSyntheticDefaultImports": true
-    }
+    "transpileOnly": true
   },
   "exclude": [
     "node_modules",

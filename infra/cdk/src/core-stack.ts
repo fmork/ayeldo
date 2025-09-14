@@ -15,7 +15,6 @@ import { BucketDeployment, CacheControl, Source } from 'aws-cdk-lib/aws-s3-deplo
 import type { Construct } from 'constructs';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import type { DomainConfig } from './domain';
 
 export interface CoreStackProps extends StackProps {
@@ -31,8 +30,7 @@ export class CoreStack extends Stack {
   constructor(scope: Construct, id: string, props?: CoreStackProps) {
     super(scope, id, props);
 
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirnameLocal = path.dirname(__filename);
+    const __dirnameLocal = __dirname;
 
     this.table = new Table(this, 'AppTable', {
       partitionKey: { name: 'PK', type: AttributeType.STRING },
@@ -91,7 +89,7 @@ export class CoreStack extends Stack {
 
     // Deploy SPA build artifacts (if present) to S3 and invalidate CloudFront
     // We intentionally do not set explicit resource names (AGENTS.md)
-    const webAssetsDir = path.join(__dirnameLocal, '../../assets/web');
+    const webAssetsDir = path.resolve(__dirnameLocal, '../assets/web');
     if (fs.existsSync(webAssetsDir)) {
       new BucketDeployment(this, 'DeployWebSpa', {
         sources: [Source.asset(webAssetsDir)],

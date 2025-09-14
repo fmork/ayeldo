@@ -1,14 +1,13 @@
-import { Duration, Stack } from 'aws-cdk-lib';
 import type { StackProps } from 'aws-cdk-lib';
-import type { Construct } from 'constructs';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { Rule } from 'aws-cdk-lib/aws-events';
-import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
+import { Duration, Stack } from 'aws-cdk-lib';
 import type { Table } from 'aws-cdk-lib/aws-dynamodb';
 import type { EventBus } from 'aws-cdk-lib/aws-events';
+import { Rule } from 'aws-cdk-lib/aws-events';
+import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
+import type { Construct } from 'constructs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 export interface AnalyticsStackProps extends StackProps {
   readonly table: Table;
@@ -19,11 +18,10 @@ export class AnalyticsStack extends Stack {
   constructor(scope: Construct, id: string, props: AnalyticsStackProps) {
     super(scope, id, props);
 
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirnameLocal = path.dirname(__filename);
+    const __dirnameLocal = __dirname;
 
     // Prebuilt artifact path for analytics consumer
-    const assetsDir = path.join(__dirnameLocal, '../../assets/lambdas/services-analytics');
+    const assetsDir = path.resolve(__dirnameLocal, '../assets/lambdas/services-analytics');
 
     const fn = new lambda.Function(this, 'AnalyticsConsumer', {
       code: lambda.Code.fromAsset(assetsDir),
