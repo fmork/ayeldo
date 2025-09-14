@@ -124,6 +124,27 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
 
 ---
 
+## 🌐 Environments & Deployment
+
+- **Environments**: Environment is derived from git branch name. The git branch `main` gives enviroment `prod`, any other git branch gives an environment with the git branch name. If the branch name contains 'path separators' (as in `feat/some-feature`), the last segment is the environment name (so, `feat/some-feature` gives the environment name `some-feature`). Name stacks/resources with an `env` suffix.
+- **Base domains**: The deployment environment should have an environment variable FMORK_SITE_DOMAIN_NAME containing the base domain name. This domain is expected to be maintained in AWS Route 53 in the AWS account where the CDK deployment is performed.
+- **Hostnames**: Standardize patterns:
+  - BFF: `{env}-api.{base}`
+  - API: `{env}-backend.{base}`
+  - Web app: `{env}-www.{base}`
+  - Static assets: `{env}-cdn.{base}`
+    **NOTE**: the `{env}-` prefix should be omitted for the `prod` environment.
+- **Routing/Ingress**: CloudFront/APIGW/ALB terminate TLS and route to Lambdas (BFF/API). Use host-based routing (`api.*`, `backend.*`) and health checks (`/-/healthz`, `/-/readyz`).
+- **TLS**: ACM certificates per zone; TLS 1.2+; HSTS for public hosts. Track certificate ownership and renewal windows.
+- **Service access**: Keep API private when possible; BFF calls API via VPC/private link or service integration. Public entrypoint should be BFF only.
+- **Custom domains (tenants)**: Support optional CNAME to tenant host (`{tenant}.bff.{base}`). Require DNS validation flow and ownership checks.
+- **Caching**: Define TTL defaults per path. No-cache for auth/session endpoints; short TTL for personalized responses; long TTL for static assets with immutable hashes.
+- **Deployment strategy**: IaC-managed (e.g., CDK/Terraform). Prefer blue/green or canary for BFF/API. Record DNS TTLs to enable fast cutover/rollback.
+- **Config & secrets**: Store env-scoped config in SSM Parameter Store; rotate secrets (see Security Practices). Never bake secrets into images/artifacts.
+- **Observability**: Standardize logs/metrics/traces per env. Alert on DNS/SSL expiry, 5xx/error rates, latency SLOs.
+
+---
+
 ## 🎨 Style & Structure
 
 - **Dependency Injection: Manual (no container)**
