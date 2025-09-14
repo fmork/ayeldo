@@ -1,7 +1,9 @@
 import { z } from 'zod';
-import type { ICartRepo, IPriceListRepo } from '@ayeldo/core';
+import type { ICartRepo, IPriceListRepo, IEventPublisher } from '@ayeldo/core';
 import { Cart, TieredPricingEngine, type PriceCartResult } from '@ayeldo/core';
 import type { CartDto } from '@ayeldo/types';
+import { makeEventEnvelopeSchema } from '@ayeldo/types';
+import { makeUlid } from '@ayeldo/utils';
 
 export const priceCartInputSchema = z.object({
   tenantId: z.string().min(1),
@@ -38,7 +40,7 @@ export type AddCartItemInput = z.infer<typeof addCartItemSchema>;
 
 export async function addCartItem(
   input: AddCartItemInput,
-  deps: { cartRepo: ICartRepo },
+  deps: { cartRepo: ICartRepo; publisher: IEventPublisher },
 ): Promise<CartDto> {
   const { tenantId, cartId, imageId, sku, quantity } = addCartItemSchema.parse(input);
   const existing = await deps.cartRepo.getById(tenantId, cartId);
@@ -61,6 +63,16 @@ export async function addCartItem(
     ...(existing.expiresAt ? { expiresAt: existing.expiresAt } : {}),
   });
   await deps.cartRepo.put(updatedCart);
+  // Emit CartUpdated event
+  const evt = {
+    id: makeUlid(),
+    type: 'CartUpdated' as const,
+    occurredAt: new Date().toISOString(),
+    tenantId,
+    payload: { cartId },
+  };
+  makeEventEnvelopeSchema('CartUpdated', z.object({ cartId: z.string() })).parse(evt);
+  await deps.publisher.publish(evt);
   return {
     id: updatedCart.id,
     tenantId: updatedCart.tenantId,
@@ -83,7 +95,7 @@ export type RemoveCartItemInput = z.infer<typeof removeCartItemSchema>;
 
 export async function removeCartItem(
   input: RemoveCartItemInput,
-  deps: { cartRepo: ICartRepo },
+  deps: { cartRepo: ICartRepo; publisher: IEventPublisher },
 ): Promise<CartDto> {
   const { tenantId, cartId, imageId, sku } = removeCartItemSchema.parse(input);
   const existing = await deps.cartRepo.getById(tenantId, cartId);
@@ -99,6 +111,16 @@ export async function removeCartItem(
     ...(existing.expiresAt ? { expiresAt: existing.expiresAt } : {}),
   });
   await deps.cartRepo.put(updatedCart);
+  // Emit CartUpdated event
+  const evt = {
+    id: makeUlid(),
+    type: 'CartUpdated' as const,
+    occurredAt: new Date().toISOString(),
+    tenantId,
+    payload: { cartId },
+  };
+  makeEventEnvelopeSchema('CartUpdated', z.object({ cartId: z.string() })).parse(evt);
+  await deps.publisher.publish(evt);
   return {
     id: updatedCart.id,
     tenantId: updatedCart.tenantId,

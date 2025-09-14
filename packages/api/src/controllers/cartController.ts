@@ -3,7 +3,7 @@ import type { ILogWriter } from '@fmork/backend-core/dist/logging';
 import { PublicController } from '@fmork/backend-core/dist/controllers';
 import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
 import { priceCart, addCartItem, removeCartItem, getCart } from '../handlers/carts';
-import type { ICartRepo, IPriceListRepo } from '@ayeldo/core';
+import type { ICartRepo, IPriceListRepo, IEventPublisher } from '@ayeldo/core';
 import { TieredPricingEngine } from '@ayeldo/core';
 
 export interface CartControllerProps {
@@ -11,18 +11,21 @@ export interface CartControllerProps {
   readonly logWriter: ILogWriter;
   readonly cartRepo: ICartRepo;
   readonly priceListRepo: IPriceListRepo;
+  readonly publisher: IEventPublisher;
 }
 
 export class CartController extends PublicController {
   private readonly cartRepo: ICartRepo;
   private readonly priceListRepo: IPriceListRepo;
   private readonly engine: TieredPricingEngine;
+  private readonly publisher: IEventPublisher;
 
   public constructor(props: CartControllerProps) {
     super(props.baseUrl, props.logWriter);
     this.cartRepo = props.cartRepo;
     this.priceListRepo = props.priceListRepo;
     this.engine = new TieredPricingEngine();
+    this.publisher = props.publisher;
   }
 
   public initialize(): HttpRouter {
@@ -67,7 +70,7 @@ export class CartController extends PublicController {
         );
         const body = bodySchema.parse((req as unknown as { body: unknown }).body);
         await this.performRequest(
-          () => addCartItem({ tenantId, cartId, ...body }, { cartRepo: this.cartRepo }),
+          () => addCartItem({ tenantId, cartId, ...body }, { cartRepo: this.cartRepo, publisher: this.publisher }),
           res,
           () => 201
         );
@@ -85,7 +88,7 @@ export class CartController extends PublicController {
         );
         const body = bodySchema.parse((req as unknown as { body: unknown }).body);
         await this.performRequest(
-          () => removeCartItem({ tenantId, cartId, ...body }, { cartRepo: this.cartRepo }),
+          () => removeCartItem({ tenantId, cartId, ...body }, { cartRepo: this.cartRepo, publisher: this.publisher }),
           res,
           () => 204
         );

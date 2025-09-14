@@ -1,4 +1,4 @@
-import { createRootLogger } from '@ayeldo/utils';
+import { createRootLogger, getEventBridgeClient } from '@ayeldo/utils';
 import { AxiosHttpClient } from '@fmork/backend-core/dist/IO';
 import { JsonUtil } from '@fmork/backend-core/dist/Json';
 import type { ILogWriter } from '@fmork/backend-core/dist/logging';
@@ -11,7 +11,8 @@ import {
 import { Server } from '@fmork/backend-core/dist/server';
 import { ReferenceClaimAuthorizedApiController } from '../controllers/referenceClaimAuthorizedApiController';
 import { CartController } from '../controllers/cartController';
-import { CartRepoDdb, PriceListRepoDdb, DdbDocumentClientAdapter } from '@ayeldo/infra-aws';
+import { CartRepoDdb, PriceListRepoDdb, DdbDocumentClientAdapter, EventBridgePublisher } from '@ayeldo/infra-aws';
+import type { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
 
 // Root logger using @ayeldo/utils pino adapter (implements ILogWriter shape)
@@ -40,10 +41,14 @@ const claimBasedAuthorizer = new ClaimBasedAuthorizer({
 // DynamoDB repos
 const tableName = process.env['TABLE_NAME'] || 'AppTable';
 const region = process.env['AWS_REGION'] || 'us-east-1';
+const eventBusName = process.env['EVENTS_BUS_NAME'] || 'default';
 const ddbEndpoint = process.env['DDB_ENDPOINT'];
 const ddb = new DdbDocumentClientAdapter({ region, ...(ddbEndpoint ? { endpoint: ddbEndpoint } : {}) });
 const cartRepo = new CartRepoDdb({ tableName, client: ddb });
 const priceListRepo = new PriceListRepoDdb({ tableName, client: ddb });
+// Event publisher (EventBridge)
+const ebClient = getEventBridgeClient(region) as unknown as EventBridgeClient;
+const eventPublisher = new EventBridgePublisher({ client: ebClient, eventBusName });
 
 // Instantiate controllers
 export const referencePublicApiController = new ReferencePublicApiController({
@@ -64,6 +69,7 @@ export const cartController = new CartController({
   logWriter,
   cartRepo,
   priceListRepo,
+  publisher: eventPublisher,
 });
 
 const requestLogger = new RequestLogMiddleware({ logWriter });
