@@ -149,11 +149,11 @@ Codex prompt: Implement BFF session management with Cognito code exchange (no to
 
 ## 10) Policy/Authorization
 
-- ☐ Implement `PolicyEvaluator`
-- ☐ Public: allow all
-- ☐ Hidden: require link token
-- ☐ Restricted: require membership
-- ☐ Integrate guard in album/image fetch endpoints
+- ✅ Implement `PolicyEvaluator`
+- ✅ Public: allow all
+- ✅ Hidden: require link token
+- ✅ Restricted: require membership
+- ✅ Integrate guard in album/image fetch endpoints
 
 Codex prompt: Implement policy evaluation with three modes; integrate guard in album/image fetch handlers and test all cases.
 

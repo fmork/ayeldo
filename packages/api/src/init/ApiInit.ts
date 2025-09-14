@@ -12,12 +12,13 @@ import {
 import { Server } from '@fmork/backend-core/dist/server';
 import { ReferenceClaimAuthorizedApiController } from '../controllers/referenceClaimAuthorizedApiController';
 import { CartController } from '../controllers/cartController';
-import { CartRepoDdb, PriceListRepoDdb, DdbDocumentClientAdapter, EventBridgePublisher, OrderRepoDdb } from '@ayeldo/infra-aws';
+import { CartRepoDdb, PriceListRepoDdb, DdbDocumentClientAdapter, EventBridgePublisher, OrderRepoDdb, AlbumRepoDdb, ImageRepoDdb } from '@ayeldo/infra-aws';
 import type { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
 import { OrderController } from '../controllers/orderController';
 import { PaymentController } from '../controllers/paymentController';
 import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake';
+import { MediaController } from '../controllers/mediaController';
 import { SignedUrlProviderFake } from '../storage/signedUrlProviderFake';
 
 // Root logger using @ayeldo/utils pino adapter (implements ILogWriter shape)
@@ -59,6 +60,8 @@ const ddb = new DdbDocumentClientAdapter({ region, ...(ddbEndpoint ? { endpoint:
 const cartRepo = new CartRepoDdb({ tableName, client: ddb });
 const priceListRepo = new PriceListRepoDdb({ tableName, client: ddb });
 const orderRepo = new OrderRepoDdb({ tableName, client: ddb });
+const albumRepo = new AlbumRepoDdb({ tableName, client: ddb });
+const imageRepo = new ImageRepoDdb({ tableName, client: ddb });
 // Event publisher (EventBridge)
 const ebClient = getEventBridgeClient(region) as unknown as EventBridgeClient;
 const eventPublisher = new EventBridgePublisher({ client: ebClient, eventBusName });
@@ -107,6 +110,13 @@ export const paymentController = new PaymentController({
   publisher: eventPublisher,
 });
 
+export const mediaController = new MediaController({
+  baseUrl: '',
+  logWriter,
+  albumRepo,
+  imageRepo,
+});
+
 const requestLogger = new RequestLogMiddleware({ logWriter });
 const serverPort: number = process.env['PORT']
   ? Number.parseInt(process.env['PORT'] as string, 10)
@@ -119,6 +129,7 @@ export const server = new Server({
     cartController,
     orderController,
     paymentController,
+    mediaController,
   ],
   port: serverPort,
   requestLogger,
