@@ -132,6 +132,9 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
 
 - **Frontend (React/Vite)**
   - React 18 + Vite + TypeScript (strict). Target modern browsers.
+  - Use React MUI (Material‑UI) components.
+  - Use MUI (Material‑UI) theming for styling.
+  - Prepare theming enabling tenants to have custom themes.
   - Routing with `react-router-dom` for: `/login`, `/albums/:id`, `/cart`, `/checkout/result`.
   - API access via a typed fetch wrapper that talks only to the BFF. Always send `credentials: 'include'` and an `X-CSRF-Token` header.
   - Configuration via Vite env (`VITE_BFF_BASE_URL`); in dev, set a Vite proxy to the BFF origin to simplify CORS and cookie forwarding.
