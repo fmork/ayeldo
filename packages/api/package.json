@@ -13,11 +13,17 @@
     "test": "jest -c ../../jest.config.ts --passWithNoTests"
   },
   "dependencies": {
+    "@fmork/backend-core": "^2.0.0",
     "@ayeldo/types": "workspace:*",
     "@ayeldo/core": "workspace:*",
     "@ayeldo/utils": "workspace:*",
     "@ayeldo/infra-aws": "workspace:*",
+    "serverless-http": "^3.2.0",
     "@aws-sdk/client-eventbridge": "^3.634.0",
-    "@aws-sdk/client-s3": "^3.634.0"
+    "@aws-sdk/client-s3": "^3.634.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3"
   }
 }
