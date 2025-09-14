@@ -151,7 +151,9 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
   - **API**: domain orchestration, event emission.
   - **Services**: vertical concerns (images, pricing, orders, analytics).
 
----
+### Payment integrations
+
+## The primary intended payment provider is Stripe, but the system should be prepared for being integrated to several payment providers.
 
 ## 🧪 Testing Rules
 
