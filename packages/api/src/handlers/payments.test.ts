@@ -48,14 +48,19 @@ describe('handleStripeWebhook', () => {
       updatedAt: new Date().toISOString(),
     } as const;
     const put = jest.fn(async () => {});
-    const deps = { orderRepo: { getById: async () => order, put } } as any;
+    const published: any[] = [];
+    const publisher = { publish: jest.fn(async (evt: any) => published.push(evt)) };
+    const deps = { orderRepo: { getById: async () => order, put }, publisher } as any;
     const payload = { tenantId: 't1', orderId: 'o1', eventType: 'payment_succeeded' } as const;
     const secret = 'shh';
     const sig = createHmac('sha256', secret).update(JSON.stringify(payload)).digest('hex');
-    await handleStripeWebhook(payload, { orderRepo: deps.orderRepo, secret, signatureHeader: `sha256=${sig}` });
+    await handleStripeWebhook(payload, { orderRepo: deps.orderRepo, publisher, secret, signatureHeader: `sha256=${sig}` });
     expect(put).toHaveBeenCalledTimes(1);
     const saved = (put as jest.Mock).mock.calls[0][0];
     expect(saved.state).toBe('paid');
+    expect(publisher.publish).toHaveBeenCalledTimes(1);
+    expect(published[0].type).toBe('OrderPaid');
+    expect(published[0].payload).toEqual({ orderId: 'o1' });
   });
 
   test('updates order to failed on payment_failed', async () => {
@@ -70,14 +75,19 @@ describe('handleStripeWebhook', () => {
       updatedAt: new Date().toISOString(),
     } as const;
     const put = jest.fn(async () => {});
-    const deps = { orderRepo: { getById: async () => order, put } } as any;
+    const published: any[] = [];
+    const publisher = { publish: jest.fn(async (evt: any) => published.push(evt)) };
+    const deps = { orderRepo: { getById: async () => order, put }, publisher } as any;
     const payload = { tenantId: 't2', orderId: 'o2', eventType: 'payment_failed' } as const;
     const secret = 'shh2';
     const sig = createHmac('sha256', secret).update(JSON.stringify(payload)).digest('hex');
-    await handleStripeWebhook(payload, { orderRepo: deps.orderRepo, secret, signatureHeader: `sha256=${sig}` });
+    await handleStripeWebhook(payload, { orderRepo: deps.orderRepo, publisher, secret, signatureHeader: `sha256=${sig}` });
     expect(put).toHaveBeenCalledTimes(1);
     const saved = (put as jest.Mock).mock.calls[0][0];
     expect(saved.state).toBe('failed');
+    expect(publisher.publish).toHaveBeenCalledTimes(1);
+    expect(published[0].type).toBe('OrderFailed');
+    expect(published[0].payload).toEqual({ orderId: 'o2' });
   });
 
   test('throws on invalid signature', async () => {
@@ -94,8 +104,7 @@ describe('handleStripeWebhook', () => {
     const deps = { orderRepo: { getById: async () => order, put: jest.fn(async () => {}) } } as any;
     const payload = { tenantId: 't3', orderId: 'o3', eventType: 'payment_succeeded' } as const;
     await expect(
-      handleStripeWebhook(payload, { orderRepo: deps.orderRepo, secret: 'right', signatureHeader: 'sha256=wrong' }),
+      handleStripeWebhook(payload, { orderRepo: deps.orderRepo, publisher: { publish: jest.fn() } as any, secret: 'right', signatureHeader: 'sha256=wrong' }),
     ).rejects.toThrow('Invalid signature');
   });
 });
-

@@ -1,8 +1,10 @@
 import { z } from 'zod';
-import type { IOrderRepo, IPaymentProvider } from '@ayeldo/core';
+import type { IEventPublisher, IOrderRepo, IPaymentProvider } from '@ayeldo/core';
 import { nextOrderState, OrderAction } from '@ayeldo/core';
 import type { CheckoutSession } from '@ayeldo/core';
 import { createHmac } from 'crypto';
+import { makeEventEnvelopeSchema } from '@ayeldo/types';
+import { makeUlid } from '@ayeldo/utils';
 
 export const createCheckoutSessionSchema = z.object({
   tenantId: z.string().min(1),
@@ -50,6 +52,7 @@ export type StripeWebhookPayload = z.infer<typeof stripeWebhookPayloadSchema>;
 
 export interface StripeWebhookDeps {
   readonly orderRepo: IOrderRepo;
+  readonly publisher: IEventPublisher;
   readonly signatureHeader: string;
   readonly secret: string;
 }
@@ -77,5 +80,16 @@ export async function handleStripeWebhook(
   const next = nextOrderState(existing.state, action);
   const updated = { ...existing, state: next, updatedAt: new Date().toISOString() };
   await deps.orderRepo.put(updated);
+
+  const evt = {
+    id: makeUlid(),
+    type: action === OrderAction.PaymentSucceeded ? ('OrderPaid' as const) : ('OrderFailed' as const),
+    occurredAt: new Date().toISOString(),
+    tenantId: parsed.tenantId,
+    payload: { orderId: parsed.orderId },
+  };
+  // Validate envelope shape at runtime
+  makeEventEnvelopeSchema(evt.type, z.object({ orderId: z.string() })).parse(evt);
+  await deps.publisher.publish(evt);
   return { ok: true };
 }

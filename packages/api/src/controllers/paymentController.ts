@@ -3,7 +3,7 @@ import type { ILogWriter } from '@fmork/backend-core/dist/logging';
 import { PublicController } from '@fmork/backend-core/dist/controllers';
 import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
 import { createCheckoutSession, stripeWebhookPayloadSchema, handleStripeWebhook } from '../handlers/payments';
-import type { IOrderRepo, IPaymentProvider } from '@ayeldo/core';
+import type { IEventPublisher, IOrderRepo, IPaymentProvider } from '@ayeldo/core';
 
 export interface PaymentControllerProps {
   readonly baseUrl: string;
@@ -11,18 +11,21 @@ export interface PaymentControllerProps {
   readonly orderRepo: IOrderRepo;
   readonly payments: IPaymentProvider;
   readonly stripeWebhookSecret: string;
+  readonly publisher: IEventPublisher;
 }
 
 export class PaymentController extends PublicController {
   private readonly orderRepo: IOrderRepo;
   private readonly payments: IPaymentProvider;
   private readonly stripeWebhookSecret: string;
+  private readonly publisher: IEventPublisher;
 
   public constructor(props: PaymentControllerProps) {
     super(props.baseUrl, props.logWriter);
     this.orderRepo = props.orderRepo;
     this.payments = props.payments;
     this.stripeWebhookSecret = props.stripeWebhookSecret;
+    this.publisher = props.publisher;
   }
 
   public initialize(): HttpRouter {
@@ -49,11 +52,7 @@ export class PaymentController extends PublicController {
       ];
       const signature = Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
       const sig = z.string().min(1).parse(signature);
-      await this.performRequest(
-        () => handleStripeWebhook(body, { orderRepo: this.orderRepo, signatureHeader: sig, secret: this.stripeWebhookSecret }),
-        res,
-        () => 200,
-      );
+      await this.performRequest(() => handleStripeWebhook(body, { orderRepo: this.orderRepo, publisher: this.publisher, signatureHeader: sig, secret: this.stripeWebhookSecret }), res, () => 200);
     });
 
     return this.getRouter();

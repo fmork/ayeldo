@@ -127,7 +127,7 @@ Codex prompt: Expose BFF cart endpoints (add/remove/list) that call API for pric
 - ✅ API: get order status
 - ✅ Stripe session creation
  - ✅ Webhook handler: verify signature, update state
-- ☐ Emit `OrderPaid` / `OrderFailed`
+- ✅ Emit `OrderPaid` / `OrderFailed`
 - ☐ Fulfillment step for paid albums (download link)
 
 Codex prompt: Implement Stripe session creation and webhook processing with typed payloads and safe state transitions; unit tests for transitions.

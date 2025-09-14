@@ -100,6 +100,7 @@ export const paymentController = new PaymentController({
   orderRepo,
   payments,
   stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
+  publisher: eventPublisher,
 });
 
 const requestLogger = new RequestLogMiddleware({ logWriter });
