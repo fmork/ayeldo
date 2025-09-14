@@ -124,7 +124,7 @@ Codex prompt: Expose BFF cart endpoints (add/remove/list) that call API for pric
 ## 8) Orders & Payments (Stripe)
 
 - ✅ API: create order from cart
-- ☐ API: get order status
+ - ✅ API: get order status
 - ☐ Stripe session creation
 - ☐ Webhook handler: verify signature, update state
 - ☐ Emit `OrderPaid` / `OrderFailed`

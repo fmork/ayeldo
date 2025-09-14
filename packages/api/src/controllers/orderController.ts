@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { ILogWriter } from '@fmork/backend-core/dist/logging';
 import { PublicController } from '@fmork/backend-core/dist/controllers';
 import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
-import { createOrderFromCart } from '../handlers/orders';
+import { createOrderFromCart, getOrder } from '../handlers/orders';
 import type { ICartRepo, IOrderRepo, IPriceListRepo } from '@ayeldo/core';
 import { TieredPricingEngine } from '@ayeldo/core';
 
@@ -41,7 +41,18 @@ export class OrderController extends PublicController {
       );
     });
 
+    // GET /tenants/:tenantId/orders/:orderId — fetch order status/details
+    this.addGet('/tenants/:tenantId/orders/:orderId', async (req, res) => {
+      const params = z.object({ tenantId: z.string().min(1), orderId: z.string().min(1) }).parse(
+        (req as unknown as { params: { tenantId: string; orderId: string } }).params,
+      );
+      await this.performRequest(
+        () => getOrder(params, { orderRepo: this.orderRepo }),
+        res,
+        (result) => (result ? 200 : 404),
+      );
+    });
+
     return this.getRouter();
   }
 }
-

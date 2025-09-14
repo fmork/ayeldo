@@ -51,3 +51,28 @@ export async function createOrderFromCart(
   } as const;
 }
 
+export const getOrderSchema = z.object({
+  tenantId: z.string().min(1),
+  orderId: z.string().min(1),
+});
+
+export type GetOrderInput = z.infer<typeof getOrderSchema>;
+
+export async function getOrder(
+  input: GetOrderInput,
+  deps: { orderRepo: IOrderRepo },
+): Promise<OrderDto | undefined> {
+  const { tenantId, orderId } = getOrderSchema.parse(input);
+  const order = await deps.orderRepo.getById(tenantId, orderId);
+  if (!order) return undefined;
+  return {
+    id: order.id,
+    tenantId: order.tenantId,
+    cartId: order.cartId,
+    state: order.state,
+    lines: order.lines,
+    totalCents: order.totalCents,
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+  } as const;
+}

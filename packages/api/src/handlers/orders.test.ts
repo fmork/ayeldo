@@ -1,5 +1,5 @@
 import { describe, expect, test, jest } from '@jest/globals';
-import { createOrderFromCart } from './orders';
+import { createOrderFromCart, getOrder } from './orders';
 import { TieredPricingEngine } from '@ayeldo/core';
 
 describe('createOrderFromCart', () => {
@@ -63,6 +63,31 @@ describe('createOrderFromCart', () => {
       engine,
     } as any;
     await expect(createOrderFromCart({ tenantId: 't1', cartId: 'c1' }, deps)).rejects.toThrow('Price list not found');
+  });
+});
+
+describe('getOrder', () => {
+  test('returns order when found', async () => {
+    const order = {
+      id: 'o1',
+      tenantId: 't1',
+      cartId: 'c1',
+      state: 'created',
+      lines: [],
+      totalCents: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as const;
+    const deps = { orderRepo: { getById: async () => order } } as any;
+    const out = await getOrder({ tenantId: 't1', orderId: 'o1' }, deps);
+    expect(out?.id).toBe('o1');
+    expect(out?.tenantId).toBe('t1');
+  });
+
+  test('returns undefined when not found', async () => {
+    const deps = { orderRepo: { getById: async () => undefined } } as any;
+    const out = await getOrder({ tenantId: 't1', orderId: 'missing' }, deps);
+    expect(out).toBeUndefined();
   });
 });
 
