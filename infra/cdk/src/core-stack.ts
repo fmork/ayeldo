@@ -88,6 +88,7 @@ export class CoreStack extends Stack {
         : {};
 
     this.webDistribution = new Distribution(this, 'WebDistribution', {
+      defaultRootObject: 'index.html',
       defaultBehavior: {
         origin: S3BucketOrigin.withOriginAccessControl(this.webBucket, {
           originAccessControl: originAccessControl,
