@@ -4,11 +4,18 @@ import type { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HttpApi, HttpMethod, CorsHttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import type { Table } from 'aws-cdk-lib/aws-dynamodb';
+import type { EventBus } from 'aws-cdk-lib/aws-events';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+export interface ApiStackProps extends StackProps {
+  readonly table: Table;
+  readonly eventBus: EventBus;
+}
+
 export class ApiStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
     const __filename = fileURLToPath(import.meta.url);
@@ -24,8 +31,14 @@ export class ApiStack extends Stack {
       timeout: Duration.seconds(15),
       environment: {
         NODE_OPTIONS: '--enable-source-maps',
+        TABLE_NAME: props.table.tableName,
+        EVENTS_BUS_NAME: props.eventBus.eventBusName,
       },
     });
+
+    // Permissions: API lambda can read/write table and put events
+    props.table.grantReadWriteData(handler);
+    props.eventBus.grantPutEventsTo(handler);
 
     const integration = new HttpLambdaIntegration('ApiIntegration', handler);
 

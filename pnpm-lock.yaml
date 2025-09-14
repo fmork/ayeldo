@@ -182,6 +182,9 @@ importers:
       '@ayeldo/core':
         specifier: workspace:*
         version: link:../core
+      '@ayeldo/infra-aws':
+        specifier: workspace:*
+        version: link:../infra-aws
       '@ayeldo/types':
         specifier: workspace:*
         version: link:../types

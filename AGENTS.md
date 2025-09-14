@@ -127,6 +127,7 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
 ## 🌐 Environments & Deployment
 
 - **Environments**: Environment is derived from git branch name. The git branch `main` gives enviroment `prod`, any other git branch gives an environment with the git branch name. If the branch name contains 'path separators' (as in `feat/some-feature`), the last segment is the environment name (so, `feat/some-feature` gives the environment name `some-feature`). Name stacks/resources with an `env` suffix.
+- **Resource names**: Do not assign explicit names to resources (such as the `BucketName` property of S3 buckets) unless required.
 - **Base domains**: The deployment environment should have an environment variable FMORK_SITE_DOMAIN_NAME containing the base domain name. This domain is expected to be maintained in AWS Route 53 in the AWS account where the CDK deployment is performed.
 - **Hostnames**: Standardize patterns:
   - BFF: `{env}-api.{base}`

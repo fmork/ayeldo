@@ -178,11 +178,11 @@ Codex prompt: Scaffold a Vite React app with the routes above, add Redux Toolkit
 
 ## 12) CDK Infrastructure (`infra/cdk`)
 
-- ☐ `CoreStack`: DynamoDB, S3, CloudFront
-- ☐ `ApiStack`: API Gateway, Lambdas, permissions
-- ☐ `EventsStack`: EventBridge, DLQs
-- ☐ `AnalyticsStack`: analytics consumer
-- ☐ Outputs: API URLs, table name, bus ARN
+- ✅ `CoreStack`: DynamoDB, S3, CloudFront
+- ✅ `ApiStack`: API Gateway, Lambdas, permissions
+- ✅ `EventsStack`: EventBridge, DLQs
+- ✅ `AnalyticsStack`: analytics consumer
+- ✅ Outputs: API URLs, table name, bus ARN
 
 Codex prompt: Create CDK stacks with environment variables wired into lambdas and IAM policies scoped to DynamoDB table and S3 prefixes.
 

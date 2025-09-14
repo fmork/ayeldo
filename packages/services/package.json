@@ -15,6 +15,7 @@
   "dependencies": {
     "@ayeldo/types": "workspace:*",
     "@ayeldo/core": "workspace:*",
-    "@ayeldo/utils": "workspace:*"
+    "@ayeldo/utils": "workspace:*",
+    "@ayeldo/infra-aws": "workspace:*"
   }
 }

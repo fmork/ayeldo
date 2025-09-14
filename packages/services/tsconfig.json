@@ -9,13 +9,15 @@
     "paths": {
       "@ayeldo/utils": ["../utils/dist"],
       "@ayeldo/core": ["../core/dist"],
-      "@ayeldo/types": ["../types/dist"]
+      "@ayeldo/types": ["../types/dist"],
+      "@ayeldo/infra-aws": ["../infra-aws/dist"]
     }
   },
   "include": ["src"],
   "references": [
     { "path": "../types" },
     { "path": "../core" },
-    { "path": "../utils" }
+    { "path": "../utils" },
+    { "path": "../infra-aws" }
   ]
 }
