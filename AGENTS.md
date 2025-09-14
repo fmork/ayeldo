@@ -145,6 +145,21 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
 
 ---
 
+## 🛠 Build & Artifacts (Option A)
+
+- **Approach**: Prebuild deployable assets outside CDK, then point stacks at `infra/cdk/assets`.
+- **Lambdas**: `scripts/build-artifacts.mjs` uses esbuild to bundle each `packages/*/src/functions/**/handler.ts` into a compact single file: `infra/cdk/assets/lambdas/<pkg>-<func>/index.mjs` (+ `.map`).
+- **Web app**: Vite `build.outDir` honors `OUT_DIR` env var; root script places output in `infra/cdk/assets/web`.
+- **CDK**: Use `lambda.Code.fromAsset('<path>')` and `handler: 'index.main'` with `Runtime.NODEJS_20_X` instead of `NodejsFunction` bundling.
+- **Scripts**:
+  - `pnpm run build:lambdas` → bundle Lambdas.
+  - `pnpm run build:web` → builds SPA to `infra/cdk/assets/web`.
+  - `pnpm run build:artifacts` → both of the above.
+- **Source maps**: External source maps are emitted; set `NODE_OPTIONS=--enable-source-maps` in Lambda env.
+- **Assets repo policy**: `infra/cdk/assets` is kept in repo but git‑ignored (`.gitkeep`) to avoid committing large binaries.
+
+---
+
 ## 🎨 Style & Structure
 
 - **Dependency Injection: Manual (no container)**
@@ -212,7 +227,7 @@ When Codex (or another AI agent) generates code, it should:
 2. **Follow coding rules** (strict TS, zod validation, async/await, no any).
 3. **Respect architecture** (BFF → API → Services, ports, events).
 4. **Produce tests** for new domain logic.
-5. **Verify correctness** so that generated code does not contain errors. Run `scripts/build.sh` to verify that nothing is broken.
+5. **Verify correctness** so that generated code does not contain errors. **ALWAYS** `scripts/build.sh` before a task is handed off in order to verify that nothing is broken.
 6. **Document** new features in `docs/` as needed.
 
 ---
