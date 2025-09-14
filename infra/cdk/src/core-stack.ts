@@ -11,6 +11,8 @@ import {
 import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { AnyPrincipal, Effect, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { ARecord, AaaaRecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, CacheControl, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import type { Construct } from 'constructs';
@@ -110,6 +112,27 @@ export class CoreStack extends Stack {
         },
       ],
     });
+
+    // Route53 records for custom domain (A/AAAA alias to CloudFront)
+    if (props?.domainConfig) {
+      const zone = HostedZone.fromLookup(this, 'WebHostedZone', {
+        domainName: props.domainConfig.baseDomain,
+      });
+      const recordName = props.domainConfig.webHost.replace(
+        `.${props.domainConfig.baseDomain}`,
+        '',
+      );
+      new ARecord(this, 'WebAliasA', {
+        zone,
+        recordName,
+        target: RecordTarget.fromAlias(new CloudFrontTarget(this.webDistribution)),
+      });
+      new AaaaRecord(this, 'WebAliasAAAA', {
+        zone,
+        recordName,
+        target: RecordTarget.fromAlias(new CloudFrontTarget(this.webDistribution)),
+      });
+    }
 
     // Grant CloudFront access to S3 bucket using OAC
     this.webBucket.addToResourcePolicy(
