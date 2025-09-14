@@ -1,17 +1,19 @@
-import { Duration, Stack, CfnOutput } from 'aws-cdk-lib';
 import type { StackProps } from 'aws-cdk-lib';
-import type { Construct } from 'constructs';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { HttpApi, HttpMethod, CorsHttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
+import { CfnOutput, Duration, Stack } from 'aws-cdk-lib';
+import { CorsHttpMethod, HttpApi, HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import type { Table } from 'aws-cdk-lib/aws-dynamodb';
 import type { EventBus } from 'aws-cdk-lib/aws-events';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import type { Construct } from 'constructs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import type { DomainConfig } from './domain';
 
 export interface ApiStackProps extends StackProps {
   readonly table: Table;
   readonly eventBus: EventBus;
+  readonly domainConfig?: DomainConfig;
 }
 
 export class ApiStack extends Stack {
