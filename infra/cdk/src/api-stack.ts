@@ -57,11 +57,21 @@ export class ApiStack extends Stack {
     const siteConfig = new SiteConfiguration({
       webOrigin,
       bffOrigin: apiOrigin, // BFF is served from the API host
-      oidcAuthority: maybe('FMORK_SITE_OIDC_AUTHORITY'),
-      oidcClientId: maybe('FMORK_SITE_OIDC_CLIENT_ID'),
-      oidcClientSecret: maybe('FMORK_SITE_OIDC_CLIENT_SECRET'),
-      sessionEncKey: maybe('FMORK_SITE_SESSION_ENC_KEY'),
-      bffJwtSecret: maybe('FMORK_SITE_BFF_JWT_SECRET'),
+      ...(maybe('FMORK_SITE_OIDC_AUTHORITY') && {
+        oidcAuthority: maybe('FMORK_SITE_OIDC_AUTHORITY') as string,
+      }),
+      ...(maybe('FMORK_SITE_OIDC_CLIENT_ID') && {
+        oidcClientId: maybe('FMORK_SITE_OIDC_CLIENT_ID') as string,
+      }),
+      ...(maybe('FMORK_SITE_OIDC_CLIENT_SECRET') && {
+        oidcClientSecret: maybe('FMORK_SITE_OIDC_CLIENT_SECRET') as string,
+      }),
+      ...(maybe('FMORK_SITE_SESSION_ENC_KEY') && {
+        sessionEncKey: maybe('FMORK_SITE_SESSION_ENC_KEY') as string,
+      }),
+      ...(maybe('FMORK_SITE_BFF_JWT_SECRET') && {
+        bffJwtSecret: maybe('FMORK_SITE_BFF_JWT_SECRET') as string,
+      }),
     });
 
     // Get environment variables for Lambda from SiteConfiguration
@@ -86,6 +96,19 @@ export class ApiStack extends Stack {
         TABLE_NAME: props.table.tableName,
         EVENTS_BUS_NAME: props.eventBus.eventBusName,
         ...lambdaEnv,
+        // Allow explicit overrides for provider-specific endpoints and redirect URI
+        ...(maybe('FMORK_SITE_OIDC_AUTH_URL') && {
+          OIDC_AUTH_URL: maybe('FMORK_SITE_OIDC_AUTH_URL') as string,
+        }),
+        ...(maybe('FMORK_SITE_OIDC_TOKEN_URL') && {
+          OIDC_TOKEN_URL: maybe('FMORK_SITE_OIDC_TOKEN_URL') as string,
+        }),
+        ...(maybe('FMORK_SITE_OIDC_JWKS_URL') && {
+          OIDC_JWKS_URL: maybe('FMORK_SITE_OIDC_JWKS_URL') as string,
+        }),
+        ...(maybe('FMORK_SITE_OIDC_REDIRECT_URI') && {
+          OIDC_REDIRECT_URI: maybe('FMORK_SITE_OIDC_REDIRECT_URI') as string,
+        }),
       },
     });
 

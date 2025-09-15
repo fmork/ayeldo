@@ -182,22 +182,32 @@ let sessions: SessionService | undefined;
 
 if (siteConfig.isOidcConfigured) {
   const authority = siteConfig.oidcAuthority;
-  const authUrl = siteConfig.oidcAuthUrl;
-  const tokenUrl = siteConfig.oidcTokenUrl;
+  const authUrl = process.env['OIDC_AUTH_URL'] ?? siteConfig.oidcAuthUrl;
+  const tokenUrl = process.env['OIDC_TOKEN_URL'] ?? siteConfig.oidcTokenUrl;
   const clientId = siteConfig.oidcClientId;
   const clientSecret = siteConfig.oidcClientSecret;
+  const jwksUrlOverride = process.env['OIDC_JWKS_URL'];
+  const redirectUriOverride = process.env['OIDC_REDIRECT_URI'];
 
   if (authority && authUrl && tokenUrl && clientId && clientSecret) {
-    const oidcCfg: OidcOpenIdConfig = {
+    if (authority.includes('cognito-idp.') && authUrl.includes('cognito-idp.')) {
+      logWriter.warn(
+        'OIDC config: Detected Cognito issuer with authorization URL on cognito-idp.*. For Cognito Hosted UI, use the domain https://<domain>.auth.<region>.amazoncognito.com for auth/token endpoints. You can set OIDC_AUTH_URL and OIDC_TOKEN_URL env vars to override.',
+      );
+    }
+    const baseCfg = {
       issuer: authority,
       authUrl: authUrl,
       tokenUrl: tokenUrl,
       clientId: clientId,
       clientSecret: clientSecret,
-      redirectUri: siteConfig.oidcRedirectUri,
+      redirectUri: redirectUriOverride ?? siteConfig.oidcRedirectUri,
       scopes: siteConfig.oidcScopes,
-      ...(siteConfig.oidcJwksUrl ? { jwksUrl: siteConfig.oidcJwksUrl } : {}),
-    };
+    } as const;
+    const jwks = jwksUrlOverride ?? siteConfig.oidcJwksUrl;
+    const oidcCfg: OidcOpenIdConfig = jwks
+      ? ({ ...baseCfg, jwksUrl: jwks } as OidcOpenIdConfig)
+      : (baseCfg as OidcOpenIdConfig);
     oidc = new OidcClientOpenId(oidcCfg);
 
     sessions = new SessionService({
