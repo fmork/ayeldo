@@ -20,7 +20,7 @@ export function LoginPage(): JSX.Element {
     <section>
       <h2>Login</h2>
       <button onClick={() => void onLogin()} disabled={isFetching}>
-        {isFetching ? 'Redirecting…' : 'Continue with Single Sign‑On'}
+        {isFetching ? 'Redirecting…' : 'Click here to sign in'}
       </button>
     </section>
   );
