@@ -1,13 +1,40 @@
+import { SiteConfiguration } from '@ayeldo/core';
 import { createContext, useContext } from 'react';
-import type { SiteConfigurationProps } from './siteConfiguration';
-import { SiteConfiguration } from './siteConfiguration';
 
-const defaultConfig: SiteConfigurationProps = {
-  apiBaseUrl: import.meta.env['VITE_BFF_BASE_URL'] ?? '/api',
-  // Add more defaults as needed
-};
+function createSiteConfig(): SiteConfiguration {
+  const gl = globalThis as unknown as { location?: { origin?: string } };
+  const webOrigin = typeof gl.location?.origin === 'string' && gl.location.origin.length > 0
+    ? gl.location.origin.replace(/\/$/, '')
+    : 'http://localhost';
 
-export const siteConfig = new SiteConfiguration(defaultConfig);
+  const raw = (import.meta as unknown as { env: Record<string, string | undefined> }).env['VITE_BFF_BASE_URL'];
+  let bffOrigin = webOrigin;
+  let apiBasePath = '/api';
+
+  if (typeof raw === 'string' && raw.length > 0) {
+    if (/^https?:\/\//i.test(raw)) {
+      try {
+        const u = new URL(raw);
+        bffOrigin = `${u.protocol}//${u.host}`;
+        apiBasePath = u.pathname && u.pathname !== '/' ? u.pathname : '';
+      } catch {
+        // ignore
+      }
+    } else if (raw.startsWith('/')) {
+      bffOrigin = webOrigin;
+      apiBasePath = raw;
+    }
+  }
+
+  return new SiteConfiguration({
+    webOrigin,
+    bffOrigin,
+    apiBasePath: apiBasePath || '/',
+    csrfHeaderName: 'X-CSRF-Token',
+  });
+}
+
+export const siteConfig = createSiteConfig();
 
 export const SiteConfigurationContext = createContext<SiteConfiguration>(siteConfig);
 
