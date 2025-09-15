@@ -16,18 +16,22 @@ export interface AuthBffControllerProps {
 export class AuthBffController extends PublicController {
   private readonly oidc: OidcClientOpenId;
   private readonly sessions: SessionService;
+  private readonly logWriter: ILogWriter;
 
   public constructor(props: AuthBffControllerProps) {
     super(props.baseUrl, props.logWriter);
     this.oidc = props.oidc;
     this.sessions = props.sessions;
+    this.logWriter = props.logWriter;
   }
 
   public initialize(): HttpRouter {
     // GET /auth/authorize-url — returns the OIDC authorize URL for SPA-driven redirects
     this.addGet('/auth/authorize-url', async (_req, res) => {
+      this.logWriter.info('Generating OIDC authorize URL');
       const { state, nonce, codeChallenge } = this.sessions.createLoginState();
       const url = this.oidc.buildAuthorizeUrl({ state, nonce, codeChallenge });
+      this.logWriter.info(`OIDC authorize URL generated: ${url}`);
       (res as any).set?.('Cache-Control', 'no-store, no-cache, must-revalidate');
       res.json({ url });
     });
