@@ -48,7 +48,9 @@ export class AuthBffController extends PublicController {
       const params = z
         .object({ code: z.string().min(1), state: z.string().min(1) })
         .parse((req as any).query);
+      this.logWriter.info(`Handling OIDC callback, state=${params.state}`);
       const { sid, csrf } = await this.sessions.completeLogin(this.oidc, params);
+      this.logWriter.info(`Login completed successfully, sid=${sid}, csrf=${csrf}`);
       // Set cookies
       // HttpOnly session cookie
       (res as any).cookie?.('__Host-sid', sid, {

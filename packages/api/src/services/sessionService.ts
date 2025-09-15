@@ -67,15 +67,19 @@ export class SessionService {
     csrf: string;
     profile: { sub: string; email?: string; name?: string };
   }> {
+    this.logger.info(`Completing login for state=${params.state}`);
     const st = await this.states.getState(params.state);
     if (!st) throw new Error('Invalid state');
+    this.logger.info(`State retrieved successfully: ${JSON.stringify(st)}`);
     await this.states.deleteState(params.state);
+    this.logger.info(`State deleted: ${params.state}. Exchanging code for tokens...`);
     const tokens = await oidc.exchangeCode({
       code: params.code,
       state: params.state,
       nonce: st.nonce,
       codeVerifier: st.codeVerifier,
     });
+    this.logger.info('Token exchange successful.');
 
     const nowSec = Math.floor(Date.now() / 1000);
     const bundle: TokenBundle = {
@@ -84,6 +88,8 @@ export class SessionService {
       refreshToken: tokens.refresh_token,
       expiresAt: nowSec + tokens.expires_in,
     };
+
+    this.logger.info('Encrypting tokens and creating session record...');
     const enc = encryptTokens(this.encKeyB64, this.encKid, bundle);
 
     const sid = randomId(18);
@@ -105,6 +111,8 @@ export class SessionService {
       ttl,
       tokensEnc: enc,
     } as const;
+
+    this.logger.info(`Session record created successfully: ${JSON.stringify(rec)}`);
     await this.store.putSession(rec);
     const profileOut: { sub: string; email?: string; name?: string } = { sub: rec.sub };
     if (rec.email !== undefined) profileOut.email = rec.email;
