@@ -29,13 +29,13 @@ import { ReferenceClaimAuthorizedApiController } from '../controllers/referenceC
 import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
 import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake';
 // BFF controllers and services (merged from packages/bff)
-import { AuthBffController } from '../bff/controllers/authBffController';
-import { CartBffController } from '../bff/controllers/cartBffController';
-import { RootBffController } from '../bff/controllers/rootBffController';
-import { OidcClientOpenId, type OidcOpenIdConfig } from '../bff/services/oidcOpenIdClient';
-import { SessionService } from '../bff/services/sessionService';
-import { MemorySessionStore, MemoryStateStore } from '../bff/stores/sessionStore';
+import { AuthBffController } from '../controllers/authBffController';
+import { CartBffController } from '../controllers/cartBffController';
+import { RootBffController } from '../controllers/rootBffController';
+import { OidcClientOpenId, type OidcOpenIdConfig } from '../services/oidcOpenIdClient';
+import { SessionService } from '../services/sessionService';
 import { SignedUrlProviderFake } from '../storage/signedUrlProviderFake';
+import { MemorySessionStore, MemoryStateStore } from '../stores/sessionStore';
 
 // Root logger using @ayeldo/utils pino adapter (implements ILogWriter shape)
 export const logWriter: ILogWriter = createRootLogger('api', 'info');

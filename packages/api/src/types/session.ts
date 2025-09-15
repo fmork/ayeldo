@@ -23,11 +23,3 @@ export interface SessionRecord {
   readonly ttl: number; // epoch seconds
   readonly tokensEnc: EncBlob;
 }
-
-export interface LoginState {
-  readonly state: string;
-  readonly nonce: string;
-  readonly codeVerifier: string;
-  readonly createdAt: string;
-  readonly ttl: number; // epoch seconds
-}
