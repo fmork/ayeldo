@@ -21,10 +21,6 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
                 tags "UI"
             }
 
-            bff = container "BFF API" "Frontend-facing API: session management, OIDC handshake, aggregation." "TypeScript (Node.js)" {
-                tags "BFF"
-            }
-
             api = container "Domain API" "Domain orchestration and business logic." "TypeScript (Node.js)" {
                 tags "API"
             }
@@ -70,19 +66,18 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
             user -> web "Uses"
             visitor -> web "Uses"
             admin -> web "Uses"
-            web -> bff "All UI calls; no tokens in browser"
-            bff -> web "Redirects/callbacks; sets httpOnly session cookie"
+            web -> api "All UI calls; no tokens in browser"
+            api -> web "Redirects/callbacks; sets httpOnly session cookie"
 
             // Authentication through BFF
             user -> oidc "Authenticates via redirect (UI)"
             admin -> oidc "Authenticates via redirect (UI)"
             owner -> oidc "Authenticates via redirect (UI)"
-            bff -> oidc "Start auth / token exchange (back channel)"
-            oidc -> bff "Auth code / tokens (back channel)"
+            api -> oidc "Start auth / token exchange (back channel)"
+            oidc -> api "Auth code / tokens (back channel)"
 
             // BFF to domain
-            bff -> api "Invoke domain operations"
-            bff -> stats "Query metrics for UI"
+            api -> stats "Query metrics for UI"
 
             // Domain to services
             api -> albums "Manage albums"
@@ -131,40 +126,35 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
         dynamic platform "flow-1-signup-and-customer-association" "User Sign-Up via BFF (No tokens in Web App)" {
             autoLayout lr
             user -> platform.web "Start sign-up/sign-in"
-            platform.web -> platform.bff "Begin OIDC flow"
-            platform.bff -> oidc "Redirect to OIDC (authorization request)"
+            platform.web -> platform.api "Begin OIDC flow"
+            platform.api -> oidc "Redirect to OIDC (authorization request)"
             user -> oidc "Authenticate (hosted UI)"
-            oidc -> platform.bff "Redirect (auth code)"
-            platform.bff -> oidc "Exchange code for tokens (server-side)"
-            platform.bff -> platform.web "Set httpOnly session cookie; redirect to app"
-            platform.web -> platform.bff "Onboarding: upsert profile"
-            platform.bff -> platform.api "Upsert user profile / customer"
+            oidc -> platform.api "Redirect (auth code)"
+            platform.api -> oidc "Exchange code for tokens (server-side)"
+            platform.api -> platform.web "Set httpOnly session cookie; redirect to app"
+            platform.web -> platform.api "Onboarding: upsert profile"
             platform.api -> platform.metadata "Persist user + (optional) customer"
             platform.api -> platform.eventbus "UserCreated | UserJoinedCustomer"
-            platform.bff -> platform.web "Onboarding complete"
+            platform.api -> platform.web "Onboarding complete"
         }
 
         dynamic platform "flow-2-album-and-image-ingestion" "Album & Image Ingestion (Nested, Free/Paid)" {
             autoLayout
             user -> platform.web "Create/arrange album"
-            platform.web -> platform.bff "Create album {visibility, access}"
-            platform.bff -> platform.api "Create album"
+            platform.web -> platform.api "Create album {visibility, access}"
             platform.api -> platform.albums "Create album"
             platform.albums -> platform.metadata "Persist album"
 
             user -> platform.web "Set monetization"
-            platform.web -> platform.bff "Attach priceListId (if paid)"
-            platform.bff -> platform.api "Validate/attach price list"
+            platform.web -> platform.api "Attach priceListId (if paid)"
             platform.api -> platform.pricelists "Validate/attach"
             platform.pricelists -> platform.metadata "Persist"
 
             user -> platform.web "Upload images"
-            platform.web -> platform.bff "Register image(s)"
-            platform.bff -> platform.api "Register metadata, request upload URLs"
+            platform.web -> platform.api "Register metadata, request upload URLs"
             platform.api -> platform.images "Register/prepare"
             platform.images -> platform.assets "Coordinate upload"
-            platform.web -> platform.bff "Confirm upload completed"
-            platform.bff -> platform.api "Mark uploaded"
+            platform.web -> platform.api "Confirm upload completed, mark uploaded"
             platform.api -> platform.images "Mark uploaded"
             platform.images -> platform.eventbus "ImageUploaded"
             platform.eventbus -> platform.analytics "Trigger downstream metrics"
@@ -173,22 +163,19 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
         dynamic platform "flow-3-visitor-access-and-authorization" "Visitor Access (Public/Hidden/Restricted via BFF)" {
             autoLayout
             visitor -> platform.web "Open album URL"
-            platform.web -> platform.bff "Request album"
-            platform.bff -> platform.api "Resolve album"
+            platform.web -> platform.api "Request album"
             platform.api -> platform.albums "Fetch album"
             platform.albums -> platform.metadata "Read album"
             platform.api -> platform.policy "Evaluate access"
             platform.policy -> platform.metadata "Read ACL/visibility"
-            platform.bff -> platform.web "Allow or deny; if allow, return listing"
+            platform.api -> platform.web "Allow or deny; if allow, return listing"
 
             visitor -> platform.web "View images"
-            platform.web -> platform.bff "Fetch image metadata"
-            platform.bff -> platform.api "Get images"
+            platform.web -> platform.api "Fetch image metadata"
             platform.api -> platform.images "Read images"
             platform.images -> platform.metadata "Read image metadata"
 
-            platform.web -> platform.bff "Record view event"
-            platform.bff -> platform.api "Emit view event"
+            platform.web -> platform.api "Record view event"
             platform.api -> platform.eventbus "Publish"
             platform.eventbus -> platform.analytics "Update counters"
             platform.analytics -> platform.stats "Increment views"
@@ -197,21 +184,18 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
         dynamic platform "flow-4-shopping-browse-to-order" "Shopping: Browse → Cart → Checkout → Order (via BFF)" {
             autoLayout
             visitor -> platform.web "Add image(s) to cart"
-            platform.web -> platform.bff "Upsert cart"
-            platform.bff -> platform.api "Create/update cart"
+            platform.web -> platform.api "Upsert cart"
             platform.api -> platform.carts "Create/update"
             platform.carts -> platform.metadata "Persist cart"
 
-            platform.web -> platform.bff "Price cart"
-            platform.bff -> platform.api "Quote totals"
+            platform.web -> platform.api "Price cart, quote totals"
             platform.api -> platform.pricing "Compute totals"
             platform.pricing -> platform.pricelists "Read rules"
             platform.pricelists -> platform.metadata "Fetch price list"
-            platform.bff -> platform.web "Totals"
+            platform.api -> platform.web "Totals"
 
             visitor -> platform.web "Checkout"
-            platform.web -> platform.bff "Create order from cart"
-            platform.bff -> platform.api "Create order"
+            platform.web -> platform.api "Create order from cart"
             platform.api -> platform.orders "Create order"
             platform.orders -> platform.metadata "Persist order"
             platform.orders -> payments "Create payment session"
@@ -220,23 +204,21 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
             platform.eventbus -> platform.analytics "Record conversion"
             platform.analytics -> platform.stats "Increment buys"
 
-            platform.web -> platform.bff "Return from payment (client-side redirect)"
-            platform.bff -> platform.api "Load order status"
+            platform.web -> platform.api "Return from payment (client-side redirect), load order status"
             platform.api -> platform.orders "Read status"
-            platform.bff -> platform.web "Receipt / download availability"
+            platform.api -> platform.web "Receipt / download availability"
         }
 
         dynamic platform "flow-5-analytics-and-stats" "Analytics & Stats (Event-Driven + BFF Reads)" {
             autoLayout
-            platform.web -> platform.bff "Record telemetry (view/download/cart/order)"
-            platform.bff -> platform.api "Forward telemetry"
+            platform.web -> platform.api "Record telemetry (view/download/cart/order)"
             platform.api -> platform.eventbus "Publish telemetry events"
             platform.eventbus -> platform.analytics "Consume"
             platform.analytics -> platform.stats "Upsert counters & rollups"
 
-            platform.web -> platform.bff "Fetch metrics"
-            platform.bff -> platform.stats "Query aggregates"
-            platform.bff -> platform.web "Return metrics"
+            platform.web -> platform.api "Fetch metrics"
+            platform.api -> platform.stats "Query aggregates"
+            platform.api -> platform.web "Return metrics"
         }
 
         styles {
@@ -297,8 +279,8 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
                 border dashed
             }
 
-     
+
         }
-  
-    } 
+
+    }
 }
