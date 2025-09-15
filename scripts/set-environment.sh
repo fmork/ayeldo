@@ -77,8 +77,8 @@ fi
 if [ "$environmentName" == "main" ]
 then
     environmentName="prod"
-    apiHostName="api.$FMORK_SITE_DOMAIN_NAME"
-    staticHostName="static.$FMORK_SITE_DOMAIN_NAME"
+    apiHostName="dev-api.$FMORK_SITE_DOMAIN_NAME"
+    staticHostName="dev-static.$FMORK_SITE_DOMAIN_NAME"
 else
     apiHostName="$environmentName-api.$FMORK_SITE_DOMAIN_NAME"
     staticHostName="$environmentName-static.$FMORK_SITE_DOMAIN_NAME"
