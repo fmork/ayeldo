@@ -1,5 +1,14 @@
+import type { EventBridgeClient } from '@aws-sdk/client-eventbridge';
+import {
+  AlbumRepoDdb,
+  CartRepoDdb,
+  DdbDocumentClientAdapter,
+  EventBridgePublisher,
+  ImageRepoDdb,
+  OrderRepoDdb,
+  PriceListRepoDdb,
+} from '@ayeldo/infra-aws';
 import { createRootLogger, getEventBridgeClient, loadEnv } from '@ayeldo/utils';
-import { z } from 'zod';
 import { AxiosHttpClient } from '@fmork/backend-core/dist/IO';
 import { JsonUtil } from '@fmork/backend-core/dist/Json';
 import type { ILogWriter } from '@fmork/backend-core/dist/logging';
@@ -10,15 +19,21 @@ import {
   TokenKeyCache,
 } from '@fmork/backend-core/dist/security';
 import { Server } from '@fmork/backend-core/dist/server';
-import { ReferenceClaimAuthorizedApiController } from '../controllers/referenceClaimAuthorizedApiController';
+import { z } from 'zod';
 import { CartController } from '../controllers/cartController';
-import { CartRepoDdb, PriceListRepoDdb, DdbDocumentClientAdapter, EventBridgePublisher, OrderRepoDdb, AlbumRepoDdb, ImageRepoDdb } from '@ayeldo/infra-aws';
-import type { EventBridgeClient } from '@aws-sdk/client-eventbridge';
-import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
+import { MediaController } from '../controllers/mediaController';
 import { OrderController } from '../controllers/orderController';
 import { PaymentController } from '../controllers/paymentController';
+import { ReferenceClaimAuthorizedApiController } from '../controllers/referenceClaimAuthorizedApiController';
+import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
 import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake';
-import { MediaController } from '../controllers/mediaController';
+// BFF controllers and services (merged from packages/bff)
+import { AuthBffController } from '../bff/controllers/authBffController';
+import { CartBffController } from '../bff/controllers/cartBffController';
+import { RootBffController } from '../bff/controllers/rootBffController';
+import { OidcClientOpenId, type OidcOpenIdConfig } from '../bff/services/oidcOpenIdClient';
+import { SessionService } from '../bff/services/sessionService';
+import { MemorySessionStore, MemoryStateStore } from '../bff/stores/sessionStore';
 import { SignedUrlProviderFake } from '../storage/signedUrlProviderFake';
 
 // Root logger using @ayeldo/utils pino adapter (implements ILogWriter shape)
@@ -26,8 +41,8 @@ export const logWriter: ILogWriter = createRootLogger('api', 'info');
 export const jsonUtil = new JsonUtil({ logWriter });
 
 // Minimal HTTP client + JWT authorizer for claim checks
-const httpClient = new AxiosHttpClient({ logWriter });
-const tokenKeyCache = new TokenKeyCache({ httpClient, logWriter });
+const httpClientCore = new AxiosHttpClient({ logWriter });
+const tokenKeyCache = new TokenKeyCache({ httpClient: httpClientCore, logWriter });
 const jwtAuthorization = new JwtAuthorization({
   tokenKeyCache,
   logWriter,
@@ -48,6 +63,48 @@ const claimBasedAuthorizer = new ClaimBasedAuthorizer({
 const env = loadEnv(
   z.object({
     STRIPE_WEBHOOK_SECRET: z.string().min(1).default('dev_stripe_webhook_secret'),
+    // BFF env
+    API_BASE_URL: z
+      .string()
+      .url()
+      .default(process.env['API_BASE_URL'] ?? 'http://localhost:3000'),
+    OIDC_ISSUER_URL: z
+      .string()
+      .url()
+      .default(process.env['OIDC_ISSUER_URL'] ?? 'https://example-issuer.invalid'),
+    OIDC_AUTH_URL: z
+      .string()
+      .url()
+      .default(process.env['OIDC_AUTH_URL'] ?? 'https://example-issuer.invalid/oauth2/authorize'),
+    OIDC_TOKEN_URL: z
+      .string()
+      .url()
+      .default(process.env['OIDC_TOKEN_URL'] ?? 'https://example-issuer.invalid/oauth2/token'),
+    OIDC_JWKS_URL: z.string().url().optional(),
+    OIDC_CLIENT_ID: z
+      .string()
+      .min(1)
+      .default(process.env['OIDC_CLIENT_ID'] ?? 'client-id'),
+    OIDC_CLIENT_SECRET: z
+      .string()
+      .min(1)
+      .default(process.env['OIDC_CLIENT_SECRET'] ?? 'client-secret'),
+    OIDC_SCOPES: z
+      .string()
+      .min(1)
+      .default(process.env['OIDC_SCOPES'] ?? 'openid email profile offline_access'),
+    OIDC_REDIRECT_URI: z
+      .string()
+      .url()
+      .default(process.env['OIDC_REDIRECT_URI'] ?? 'https://app.example.com/auth/callback'),
+    SESSION_ENC_KEY: z
+      .string()
+      .min(1)
+      .default(process.env['SESSION_ENC_KEY'] ?? 'c2Vzc2lvbl9lbmNfMzJieXRlc19iYXNlNjQ='),
+    BFF_JWT_SECRET: z
+      .string()
+      .min(1)
+      .default(process.env['BFF_JWT_SECRET'] ?? 'YnZmX2p3dF9zZWNyZXRfYmFzZTY0'),
   }),
 );
 
@@ -56,7 +113,10 @@ const tableName = process.env['TABLE_NAME'] || 'AppTable';
 const region = process.env['AWS_REGION'] || 'us-east-1';
 const eventBusName = process.env['EVENTS_BUS_NAME'] || 'default';
 const ddbEndpoint = process.env['DDB_ENDPOINT'];
-const ddb = new DdbDocumentClientAdapter({ region, ...(ddbEndpoint ? { endpoint: ddbEndpoint } : {}) });
+const ddb = new DdbDocumentClientAdapter({
+  region,
+  ...(ddbEndpoint ? { endpoint: ddbEndpoint } : {}),
+});
 const cartRepo = new CartRepoDdb({ tableName, client: ddb });
 const priceListRepo = new PriceListRepoDdb({ tableName, client: ddb });
 const orderRepo = new OrderRepoDdb({ tableName, client: ddb });
@@ -117,6 +177,40 @@ export const mediaController = new MediaController({
   imageRepo,
 });
 
+// BFF wiring
+const httpClient = new AxiosHttpClient({ logWriter });
+const oidcCfg: OidcOpenIdConfig = {
+  issuer: env.OIDC_ISSUER_URL,
+  authUrl: env.OIDC_AUTH_URL,
+  tokenUrl: env.OIDC_TOKEN_URL,
+  clientId: env.OIDC_CLIENT_ID,
+  clientSecret: env.OIDC_CLIENT_SECRET,
+  redirectUri: env.OIDC_REDIRECT_URI,
+  scopes: env.OIDC_SCOPES,
+  ...(env.OIDC_JWKS_URL ? { jwksUrl: env.OIDC_JWKS_URL } : {}),
+};
+const oidc = new OidcClientOpenId(oidcCfg);
+const sessions = new SessionService({
+  store: new MemorySessionStore(),
+  states: new MemoryStateStore(),
+  encKeyB64: env.SESSION_ENC_KEY,
+  encKid: 'v1',
+  bffJwtSecretB64: env.BFF_JWT_SECRET,
+  issuer: 'bff',
+  audience: 'api',
+  logger: logWriter,
+});
+
+export const rootBffController = new RootBffController({ baseUrl: '', logWriter });
+export const authBffController = new AuthBffController({ baseUrl: '', logWriter, oidc, sessions });
+export const cartBffController = new CartBffController({
+  baseUrl: '',
+  logWriter,
+  apiBaseUrl: env.API_BASE_URL,
+  httpClient,
+  sessions,
+});
+
 const requestLogger = new RequestLogMiddleware({ logWriter });
 const serverPort: number = process.env['PORT']
   ? Number.parseInt(process.env['PORT'] as string, 10)
@@ -130,6 +224,10 @@ export const server = new Server({
     orderController,
     paymentController,
     mediaController,
+    // BFF
+    rootBffController,
+    authBffController,
+    cartBffController,
   ],
   port: serverPort,
   requestLogger,
@@ -137,7 +235,7 @@ export const server = new Server({
   corsOptions: {
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token'],
     credentials: true,
   },
 });

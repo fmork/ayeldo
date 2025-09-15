@@ -40,6 +40,34 @@ export class ApiStack extends Stack {
       '../../../packages/api/src/functions/http-handler/handler.ts',
     );
     const tsconfigPath = path.resolve(__dirnameLocal, '../../../tsconfig.base.json');
+    // Prepare optional BFF/OIDC env vars from the build environment
+    const maybe = (k: string): string | undefined => {
+      const v = process.env[k];
+      return v && v.trim().length > 0 ? v : undefined;
+    };
+    const optionalEnv: Record<string, string> = {};
+    const envCandidates: Record<string, string | undefined> = {
+      OIDC_ISSUER_URL: maybe('FMORK_SITE_OIDC_AUTHORITY'),
+      OIDC_AUTH_URL: maybe('FMORK_SITE_OIDC_AUTH_URL'),
+      OIDC_TOKEN_URL: maybe('FMORK_SITE_OIDC_TOKEN_URL'),
+      OIDC_JWKS_URL: maybe('FMORK_SITE_OIDC_JWKS_URL'),
+      OIDC_CLIENT_ID: maybe('FMORK_SITE_OIDC_CLIENT_ID'),
+      OIDC_CLIENT_SECRET: maybe('FMORK_SITE_OIDC_CLIENT_SECRET'),
+      OIDC_SCOPES: maybe('FMORK_SITE_OIDC_SCOPES'),
+      OIDC_REDIRECT_URI: maybe('FMORK_SITE_OIDC_REDIRECT_URI'),
+      SESSION_ENC_KEY: maybe('FMORK_SITE_SESSION_ENC_KEY'),
+      BFF_JWT_SECRET: maybe('FMORK_SITE_BFF_JWT_SECRET'),
+    };
+    for (const [k, v] of Object.entries(envCandidates)) {
+      if (v) optionalEnv[k] = v;
+    }
+
+    // Compute API_BASE_URL if domain is configured
+    const computedApiBaseUrl = props.domainConfig
+      ? `https://${props.domainConfig.apiHost}`
+      : undefined;
+    if (computedApiBaseUrl) optionalEnv['API_BASE_URL'] = computedApiBaseUrl;
+
     const handler = new NodejsFunction(this, 'ApiHandler', {
       entry: apiEntry,
       handler: 'main',
@@ -58,6 +86,7 @@ export class ApiStack extends Stack {
         NODE_OPTIONS: '--enable-source-maps',
         TABLE_NAME: props.table.tableName,
         EVENTS_BUS_NAME: props.eventBus.eventBusName,
+        ...optionalEnv,
       },
     });
 
