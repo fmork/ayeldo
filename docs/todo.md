@@ -115,7 +115,7 @@ Codex prompt: Scaffold image upload endpoints: POST `/images:register`, POST `/i
 - ✅ Implement cart repo (anonymous session + TTL)
 - ✅ API route: price cart using `TieredPricingEngine`
 - ✅ BFF routes: add/remove/list cart items
- - ✅ Emit `CartUpdated`
+- ✅ Emit `CartUpdated`
 
 Codex prompt: Expose BFF cart endpoints (add/remove/list) that call API for pricing; include CSRF validation.
 
@@ -126,7 +126,7 @@ Codex prompt: Expose BFF cart endpoints (add/remove/list) that call API for pric
 - ✅ API: create order from cart
 - ✅ API: get order status
 - ✅ Stripe session creation
- - ✅ Webhook handler: verify signature, update state
+- ✅ Webhook handler: verify signature, update state
 - ✅ Emit `OrderPaid` / `OrderFailed`
 - ✅ Fulfillment step for paid albums (download link)
 
@@ -142,6 +142,7 @@ Codex prompt: Implement Stripe session creation and webhook processing with type
 - ✅ Issue HttpOnly session cookie
 - ✅ Middleware: `requireSession` + `csrfGuard`
 - ✅ BFF → API auth (short-lived signed JWT)
+- ✅ Extracted `AuthFlowService` (thin controller pattern)
 
 Codex prompt: Implement BFF session management with Cognito code exchange (no tokens in browser), DynamoDB session store, and CSRF protection.
 
@@ -238,3 +239,31 @@ Codex prompt: Write a GitHub Actions workflow that caches pnpm store, runs lint/
 - ☐ Creator webhooks on order events
 - ☐ Export analytics as CSV
 - ☐ Multi-region S3 + CloudFront signed cookies
+
+---
+
+### Controller → Service Extraction Pattern (Completed)
+
+Implemented thin controller pattern across API/BFF:
+
+- Auth: `AuthFlowService`
+- Cart BFF: `CartBffFlowService`
+- Payments: `PaymentFlowService`
+- Orders: `OrderFlowService`
+- Media: `MediaQueryService`
+
+Characteristics:
+
+- Controllers now only: parse minimal path params (or pass raw), delegate to service, set status code.
+- Services own: zod validation, orchestration, policy/state transitions, cross-call composition.
+- Encourages unit testing at service layer (pending: add tests for CartBffFlowService, MediaQueryService, OrderFlowService, PaymentFlowService).
+
+Decision Log:
+
+- RootBffController left as-is (trivial single endpoint; service extraction would add noise).
+
+Next Steps (follow-up todos to add later if prioritized):
+
+- Add unit tests for new \*FlowService classes.
+- Add README section or architecture doc snippet referencing this pattern (C4 update optional).
+- Consider shared base for flow services if duplication grows (currently minimal).
