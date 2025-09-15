@@ -1,15 +1,16 @@
 import { createRootLogger } from '@ayeldo/utils';
-import type { ILogWriter } from '@fmork/backend-core/dist/logging';
 import { AxiosHttpClient } from '@fmork/backend-core/dist/IO';
+import type { ILogWriter } from '@fmork/backend-core/dist/logging';
 import { RequestLogMiddleware } from '@fmork/backend-core/dist/middleWare';
 import { Server } from '@fmork/backend-core/dist/server';
+import { AuthBffController } from '../controllers/authBffController';
 import { CartBffController } from '../controllers/cartBffController';
+import { RootBffController } from '../controllers/rootBffController';
 import { getEnv } from '../init';
-import { OidcClientOpenId } from '../services/oidcOpenIdClient';
 import type { OidcOpenIdConfig } from '../services/oidcOpenIdClient';
+import { OidcClientOpenId } from '../services/oidcOpenIdClient';
 import { SessionService } from '../services/sessionService';
 import { MemorySessionStore, MemoryStateStore } from '../stores/sessionStore';
-import { AuthBffController } from '../controllers/authBffController';
 
 export const logWriter: ILogWriter = createRootLogger('bff', 'info');
 
@@ -46,12 +47,15 @@ export const cartBffController = new CartBffController({
 });
 
 export const authBffController = new AuthBffController({ baseUrl: '', logWriter, oidc, sessions });
+export const rootBffController = new RootBffController({ baseUrl: '', logWriter });
 
 const requestLogger = new RequestLogMiddleware({ logWriter });
-const serverPort: number = process.env['PORT'] ? Number.parseInt(process.env['PORT'] as string, 10) : 3001;
+const serverPort: number = process.env['PORT']
+  ? Number.parseInt(process.env['PORT'] as string, 10)
+  : 3001;
 
 export const server = new Server({
-  controllers: [authBffController, cartBffController],
+  controllers: [rootBffController, authBffController, cartBffController],
   port: serverPort,
   requestLogger,
   logWriter,
