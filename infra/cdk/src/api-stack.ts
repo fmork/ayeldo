@@ -3,7 +3,6 @@ import type { StackProps } from 'aws-cdk-lib';
 import { CfnOutput, Duration, Stack } from 'aws-cdk-lib';
 import {
   AccessLogFormat,
-  Cors,
   EndpointType,
   LambdaRestApi,
   LogGroupLogDestination,
@@ -132,13 +131,6 @@ export class ApiStack extends Stack {
         loggingLevel: MethodLoggingLevel.INFO,
         dataTraceEnabled: false,
         metricsEnabled: true,
-      },
-      defaultCorsPreflightOptions: {
-        allowOrigins: Cors.ALL_ORIGINS,
-        allowMethods: Cors.ALL_METHODS,
-        allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-        disableCache: false,
-        maxAge: Duration.days(10),
       },
       ...(props.domainConfig && apiCert
         ? {

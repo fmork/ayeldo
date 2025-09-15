@@ -84,6 +84,19 @@ function createSiteConfigurationFromEnv(): SiteConfiguration {
 // Create site configuration
 const siteConfig = createSiteConfigurationFromEnv();
 
+// Log configuration status
+logWriter.info(
+  `Site configuration: webOrigin=${siteConfig.webOrigin}, bffOrigin=${siteConfig.bffOrigin}`,
+);
+logWriter.info(
+  `OIDC configuration status: ${siteConfig.isOidcConfigured ? 'ENABLED' : 'DISABLED'}`,
+);
+
+if (!siteConfig.isOidcConfigured) {
+  logWriter.warn('OIDC is not configured. Auth endpoints will not be available.');
+  logWriter.warn('To enable OIDC, set: OIDC_ISSUER_URL, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET');
+}
+
 // Env - simplified schema now that OIDC is handled by SiteConfiguration
 const env = loadEnv(
   z.object({
@@ -238,7 +251,38 @@ export const server = new Server({
   requestLogger,
   logWriter,
   corsOptions: {
-    origin: '*',
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ): void => {
+      logWriter.info(`CORS request from origin: ${origin || 'no-origin'}`);
+
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) {
+        logWriter.info('CORS: Allowing request with no origin');
+        return callback(null, true);
+      }
+
+      // List of allowed origins
+      const allowedOrigins = [
+        siteConfig.webOrigin,
+        siteConfig.bffOrigin,
+        // Development origins
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:5173', // Vite dev server default
+      ];
+
+      logWriter.info(`CORS: Allowed origins: ${allowedOrigins.join(', ')}`);
+
+      if (allowedOrigins.includes(origin)) {
+        logWriter.info(`CORS: Allowing origin ${origin}`);
+        callback(null, true);
+      } else {
+        logWriter.warn(`CORS: Rejecting origin ${origin}`);
+        callback(new Error(`Not allowed by CORS: ${origin}`));
+      }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token'],
     credentials: true,
