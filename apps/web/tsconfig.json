@@ -21,11 +21,15 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": "./",
+    "baseUrl": "../../",
     "types": [
       "vite/client",
       "react",
       "react-dom"
+    ],
+    "lib": [
+      "ES2022",
+      "DOM"
     ]
   },
   "include": [

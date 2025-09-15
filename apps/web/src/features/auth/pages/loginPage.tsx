@@ -1,6 +1,7 @@
+import type { FC } from 'react';
 import { useLazyGetAuthorizeUrlQuery } from '../../../services/api/bffApi';
 
-export function LoginPage(): JSX.Element {
+const LoginPage: FC = () => {
   const [trigger, { isFetching }] = useLazyGetAuthorizeUrlQuery();
 
   const onLogin = async (): Promise<void> => {
@@ -22,11 +23,17 @@ export function LoginPage(): JSX.Element {
   };
 
   return (
-    <section>
-      <h2>Login</h2>
-      <button onClick={() => void onLogin()} disabled={isFetching}>
-        {isFetching ? 'Redirecting…' : 'Click here to sign in'}
-      </button>
-    </section>
+    <>
+      <section>
+        <h2>Login</h2>
+        <button onClick={() => void onLogin()} disabled={isFetching}>
+          {isFetching ? 'Redirecting…' : 'Click here to sign in'}
+        </button>
+      </section>
+    </>
   );
+
 }
+
+
+export default LoginPage;
