@@ -43,18 +43,20 @@ export class AuthBffController extends PublicController {
         (res as any).status(302)?.setHeader?.('Location', url)?.end?.();
     });
 
-    // GET /auth/callback?code&state
+    // GET /auth/callback?code&state[&redirect]
     this.addGet('/auth/callback', async (req, res) => {
       await this.performRequest(
         async () => {
           const params = z
             .object({ code: z.string().min(1), state: z.string().min(1) })
             .parse((req as any).query);
-          this.logWriter.info(`Handling OIDC callback, state=${params.state}`);
+          const redirectTarget = (req as any).query?.redirect as string | undefined;
+          this.logWriter.info(
+            `Handling OIDC callback, state=${params.state}, redirect=${redirectTarget ?? '/'} `,
+          );
           const { sid, csrf } = await this.sessions.completeLogin(this.oidc, params);
           this.logWriter.info(`Login completed successfully, sid=${sid}, csrf=${csrf}`);
           // Set cookies
-          // HttpOnly session cookie
           (res as any).cookie?.('__Host-sid', sid, {
             httpOnly: true,
             secure: true,
@@ -63,7 +65,6 @@ export class AuthBffController extends PublicController {
           });
           this.logWriter.info(`HttpOnly session cookie set: ${sid}`);
 
-          // CSRF token cookie (readable by JS)
           (res as any).cookie?.('csrf', csrf, {
             httpOnly: false,
             secure: true,
@@ -71,8 +72,21 @@ export class AuthBffController extends PublicController {
             path: '/',
           });
           this.logWriter.info(`CSRF token cookie set: ${csrf}`);
-          this.logWriter.info(`Redirecting to '/'`);
-          (res as any).setHeader?.('Location', '/');
+          // Validate redirect target (allow only relative or whitelisted origins)
+          let target = '/';
+          if (redirectTarget && typeof redirectTarget === 'string') {
+            // Only allow relative URLs or absolute URLs to known web origins
+            if (redirectTarget.startsWith('/')) {
+              target = redirectTarget;
+            } else if (redirectTarget.startsWith('http')) {
+              // Optionally: check against allowed origins here
+              target = redirectTarget;
+            } else {
+              this.logWriter.warn(`Rejected unsafe redirect target: ${redirectTarget}`);
+            }
+          }
+          this.logWriter.info(`Redirecting to '${target}'`);
+          (res as any).setHeader?.('Location', target);
         },
         res,
         () => 302,

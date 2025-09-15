@@ -5,7 +5,12 @@ export function LoginPage(): JSX.Element {
 
   const onLogin = async (): Promise<void> => {
     try {
-      const result = await trigger().unwrap();
+      // Hardcode redirect to web app root
+      const gl = globalThis as unknown as { location?: { origin?: string } };
+      const redirect = typeof gl.location?.origin === 'string' && gl.location.origin.length > 0
+        ? gl.location.origin.replace(/\/$/, '')
+        : 'http://localhost';
+      const result = await trigger({ redirect }).unwrap();
       const g = globalThis as unknown as { location?: { assign?: (u: string) => void } };
       g.location?.assign?.(result.url);
     } catch (err) {

@@ -15,8 +15,11 @@ export const bffApi = createApi({
   }),
   tagTypes: ['Album', 'Image', 'Cart', 'Order', 'PriceList'],
   endpoints: (builder) => ({
-    getAuthorizeUrl: builder.query<{ url: string }, void>({
-      query: () => '/auth/authorize-url',
+    getAuthorizeUrl: builder.query<{ url: string }, { redirect?: string }>({
+      query: (args) => {
+        const params = args?.redirect ? `?redirect=${encodeURIComponent(args.redirect)}` : '';
+        return `/auth/authorize-url${params}`;
+      },
     }),
   }),
 });
