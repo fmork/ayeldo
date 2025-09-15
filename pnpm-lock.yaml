@@ -125,8 +125,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       '@fmork/backend-core':
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.0.1
+        version: 3.0.1
       openid-client:
         specifier: ^5.6.5
         version: 5.7.1
@@ -745,8 +745,8 @@ packages:
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@fmork/backend-core@3.0.0':
-    resolution: {integrity: sha512-ZvY4ZAVLNbQZVi2e2nnK9paESmR8uxSicIlMER3DpgRLeWib8rPrny+D5Srx5J/go7sDOWQXGgQmZV2qQRApNw==, tarball: https://npm.pkg.github.com/download/@fmork/backend-core/3.0.0/047a91722850730036dbc593599e784d57d3708a}
+  '@fmork/backend-core@3.0.1':
+    resolution: {integrity: sha512-GytycmC/ZJweK0k1GAasxRr6ontTPChp0AeuE7LoybdGqSlgP2A/z8tbtYsgo7jRZOKc0x9hKEUvI2j05QOdyg==, tarball: https://npm.pkg.github.com/download/@fmork/backend-core/3.0.1/761350ba676a6694dfe2366af66473e3addfe270}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -4172,7 +4172,7 @@ snapshots:
 
   '@eslint/js@8.57.1': {}
 
-  '@fmork/backend-core@3.0.0':
+  '@fmork/backend-core@3.0.1':
     dependencies:
       '@types/aws-lambda': 8.10.152
       axios: 1.12.2
