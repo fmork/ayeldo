@@ -14,5 +14,11 @@ export const bffApi = createApi({
     },
   }),
   tagTypes: ['Album', 'Image', 'Cart', 'Order', 'PriceList'],
-  endpoints: () => ({}),
+  endpoints: (builder) => ({
+    getAuthorizeUrl: builder.query<{ url: string }, void>({
+      query: () => '/auth/authorize-url',
+    }),
+  }),
 });
+
+export const { useLazyGetAuthorizeUrlQuery } = bffApi;

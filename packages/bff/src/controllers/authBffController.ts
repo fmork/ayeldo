@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ILogWriter } from '@fmork/backend-core/dist/logging';
 import { PublicController } from '@fmork/backend-core/dist/controllers';
 import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
+import type { ILogWriter } from '@fmork/backend-core/dist/logging';
 import { z } from 'zod';
 import type { OidcClientOpenId } from '../services/oidcOpenIdClient';
 import type { SessionService } from '../services/sessionService';
@@ -24,16 +24,27 @@ export class AuthBffController extends PublicController {
   }
 
   public initialize(): HttpRouter {
+    // GET /auth/authorize-url — returns the OIDC authorize URL for SPA-driven redirects
+    this.addGet('/auth/authorize-url', async (_req, res) => {
+      const { state, nonce, codeChallenge } = this.sessions.createLoginState();
+      const url = this.oidc.buildAuthorizeUrl({ state, nonce, codeChallenge });
+      (res as any).set?.('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.json({ url });
+    });
+
     // GET /auth/login?redirect=...
     this.addGet('/auth/login', async (_req, res) => {
       const { state, nonce, codeChallenge } = this.sessions.createLoginState();
       const url = this.oidc.buildAuthorizeUrl({ state, nonce, codeChallenge });
-      (res as any).redirect?.(url) ?? (res as any).status(302)?.setHeader?.('Location', url)?.end?.();
+      (res as any).redirect?.(url) ??
+        (res as any).status(302)?.setHeader?.('Location', url)?.end?.();
     });
 
     // GET /auth/callback?code&state
     this.addGet('/auth/callback', async (req, res) => {
-      const params = z.object({ code: z.string().min(1), state: z.string().min(1) }).parse((req as any).query);
+      const params = z
+        .object({ code: z.string().min(1), state: z.string().min(1) })
+        .parse((req as any).query);
       const { sid, csrf } = await this.sessions.completeLogin(this.oidc, params);
       // Set cookies
       // HttpOnly session cookie
@@ -50,7 +61,8 @@ export class AuthBffController extends PublicController {
         sameSite: 'lax',
         path: '/',
       });
-      (res as any).redirect?.('/') ?? (res as any).status(302)?.setHeader?.('Location', '/')?.end?.();
+      (res as any).redirect?.('/') ??
+        (res as any).status(302)?.setHeader?.('Location', '/')?.end?.();
     });
 
     // POST /auth/logout
