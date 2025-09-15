@@ -1,4 +1,4 @@
-import type { ILogWriter } from '@fmork/backend-core/dist/logging';
+import type { ILogWriter } from '@fmork/backend-core';
 import * as crypto from 'node:crypto';
 import type { ISessionStore, IStateStore } from '../stores/sessionStore';
 import type { SessionRecord, TokenBundle } from '../types/session';

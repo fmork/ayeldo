@@ -15,15 +15,15 @@
     "test": "jest -c ../../jest.config.ts --passWithNoTests"
   },
   "dependencies": {
-    "@fmork/backend-core": "^2.0.0",
-    "@ayeldo/types": "workspace:*",
-    "@ayeldo/core": "workspace:*",
-    "@ayeldo/utils": "workspace:*",
-    "@ayeldo/infra-aws": "workspace:*",
-    "openid-client": "^5.6.5",
-    "serverless-http": "^3.2.0",
     "@aws-sdk/client-eventbridge": "^3.634.0",
     "@aws-sdk/client-s3": "^3.634.0",
+    "@ayeldo/core": "workspace:*",
+    "@ayeldo/infra-aws": "workspace:*",
+    "@ayeldo/types": "workspace:*",
+    "@ayeldo/utils": "workspace:*",
+    "@fmork/backend-core": "^3.0.0",
+    "openid-client": "^5.6.5",
+    "serverless-http": "^3.2.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

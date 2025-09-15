@@ -71,10 +71,10 @@ importers:
         version: 18.3.7(@types/react@18.3.24)
       '@vitejs/plugin-react':
         specifier: ^4.3.1
-        version: 4.7.0(vite@5.4.20(@types/node@20.19.14))
+        version: 4.7.0(vite@5.4.20(@types/node@24.4.0))
       vite:
         specifier: ^5.4.1
-        version: 5.4.20(@types/node@20.19.14)
+        version: 5.4.20(@types/node@24.4.0)
 
   infra/cdk:
     dependencies:
@@ -125,8 +125,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       '@fmork/backend-core':
-        specifier: ^2.0.0
-        version: 2.0.0
+        specifier: ^3.0.0
+        version: 3.0.0
       openid-client:
         specifier: ^5.6.5
         version: 5.7.1
@@ -745,8 +745,8 @@ packages:
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@fmork/backend-core@2.0.0':
-    resolution: {integrity: sha512-t6kRh/EWSkdg/oTrG1c/uwY1zo7JaWQre7jKIpz6BRL6d0SQ1aVAVRojt2TkXZD9fD7RRmoHBcKAFFavTGmDOA==, tarball: https://npm.pkg.github.com/download/@fmork/backend-core/2.0.0/2d95c2dd2752264126ea8f954660568ea6533c2e}
+  '@fmork/backend-core@3.0.0':
+    resolution: {integrity: sha512-ZvY4ZAVLNbQZVi2e2nnK9paESmR8uxSicIlMER3DpgRLeWib8rPrny+D5Srx5J/go7sDOWQXGgQmZV2qQRApNw==, tarball: https://npm.pkg.github.com/download/@fmork/backend-core/3.0.0/047a91722850730036dbc593599e784d57d3708a}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -1310,6 +1310,9 @@ packages:
   '@types/node@20.19.14':
     resolution: {integrity: sha512-gqiKWld3YIkmtrrg9zDvg9jfksZCcPywXVN7IauUGhilwGV/yOyeUsvpR796m/Jye0zUzMXPKe8Ct1B79A7N5Q==}
 
+  '@types/node@24.4.0':
+    resolution: {integrity: sha512-gUuVEAK4/u6F9wRLznPUU4WGUacSEBDPoC2TrBkw3GAnOLHBL45QdfHOXp1kJ4ypBGLxTOB+t7NJLpKoC3gznQ==}
+
   '@types/prop-types@15.7.15':
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
 
@@ -1505,8 +1508,8 @@ packages:
     engines: {node: '>= 18.0.0'}
     hasBin: true
 
-  axios@1.12.1:
-    resolution: {integrity: sha512-Kn4kbSXpkFHCGE6rBFNwIv0GQs4AvDT80jlveJDKFxjbTYMUeB4QtsdPCv6H8Cm19Je7IU6VFtRl2zWZI0rudQ==}
+  axios@1.12.2:
+    resolution: {integrity: sha512-vMJzPewAlRyOgxV2dU0Cuz2O8zzzx9VYtbJOaBgXFeLc4IV/Eg50n4LowmehOOR61S8ZMpc2K5Sa7g6A4jfkUw==}
 
   babel-jest@29.7.0:
     resolution: {integrity: sha512-BrvGY3xZSwEcCzKvKsCi2GgHqDqsYkOP4/by5xCgIwGXQxIEh+8ew3gmrE1y7XRR6LHZIj6yLYnUi/mm2KXKBg==}
@@ -1719,6 +1722,15 @@ packages:
 
   debug@4.4.1:
     resolution: {integrity: sha512-KcKCqiftBJcZr++7ykoDIEwSa3XWowTfNPo92BYxjXiyYEVrUQh2aLyhxBCwww+heortUFxEJYcRzosstTEBYQ==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+
+  debug@4.4.3:
+    resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
     engines: {node: '>=6.0'}
     peerDependencies:
       supports-color: '*'
@@ -3115,6 +3127,9 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
+  undici-types@7.11.0:
+    resolution: {integrity: sha512-kt1ZriHTi7MU+Z/r9DOdAI3ONdaR3M3csEaRc6ewa4f4dTvX4cQCbJ4NkEn0ohE4hHtq85+PhPSTY+pO/1PwgA==}
+
   universalify@0.1.2:
     resolution: {integrity: sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==}
     engines: {node: '>= 4.0.0'}
@@ -4157,10 +4172,10 @@ snapshots:
 
   '@eslint/js@8.57.1': {}
 
-  '@fmork/backend-core@2.0.0':
+  '@fmork/backend-core@3.0.0':
     dependencies:
       '@types/aws-lambda': 8.10.152
-      axios: 1.12.1
+      axios: 1.12.2
       body-parser: 2.2.0
       cors: 2.8.5
       dotenv: 17.2.2
@@ -4278,7 +4293,7 @@ snapshots:
 
   '@jest/pattern@30.0.1':
     dependencies:
-      '@types/node': 20.19.14
+      '@types/node': 24.4.0
       jest-regex-util: 30.0.1
     optional: true
 
@@ -4396,7 +4411,7 @@ snapshots:
       '@jest/schemas': 30.0.5
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 20.19.14
+      '@types/node': 24.4.0
       '@types/yargs': 17.0.33
       chalk: 4.1.2
     optional: true
@@ -4950,7 +4965,7 @@ snapshots:
   '@types/jsonwebtoken@9.0.10':
     dependencies:
       '@types/ms': 2.1.0
-      '@types/node': 20.19.14
+      '@types/node': 24.4.0
 
   '@types/mime@1.3.5': {}
 
@@ -4959,6 +4974,10 @@ snapshots:
   '@types/node@20.19.14':
     dependencies:
       undici-types: 6.21.0
+
+  '@types/node@24.4.0':
+    dependencies:
+      undici-types: 7.11.0
 
   '@types/prop-types@15.7.15': {}
 
@@ -5088,7 +5107,7 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@vitejs/plugin-react@4.7.0(vite@5.4.20(@types/node@20.19.14))':
+  '@vitejs/plugin-react@4.7.0(vite@5.4.20(@types/node@24.4.0))':
     dependencies:
       '@babel/core': 7.28.4
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.28.4)
@@ -5096,7 +5115,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.27
       '@types/babel__core': 7.20.5
       react-refresh: 0.17.0
-      vite: 5.4.20(@types/node@20.19.14)
+      vite: 5.4.20(@types/node@24.4.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -5171,7 +5190,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  axios@1.12.1:
+  axios@1.12.2:
     dependencies:
       follow-redirects: 1.15.11
       form-data: 4.0.4
@@ -5283,7 +5302,7 @@ snapshots:
     dependencies:
       bytes: 3.1.2
       content-type: 1.0.5
-      debug: 4.4.1
+      debug: 4.4.3
       http-errors: 2.0.0
       iconv-lite: 0.6.3
       on-finished: 2.4.1
@@ -5433,6 +5452,10 @@ snapshots:
   date-format@4.0.14: {}
 
   debug@4.4.1:
+    dependencies:
+      ms: 2.1.3
+
+  debug@4.4.3:
     dependencies:
       ms: 2.1.3
 
@@ -5659,7 +5682,7 @@ snapshots:
       content-type: 1.0.5
       cookie: 0.7.2
       cookie-signature: 1.2.2
-      debug: 4.4.1
+      debug: 4.4.3
       encodeurl: 2.0.0
       escape-html: 1.0.3
       etag: 1.8.1
@@ -5721,7 +5744,7 @@ snapshots:
 
   finalhandler@2.1.0:
     dependencies:
-      debug: 4.4.1
+      debug: 4.4.3
       encodeurl: 2.0.0
       escape-html: 1.0.3
       on-finished: 2.4.1
@@ -6115,7 +6138,7 @@ snapshots:
   jest-haste-map@30.1.0:
     dependencies:
       '@jest/types': 30.0.5
-      '@types/node': 20.19.14
+      '@types/node': 24.4.0
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -6276,7 +6299,7 @@ snapshots:
   jest-util@30.0.5:
     dependencies:
       '@jest/types': 30.0.5
-      '@types/node': 20.19.14
+      '@types/node': 24.4.0
       chalk: 4.1.2
       ci-info: 4.3.0
       graceful-fs: 4.2.11
@@ -6312,7 +6335,7 @@ snapshots:
 
   jest-worker@30.1.0:
     dependencies:
-      '@types/node': 20.19.14
+      '@types/node': 24.4.0
       '@ungap/structured-clone': 1.3.0
       jest-util: 30.0.5
       merge-stream: 2.0.0
@@ -6434,7 +6457,7 @@ snapshots:
   log4js@6.9.1:
     dependencies:
       date-format: 4.0.14
-      debug: 4.4.1
+      debug: 4.4.3
       flatted: 3.3.3
       rfdc: 1.4.1
       streamroller: 3.1.5
@@ -6797,7 +6820,7 @@ snapshots:
 
   router@2.2.0:
     dependencies:
-      debug: 4.4.1
+      debug: 4.4.3
       depd: 2.0.0
       is-promise: 4.0.0
       parseurl: 1.3.3
@@ -6825,7 +6848,7 @@ snapshots:
 
   send@1.2.0:
     dependencies:
-      debug: 4.4.1
+      debug: 4.4.3
       encodeurl: 2.0.0
       escape-html: 1.0.3
       etag: 1.8.1
@@ -6923,7 +6946,7 @@ snapshots:
   streamroller@3.1.5:
     dependencies:
       date-format: 4.0.14
-      debug: 4.4.1
+      debug: 4.4.3
       fs-extra: 8.1.0
     transitivePeerDependencies:
       - supports-color
@@ -7051,6 +7074,8 @@ snapshots:
 
   undici-types@6.21.0: {}
 
+  undici-types@7.11.0: {}
+
   universalify@0.1.2: {}
 
   unpipe@1.0.0: {}
@@ -7081,13 +7106,13 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite@5.4.20(@types/node@20.19.14):
+  vite@5.4.20(@types/node@24.4.0):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.5.6
       rollup: 4.50.1
     optionalDependencies:
-      '@types/node': 20.19.14
+      '@types/node': 24.4.0
       fsevents: 2.3.3
 
   walker@1.0.8:

@@ -1,10 +1,9 @@
-import { z } from 'zod';
-import type { ILogWriter } from '@fmork/backend-core/dist/logging';
-import { PublicController } from '@fmork/backend-core/dist/controllers';
-import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
-import { createOrderFromCart, getOrder, fulfillOrder } from '../handlers/orders';
 import type { ICartRepo, IDownloadUrlProvider, IOrderRepo, IPriceListRepo } from '@ayeldo/core';
 import { TieredPricingEngine } from '@ayeldo/core';
+import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
+import { PublicController } from '@fmork/backend-core';
+import { z } from 'zod';
+import { createOrderFromCart, fulfillOrder, getOrder } from '../handlers/orders';
 
 export interface OrderControllerProps {
   readonly baseUrl: string;
@@ -34,11 +33,17 @@ export class OrderController extends PublicController {
   public initialize(): HttpRouter {
     // POST /tenants/:tenantId/carts/:cartId/order — create order from cart
     this.addPost('/tenants/:tenantId/carts/:cartId/order', async (req, res) => {
-      const params = z.object({ tenantId: z.string().min(1), cartId: z.string().min(1) }).parse(
-        (req as unknown as { params: { tenantId: string; cartId: string } }).params,
-      );
+      const params = z
+        .object({ tenantId: z.string().min(1), cartId: z.string().min(1) })
+        .parse((req as unknown as { params: { tenantId: string; cartId: string } }).params);
       await this.performRequest(
-        () => createOrderFromCart(params, { cartRepo: this.cartRepo, priceListRepo: this.priceListRepo, orderRepo: this.orderRepo, engine: this.engine }),
+        () =>
+          createOrderFromCart(params, {
+            cartRepo: this.cartRepo,
+            priceListRepo: this.priceListRepo,
+            orderRepo: this.orderRepo,
+            engine: this.engine,
+          }),
         res,
         () => 201,
       );
@@ -46,9 +51,9 @@ export class OrderController extends PublicController {
 
     // GET /tenants/:tenantId/orders/:orderId — fetch order status/details
     this.addGet('/tenants/:tenantId/orders/:orderId', async (req, res) => {
-      const params = z.object({ tenantId: z.string().min(1), orderId: z.string().min(1) }).parse(
-        (req as unknown as { params: { tenantId: string; orderId: string } }).params,
-      );
+      const params = z
+        .object({ tenantId: z.string().min(1), orderId: z.string().min(1) })
+        .parse((req as unknown as { params: { tenantId: string; orderId: string } }).params);
       await this.performRequest(
         () => getOrder(params, { orderRepo: this.orderRepo }),
         res,
@@ -58,9 +63,9 @@ export class OrderController extends PublicController {
 
     // POST /tenants/:tenantId/orders/:orderId/fulfill — transition to fulfilled and return signed download URL
     this.addPost('/tenants/:tenantId/orders/:orderId/fulfill', async (req, res) => {
-      const params = z.object({ tenantId: z.string().min(1), orderId: z.string().min(1) }).parse(
-        (req as unknown as { params: { tenantId: string; orderId: string } }).params,
-      );
+      const params = z
+        .object({ tenantId: z.string().min(1), orderId: z.string().min(1) })
+        .parse((req as unknown as { params: { tenantId: string; orderId: string } }).params);
       await this.performRequest(
         () => fulfillOrder(params, { orderRepo: this.orderRepo, download: this.download }),
         res,

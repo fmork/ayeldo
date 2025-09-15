@@ -1,8 +1,6 @@
-import type { JsonUtil } from '@fmork/backend-core/dist/Json';
-import { PublicController } from '@fmork/backend-core/dist/controllers';
-import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
+import type { HttpRouter, ILogWriter, JsonUtil } from '@fmork/backend-core';
+import { PublicController } from '@fmork/backend-core';
 import { z } from 'zod';
-import type { ILogWriter } from '@fmork/backend-core/dist/logging';
 
 // Minimal reference service to illustrate usage; replace with your real service
 export interface ExamplePublicService<T = unknown> {
@@ -36,18 +34,21 @@ export class ReferencePublicApiController<T = unknown> extends PublicController 
     this.addGet('/reference/items', async (_req, res) => {
       await this.performRequest(
         () => this.props.exampleService?.getAll() ?? Promise.resolve([] as T[]),
-        res
+        res,
       );
     });
 
     // GET by id (200/404) — validate id param
     this.addGet('/reference/items/:id', async (req, res) => {
-      const id = z.string().min(1).parse((req as unknown as { params: { id: unknown } }).params.id);
+      const id = z
+        .string()
+        .min(1)
+        .parse((req as unknown as { params: { id: unknown } }).params.id);
 
       await this.performRequest(
         () => this.props.exampleService?.getById(id) ?? Promise.resolve(undefined),
         res,
-        (result) => (result !== undefined ? 200 : 404)
+        (result) => (result !== undefined ? 200 : 404),
       );
     });
 
@@ -62,7 +63,7 @@ export class ReferencePublicApiController<T = unknown> extends PublicController 
         () => this.props.exampleService?.create(item) ?? Promise.resolve(item as T),
         res,
         // Return 201 Created on success
-        () => 201
+        () => 201,
       );
     });
 

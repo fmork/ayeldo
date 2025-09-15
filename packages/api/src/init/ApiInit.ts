@@ -10,16 +10,16 @@ import {
   PriceListRepoDdb,
 } from '@ayeldo/infra-aws';
 import { createRootLogger, getEventBridgeClient, loadEnv } from '@ayeldo/utils';
-import { AxiosHttpClient } from '@fmork/backend-core/dist/IO';
-import { JsonUtil } from '@fmork/backend-core/dist/Json';
-import type { ILogWriter } from '@fmork/backend-core/dist/logging';
-import { RequestLogMiddleware } from '@fmork/backend-core/dist/middleWare';
+import type { ILogWriter } from '@fmork/backend-core';
 import {
+  AxiosHttpClient,
   ClaimBasedAuthorizer,
+  JsonUtil,
   JwtAuthorization,
+  RequestLogMiddleware,
+  Server,
   TokenKeyCache,
-} from '@fmork/backend-core/dist/security';
-import { Server } from '@fmork/backend-core/dist/server';
+} from '@fmork/backend-core';
 import { z } from 'zod';
 import { CartController } from '../controllers/cartController';
 import { MediaController } from '../controllers/mediaController';

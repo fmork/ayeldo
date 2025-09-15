@@ -1,10 +1,9 @@
-import { z } from 'zod';
-import type { ILogWriter } from '@fmork/backend-core/dist/logging';
-import { PublicController } from '@fmork/backend-core/dist/controllers';
-import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
-import { priceCart, addCartItem, removeCartItem, getCart } from '../handlers/carts';
-import type { ICartRepo, IPriceListRepo, IEventPublisher } from '@ayeldo/core';
+import type { ICartRepo, IEventPublisher, IPriceListRepo } from '@ayeldo/core';
 import { TieredPricingEngine } from '@ayeldo/core';
+import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
+import { PublicController } from '@fmork/backend-core';
+import { z } from 'zod';
+import { addCartItem, getCart, priceCart, removeCartItem } from '../handlers/carts';
 
 export interface CartControllerProps {
   readonly baseUrl: string;
@@ -30,17 +29,19 @@ export class CartController extends PublicController {
 
   public initialize(): HttpRouter {
     // Simple CSRF header check middleware
-    const requireCsrf = <R>(handler: (req: unknown, res: R) => Promise<void>) => async (req: unknown, res: R) => {
-      const headers = (req as { headers?: Record<string, unknown> }).headers ?? {};
-      const token = (headers['x-csrf-token'] ?? headers['X-CSRF-Token']) as string | undefined;
-      if (!token || token.length === 0) {
-        (res as unknown as { status: (code: number) => { json: (body: unknown) => void } })
-          .status(403)
-          .json({ error: 'Missing CSRF token' });
-        return;
-      }
-      await handler(req, res);
-    };
+    const requireCsrf =
+      <R>(handler: (req: unknown, res: R) => Promise<void>) =>
+      async (req: unknown, res: R) => {
+        const headers = (req as { headers?: Record<string, unknown> }).headers ?? {};
+        const token = (headers['x-csrf-token'] ?? headers['X-CSRF-Token']) as string | undefined;
+        if (!token || token.length === 0) {
+          (res as unknown as { status: (code: number) => { json: (body: unknown) => void } })
+            .status(403)
+            .json({ error: 'Missing CSRF token' });
+          return;
+        }
+        await handler(req, res);
+      };
     // POST /tenants/:tenantId/carts/:cartId/price
     this.addPost('/tenants/:tenantId/carts/:cartId/price', async (req, res) => {
       const paramsSchema = z.object({ tenantId: z.string().min(1), cartId: z.string().min(1) });
@@ -48,7 +49,11 @@ export class CartController extends PublicController {
         (req as unknown as { params: { tenantId: string; cartId: string } }).params,
       );
       await this.performRequest(
-        () => priceCart({ tenantId, cartId }, { cartRepo: this.cartRepo, priceListRepo: this.priceListRepo, engine: this.engine }),
+        () =>
+          priceCart(
+            { tenantId, cartId },
+            { cartRepo: this.cartRepo, priceListRepo: this.priceListRepo, engine: this.engine },
+          ),
         res,
       );
     });
@@ -59,7 +64,10 @@ export class CartController extends PublicController {
       const { tenantId, cartId } = paramsSchema.parse(
         (req as unknown as { params: { tenantId: string; cartId: string } }).params,
       );
-      await this.performRequest(() => getCart({ tenantId, cartId }, { cartRepo: this.cartRepo }), res);
+      await this.performRequest(
+        () => getCart({ tenantId, cartId }, { cartRepo: this.cartRepo }),
+        res,
+      );
     });
 
     // POST /tenants/:tenantId/carts/:cartId/items (add)
@@ -67,17 +75,25 @@ export class CartController extends PublicController {
       '/tenants/:tenantId/carts/:cartId/items',
       requireCsrf(async (req, res) => {
         const paramsSchema = z.object({ tenantId: z.string().min(1), cartId: z.string().min(1) });
-        const bodySchema = z.object({ imageId: z.string().min(1), sku: z.string().min(1), quantity: z.number().int().positive() });
+        const bodySchema = z.object({
+          imageId: z.string().min(1),
+          sku: z.string().min(1),
+          quantity: z.number().int().positive(),
+        });
         const { tenantId, cartId } = paramsSchema.parse(
           (req as unknown as { params: { tenantId: string; cartId: string } }).params,
         );
         const body = bodySchema.parse((req as unknown as { body: unknown }).body);
         await this.performRequest(
-          () => addCartItem({ tenantId, cartId, ...body }, { cartRepo: this.cartRepo, publisher: this.publisher }),
+          () =>
+            addCartItem(
+              { tenantId, cartId, ...body },
+              { cartRepo: this.cartRepo, publisher: this.publisher },
+            ),
           res,
-          () => 201
+          () => 201,
         );
-      })
+      }),
     );
 
     // DELETE /tenants/:tenantId/carts/:cartId/items (remove)
@@ -91,11 +107,15 @@ export class CartController extends PublicController {
         );
         const body = bodySchema.parse((req as unknown as { body: unknown }).body);
         await this.performRequest(
-          () => removeCartItem({ tenantId, cartId, ...body }, { cartRepo: this.cartRepo, publisher: this.publisher }),
+          () =>
+            removeCartItem(
+              { tenantId, cartId, ...body },
+              { cartRepo: this.cartRepo, publisher: this.publisher },
+            ),
           res,
-          () => 204
+          () => 204,
         );
-      })
+      }),
     );
 
     return this.getRouter();

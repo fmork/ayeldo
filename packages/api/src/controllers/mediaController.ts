@@ -1,9 +1,8 @@
-import type { ILogWriter } from '@fmork/backend-core/dist/logging';
-import { PublicController } from '@fmork/backend-core/dist/controllers';
-import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
-import { z } from 'zod';
 import type { IAlbumRepo, IImageRepo } from '@ayeldo/core';
 import { PolicyEvaluator, PolicyMode } from '@ayeldo/core';
+import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
+import { PublicController } from '@fmork/backend-core';
+import { z } from 'zod';
 import { getAlbum, listAlbumImages } from '../handlers/media';
 
 export interface MediaControllerProps {
@@ -55,7 +54,11 @@ export class MediaController extends PublicController {
         .parse((req as unknown as { params: { tenantId: unknown; albumId: unknown } }).params);
       const access = accessQuery.parse((req as unknown as { query: unknown }).query);
       await this.performRequest(
-        () => listAlbumImages({ ...params, access }, { imageRepo: this.imageRepo, policy: this.policy }),
+        () =>
+          listAlbumImages(
+            { ...params, access },
+            { imageRepo: this.imageRepo, policy: this.policy },
+          ),
         res,
         () => 200,
       );

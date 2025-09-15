@@ -1,9 +1,8 @@
-import { PublicController } from '@fmork/backend-core/dist/controllers';
-import type { HttpRouter } from '@fmork/backend-core/dist/controllers/http';
-import type { ILogWriter } from '@fmork/backend-core/dist/logging';
+import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
+import { PublicController } from '@fmork/backend-core';
 import { z } from 'zod';
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { AxiosHttpClient } from '@fmork/backend-core/dist/IO';
+import type { AxiosHttpClient } from '@fmork/backend-core';
 import type { SessionService } from '../services/sessionService';
 
 export interface CartBffControllerProps {
