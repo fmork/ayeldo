@@ -59,6 +59,8 @@ export class AuthBffController extends PublicController {
         sameSite: 'lax',
         path: '/',
       });
+      this.logWriter.info(`HttpOnly session cookie set: ${sid}`);
+
       // CSRF token cookie (readable by JS)
       (res as any).cookie?.('csrf', csrf, {
         httpOnly: false,
@@ -66,6 +68,8 @@ export class AuthBffController extends PublicController {
         sameSite: 'lax',
         path: '/',
       });
+      this.logWriter.info(`CSRF token cookie set: ${csrf}`);
+      this.logWriter.info(`Redirecting to '/'`);
       (res as any).redirect?.('/') ??
         (res as any).status(302)?.setHeader?.('Location', '/')?.end?.();
     });
