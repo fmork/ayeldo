@@ -2,6 +2,7 @@
 import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
 import { z } from 'zod';
+import { base64url } from '../services/crypto';
 import type { OidcClientOpenId } from '../services/oidcOpenIdClient';
 import type { SessionService } from '../services/sessionService';
 
@@ -26,13 +27,32 @@ export class AuthBffController extends PublicController {
 
   public initialize(): HttpRouter {
     // GET /auth/authorize-url — returns the OIDC authorize URL for SPA-driven redirects
-    this.addGet('/auth/authorize-url', async (_req, res) => {
-      this.logWriter.info('Generating OIDC authorize URL');
-      const { state, nonce, codeChallenge } = this.sessions.createLoginState();
-      const url = this.oidc.buildAuthorizeUrl({ state, nonce, codeChallenge });
-      this.logWriter.info(`OIDC authorize URL generated: ${url}`);
-      (res as any).set?.('Cache-Control', 'no-store, no-cache, must-revalidate');
-      res.json({ url });
+    this.addGet('/auth/authorize-url', async (req, res) => {
+      await this.performRequest(
+        async () => {
+          const redirectTarget = (req as any).query?.redirect as string | undefined;
+          this.logWriter.info(
+            `Generating OIDC authorize URL with redirect='${redirectTarget ?? ''}'`,
+          );
+          const { state, nonce, codeChallenge } = this.sessions.createLoginState();
+          // Encode optional redirect into state so it can be restored on callback
+          const stateWithRedirect =
+            typeof redirectTarget === 'string' && redirectTarget.length > 0
+              ? `${state}.${base64url(Buffer.from(redirectTarget, 'utf8'))}`
+              : state;
+          const url = this.oidc.buildAuthorizeUrl({
+            state: stateWithRedirect,
+            nonce,
+            codeChallenge,
+          });
+          this.logWriter.info(`OIDC authorize URL generated: ${url}`);
+
+          (res as any).set?.('Cache-Control', 'no-store, no-cache, must-revalidate');
+          return url;
+        },
+        res,
+        () => 200,
+      );
     });
 
     // GET /auth/login?redirect=...
@@ -50,11 +70,25 @@ export class AuthBffController extends PublicController {
           const params = z
             .object({ code: z.string().min(1), state: z.string().min(1) })
             .parse((req as any).query);
-          const redirectTarget = (req as any).query?.redirect as string | undefined;
+          // Extract optional redirect encoded into state: format '<id>.<b64url(redirect)>'
+          let redirectTarget = (req as any).query?.redirect as string | undefined;
+          let stateId = params.state;
+          const dotIdx = params.state.indexOf('.');
+          if (dotIdx > 0) {
+            stateId = params.state.substring(0, dotIdx);
+            const enc = params.state.substring(dotIdx + 1);
+            try {
+              const decoded = Buffer.from(enc, 'base64url').toString('utf8');
+              if (decoded.length > 0) redirectTarget = decoded;
+            } catch {
+              // ignore malformed state suffix
+            }
+          }
+          const paramsForValidation = { code: params.code, state: stateId };
           this.logWriter.info(
-            `Handling OIDC callback, state=${params.state}, redirect=${redirectTarget ?? '/'} `,
+            `Handling OIDC callback, state=${params.state}, parsedStateId=${stateId}, redirect=${redirectTarget ?? '/'} `,
           );
-          const { sid, csrf } = await this.sessions.completeLogin(this.oidc, params);
+          const { sid, csrf } = await this.sessions.completeLogin(this.oidc, paramsForValidation);
           this.logWriter.info(`Login completed successfully, sid=${sid}, csrf=${csrf}`);
           // Set cookies
           (res as any).cookie?.('__Host-sid', sid, {
