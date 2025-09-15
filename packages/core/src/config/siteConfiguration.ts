@@ -133,6 +133,7 @@ export class SiteConfiguration {
   public toLambdaEnvironment(): Record<string, string> {
     const env: Record<string, string> = {
       API_BASE_URL: this.apiBaseUrl,
+      WEB_ORIGIN: this.webOrigin,
     };
 
     if (this.isOidcConfigured) {
