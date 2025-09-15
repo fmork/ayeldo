@@ -7,7 +7,7 @@ export interface SiteConfigurationProps {
   readonly oidcAuthority?: string; // e.g., https://accounts.google.com
   readonly oidcClientId?: string;
   readonly oidcClientSecret?: string;
-  readonly oidcScopes?: string; // default 'openid email profile offline_access'
+  readonly oidcScopes?: string; // default 'openid email profile'
   readonly oidcRedirectPath?: string; // default '/auth/callback'
   readonly sessionEncKey?: string; // Base64 encoded encryption key
   readonly bffJwtSecret?: string; // Base64 encoded JWT secret
@@ -31,7 +31,7 @@ export class SiteConfiguration {
     this._bffOrigin = props.bffOrigin.replace(/\/$/, '');
     this._apiBasePath = props.apiBasePath ?? '/api';
     this._csrfHeaderName = props.csrfHeaderName ?? 'X-CSRF-Token';
-    this._oidcScopes = props.oidcScopes ?? 'openid email profile offline_access';
+    this._oidcScopes = props.oidcScopes ?? 'openid email profile';
     this._oidcRedirectPath = props.oidcRedirectPath ?? '/auth/callback';
     this._oidcAuthority = props.oidcAuthority;
     this._oidcClientId = props.oidcClientId;
