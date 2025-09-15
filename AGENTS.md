@@ -36,6 +36,28 @@ export class MyClass {
 }
 ```
 
+### React components
+
+This is my preferred style of writing a React component:
+
+```typescript
+import { FC } from 'react';
+
+const SomePage: FC<any> = () => {
+
+    return (
+        <>
+            Content goes here
+        </>
+    )
+
+}
+
+
+export default SomePage;
+
+```
+
 ### Logging
 
 Use the `ILogWriter` interface from `@fmork/backend-core` for all logging. Instantiate loggers via `@ayeldo/utils`' pino-backed adapter (`createRootLogger`) and create request-scoped child loggers with `withRequestId(logger, requestId)`.
