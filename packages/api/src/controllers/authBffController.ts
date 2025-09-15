@@ -45,33 +45,38 @@ export class AuthBffController extends PublicController {
 
     // GET /auth/callback?code&state
     this.addGet('/auth/callback', async (req, res) => {
-      const params = z
-        .object({ code: z.string().min(1), state: z.string().min(1) })
-        .parse((req as any).query);
-      this.logWriter.info(`Handling OIDC callback, state=${params.state}`);
-      const { sid, csrf } = await this.sessions.completeLogin(this.oidc, params);
-      this.logWriter.info(`Login completed successfully, sid=${sid}, csrf=${csrf}`);
-      // Set cookies
-      // HttpOnly session cookie
-      (res as any).cookie?.('__Host-sid', sid, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        path: '/',
-      });
-      this.logWriter.info(`HttpOnly session cookie set: ${sid}`);
+      await this.performRequest(
+        async () => {
+          const params = z
+            .object({ code: z.string().min(1), state: z.string().min(1) })
+            .parse((req as any).query);
+          this.logWriter.info(`Handling OIDC callback, state=${params.state}`);
+          const { sid, csrf } = await this.sessions.completeLogin(this.oidc, params);
+          this.logWriter.info(`Login completed successfully, sid=${sid}, csrf=${csrf}`);
+          // Set cookies
+          // HttpOnly session cookie
+          (res as any).cookie?.('__Host-sid', sid, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'lax',
+            path: '/',
+          });
+          this.logWriter.info(`HttpOnly session cookie set: ${sid}`);
 
-      // CSRF token cookie (readable by JS)
-      (res as any).cookie?.('csrf', csrf, {
-        httpOnly: false,
-        secure: true,
-        sameSite: 'lax',
-        path: '/',
-      });
-      this.logWriter.info(`CSRF token cookie set: ${csrf}`);
-      this.logWriter.info(`Redirecting to '/'`);
-      (res as any).redirect?.('/') ??
-        (res as any).status(302)?.setHeader?.('Location', '/')?.end?.();
+          // CSRF token cookie (readable by JS)
+          (res as any).cookie?.('csrf', csrf, {
+            httpOnly: false,
+            secure: true,
+            sameSite: 'lax',
+            path: '/',
+          });
+          this.logWriter.info(`CSRF token cookie set: ${csrf}`);
+          this.logWriter.info(`Redirecting to '/'`);
+          (res as any).setHeader?.('Location', '/');
+        },
+        res,
+        () => 302,
+      );
     });
 
     // POST /auth/logout
