@@ -57,7 +57,7 @@ export class AuthBffController extends PublicController {
         this.logWriter.info(`OIDC authorize URL generated: ${url}`);
 
         (res as any).set?.('Cache-Control', 'no-store, no-cache, must-revalidate');
-        return url;
+        return { url } as const;
       }, res);
     });
 
