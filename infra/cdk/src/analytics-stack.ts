@@ -29,6 +29,7 @@ export class AnalyticsStack extends Stack {
       runtime: lambda.Runtime.NODEJS_20_X,
       memorySize: 256,
       timeout: Duration.seconds(15),
+      logRetention: 30,
       environment: {
         NODE_OPTIONS: '--enable-source-maps',
         TABLE_NAME: props.table.tableName,

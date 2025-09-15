@@ -1,11 +1,20 @@
 import type { StackProps } from 'aws-cdk-lib';
 import { CfnOutput, Duration, Stack } from 'aws-cdk-lib';
-import { Cors, EndpointType, LambdaRestApi, SecurityPolicy } from 'aws-cdk-lib/aws-apigateway';
+import {
+  AccessLogFormat,
+  Cors,
+  EndpointType,
+  LambdaRestApi,
+  LogGroupLogDestination,
+  MethodLoggingLevel,
+  SecurityPolicy,
+} from 'aws-cdk-lib/aws-apigateway';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import type { Table } from 'aws-cdk-lib/aws-dynamodb';
 import type { EventBus } from 'aws-cdk-lib/aws-events';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import type { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { ARecord, AaaaRecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { ApiGatewayDomain } from 'aws-cdk-lib/aws-route53-targets';
@@ -37,6 +46,7 @@ export class ApiStack extends Stack {
       runtime: lambda.Runtime.NODEJS_20_X,
       memorySize: 512,
       timeout: Duration.seconds(15),
+      logRetention: RetentionDays.ONE_MONTH,
       bundling: {
         sourceMap: true,
         minify: true,
@@ -68,10 +78,32 @@ export class ApiStack extends Stack {
       });
     }
 
+    // Access logs LogGroup with 30-day retention
+    const accessLogGroup = new LogGroup(this, 'ApiAccessLogs', {
+      retention: RetentionDays.ONE_MONTH,
+    });
+
     const api = new LambdaRestApi(this, 'RestApi', {
       handler,
       proxy: true,
-      deployOptions: { stageName: 'prod' },
+      deployOptions: {
+        stageName: 'prod',
+        accessLogDestination: new LogGroupLogDestination(accessLogGroup),
+        accessLogFormat: AccessLogFormat.jsonWithStandardFields({
+          caller: true,
+          httpMethod: true,
+          ip: true,
+          protocol: true,
+          requestTime: true,
+          resourcePath: true,
+          responseLength: true,
+          status: true,
+          user: true,
+        }),
+        loggingLevel: MethodLoggingLevel.INFO,
+        dataTraceEnabled: false,
+        metricsEnabled: true,
+      },
       defaultCorsPreflightOptions: {
         allowOrigins: Cors.ALL_ORIGINS,
         allowMethods: Cors.ALL_METHODS,
