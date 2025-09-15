@@ -50,7 +50,7 @@ export class ApiStack extends Stack {
       bundling: {
         sourceMap: true,
         minify: true,
-        format: OutputFormat.ESM,
+        format: OutputFormat.CJS,
         target: 'node20',
         tsconfig: tsconfigPath,
       },
