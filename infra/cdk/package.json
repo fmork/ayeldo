@@ -16,6 +16,7 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
+    "@ayeldo/core": "workspace:^",
     "aws-cdk": "^2.1029.1",
     "aws-cdk-lib": "^2.153.0",
     "constructs": "^10.4.2",

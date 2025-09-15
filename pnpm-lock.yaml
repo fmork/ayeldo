@@ -78,6 +78,9 @@ importers:
 
   infra/cdk:
     dependencies:
+      '@ayeldo/core':
+        specifier: workspace:^
+        version: link:../../packages/core
       aws-cdk:
         specifier: ^2.1029.1
         version: 2.1029.1

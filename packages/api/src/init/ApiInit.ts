@@ -1,4 +1,5 @@
 import type { EventBridgeClient } from '@aws-sdk/client-eventbridge';
+import { SiteConfiguration } from '@ayeldo/core';
 import {
   AlbumRepoDdb,
   CartRepoDdb,
@@ -59,52 +60,34 @@ const claimBasedAuthorizer = new ClaimBasedAuthorizer({
   claimNames: ['cognito:groups', 'groups', 'roles'],
 });
 
-// Env
+// Helper to create SiteConfiguration from environment variables
+function createSiteConfigurationFromEnv(): SiteConfiguration {
+  const apiBaseUrl = process.env['API_BASE_URL'] ?? 'http://localhost:3000';
+  const url = new URL(apiBaseUrl);
+  const bffOrigin = `${url.protocol}//${url.host}`;
+  const webOrigin = process.env['WEB_ORIGIN'] ?? 'http://localhost:3001';
+
+  return new SiteConfiguration({
+    webOrigin,
+    bffOrigin,
+    ...(process.env['OIDC_ISSUER_URL'] && { oidcAuthority: process.env['OIDC_ISSUER_URL'] }),
+    ...(process.env['OIDC_CLIENT_ID'] && { oidcClientId: process.env['OIDC_CLIENT_ID'] }),
+    ...(process.env['OIDC_CLIENT_SECRET'] && {
+      oidcClientSecret: process.env['OIDC_CLIENT_SECRET'],
+    }),
+    ...(process.env['OIDC_SCOPES'] && { oidcScopes: process.env['OIDC_SCOPES'] }),
+    ...(process.env['SESSION_ENC_KEY'] && { sessionEncKey: process.env['SESSION_ENC_KEY'] }),
+    ...(process.env['BFF_JWT_SECRET'] && { bffJwtSecret: process.env['BFF_JWT_SECRET'] }),
+  });
+}
+
+// Create site configuration
+const siteConfig = createSiteConfigurationFromEnv();
+
+// Env - simplified schema now that OIDC is handled by SiteConfiguration
 const env = loadEnv(
   z.object({
     STRIPE_WEBHOOK_SECRET: z.string().min(1).default('dev_stripe_webhook_secret'),
-    // BFF env
-    API_BASE_URL: z
-      .string()
-      .url()
-      .default(process.env['API_BASE_URL'] ?? 'http://localhost:3000'),
-    OIDC_ISSUER_URL: z
-      .string()
-      .url()
-      .default(process.env['OIDC_ISSUER_URL'] ?? 'https://example-issuer.invalid'),
-    OIDC_AUTH_URL: z
-      .string()
-      .url()
-      .default(process.env['OIDC_AUTH_URL'] ?? 'https://example-issuer.invalid/oauth2/authorize'),
-    OIDC_TOKEN_URL: z
-      .string()
-      .url()
-      .default(process.env['OIDC_TOKEN_URL'] ?? 'https://example-issuer.invalid/oauth2/token'),
-    OIDC_JWKS_URL: z.string().url().optional(),
-    OIDC_CLIENT_ID: z
-      .string()
-      .min(1)
-      .default(process.env['OIDC_CLIENT_ID'] ?? 'client-id'),
-    OIDC_CLIENT_SECRET: z
-      .string()
-      .min(1)
-      .default(process.env['OIDC_CLIENT_SECRET'] ?? 'client-secret'),
-    OIDC_SCOPES: z
-      .string()
-      .min(1)
-      .default(process.env['OIDC_SCOPES'] ?? 'openid email profile offline_access'),
-    OIDC_REDIRECT_URI: z
-      .string()
-      .url()
-      .default(process.env['OIDC_REDIRECT_URI'] ?? 'https://app.example.com/auth/callback'),
-    SESSION_ENC_KEY: z
-      .string()
-      .min(1)
-      .default(process.env['SESSION_ENC_KEY'] ?? 'c2Vzc2lvbl9lbmNfMzJieXRlc19iYXNlNjQ='),
-    BFF_JWT_SECRET: z
-      .string()
-      .min(1)
-      .default(process.env['BFF_JWT_SECRET'] ?? 'YnZmX2p3dF9zZWNyZXRfYmFzZTY0'),
   }),
 );
 
@@ -179,37 +162,59 @@ export const mediaController = new MediaController({
 
 // BFF wiring
 const httpClient = new AxiosHttpClient({ logWriter });
-const oidcCfg: OidcOpenIdConfig = {
-  issuer: env.OIDC_ISSUER_URL,
-  authUrl: env.OIDC_AUTH_URL,
-  tokenUrl: env.OIDC_TOKEN_URL,
-  clientId: env.OIDC_CLIENT_ID,
-  clientSecret: env.OIDC_CLIENT_SECRET,
-  redirectUri: env.OIDC_REDIRECT_URI,
-  scopes: env.OIDC_SCOPES,
-  ...(env.OIDC_JWKS_URL ? { jwksUrl: env.OIDC_JWKS_URL } : {}),
-};
-const oidc = new OidcClientOpenId(oidcCfg);
-const sessions = new SessionService({
-  store: new MemorySessionStore(),
-  states: new MemoryStateStore(),
-  encKeyB64: env.SESSION_ENC_KEY,
-  encKid: 'v1',
-  bffJwtSecretB64: env.BFF_JWT_SECRET,
-  issuer: 'bff',
-  audience: 'api',
-  logger: logWriter,
-});
+
+// Create OIDC config from SiteConfiguration if OIDC is configured
+let oidc: OidcClientOpenId | undefined;
+let sessions: SessionService | undefined;
+
+if (siteConfig.isOidcConfigured) {
+  const authority = siteConfig.oidcAuthority;
+  const authUrl = siteConfig.oidcAuthUrl;
+  const tokenUrl = siteConfig.oidcTokenUrl;
+  const clientId = siteConfig.oidcClientId;
+  const clientSecret = siteConfig.oidcClientSecret;
+
+  if (authority && authUrl && tokenUrl && clientId && clientSecret) {
+    const oidcCfg: OidcOpenIdConfig = {
+      issuer: authority,
+      authUrl: authUrl,
+      tokenUrl: tokenUrl,
+      clientId: clientId,
+      clientSecret: clientSecret,
+      redirectUri: siteConfig.oidcRedirectUri,
+      scopes: siteConfig.oidcScopes,
+      ...(siteConfig.oidcJwksUrl ? { jwksUrl: siteConfig.oidcJwksUrl } : {}),
+    };
+    oidc = new OidcClientOpenId(oidcCfg);
+
+    sessions = new SessionService({
+      store: new MemorySessionStore(),
+      states: new MemoryStateStore(),
+      encKeyB64: siteConfig.sessionEncKey ?? 'c2Vzc2lvbl9lbmNfMzJieXRlc19iYXNlNjQ=',
+      encKid: 'v1',
+      bffJwtSecretB64: siteConfig.bffJwtSecret ?? 'YnZmX2p3dF9zZWNyZXRfYmFzZTY0',
+      issuer: 'bff',
+      audience: 'api',
+      logger: logWriter,
+    });
+  }
+}
 
 export const rootBffController = new RootBffController({ baseUrl: '', logWriter });
-export const authBffController = new AuthBffController({ baseUrl: '', logWriter, oidc, sessions });
-export const cartBffController = new CartBffController({
-  baseUrl: '',
-  logWriter,
-  apiBaseUrl: env.API_BASE_URL,
-  httpClient,
-  sessions,
-});
+
+// Only create BFF controllers if OIDC is configured
+export const authBffController =
+  oidc && sessions ? new AuthBffController({ baseUrl: '', logWriter, oidc, sessions }) : undefined;
+
+export const cartBffController = sessions
+  ? new CartBffController({
+      baseUrl: '',
+      logWriter,
+      apiBaseUrl: siteConfig.apiBaseUrl,
+      httpClient,
+      sessions,
+    })
+  : undefined;
 
 const requestLogger = new RequestLogMiddleware({ logWriter });
 const serverPort: number = process.env['PORT']
@@ -224,10 +229,10 @@ export const server = new Server({
     orderController,
     paymentController,
     mediaController,
-    // BFF
+    // BFF - only include if configured
     rootBffController,
-    authBffController,
-    cartBffController,
+    ...(authBffController ? [authBffController] : []),
+    ...(cartBffController ? [cartBffController] : []),
   ],
   port: serverPort,
   requestLogger,

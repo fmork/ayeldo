@@ -1,3 +1,4 @@
+import { SiteConfiguration } from '@ayeldo/core';
 import type { StackProps } from 'aws-cdk-lib';
 import { CfnOutput, Duration, Stack } from 'aws-cdk-lib';
 import {
@@ -40,33 +41,32 @@ export class ApiStack extends Stack {
       '../../../packages/api/src/functions/http-handler/handler.ts',
     );
     const tsconfigPath = path.resolve(__dirnameLocal, '../../../tsconfig.base.json');
-    // Prepare optional BFF/OIDC env vars from the build environment
+
+    // Helper to get optional environment variables
     const maybe = (k: string): string | undefined => {
       const v = process.env[k];
       return v && v.trim().length > 0 ? v : undefined;
     };
-    const optionalEnv: Record<string, string> = {};
-    const envCandidates: Record<string, string | undefined> = {
-      OIDC_ISSUER_URL: maybe('FMORK_SITE_OIDC_AUTHORITY'),
-      OIDC_AUTH_URL: maybe('FMORK_SITE_OIDC_AUTH_URL'),
-      OIDC_TOKEN_URL: maybe('FMORK_SITE_OIDC_TOKEN_URL'),
-      OIDC_JWKS_URL: maybe('FMORK_SITE_OIDC_JWKS_URL'),
-      OIDC_CLIENT_ID: maybe('FMORK_SITE_OIDC_CLIENT_ID'),
-      OIDC_CLIENT_SECRET: maybe('FMORK_SITE_OIDC_CLIENT_SECRET'),
-      OIDC_SCOPES: maybe('FMORK_SITE_OIDC_SCOPES'),
-      OIDC_REDIRECT_URI: maybe('FMORK_SITE_OIDC_REDIRECT_URI'),
-      SESSION_ENC_KEY: maybe('FMORK_SITE_SESSION_ENC_KEY'),
-      BFF_JWT_SECRET: maybe('FMORK_SITE_BFF_JWT_SECRET'),
-    };
-    for (const [k, v] of Object.entries(envCandidates)) {
-      if (v) optionalEnv[k] = v;
-    }
 
-    // Compute API_BASE_URL if domain is configured
-    const computedApiBaseUrl = props.domainConfig
-      ? `https://${props.domainConfig.apiHost}`
-      : undefined;
-    if (computedApiBaseUrl) optionalEnv['API_BASE_URL'] = computedApiBaseUrl;
+    // Compute origins for SiteConfiguration
+    const computedApiHost = props.domainConfig ? props.domainConfig.apiHost : 'localhost:3000';
+    const computedWebHost = props.domainConfig ? props.domainConfig.webHost : 'localhost:3001';
+    const apiOrigin = `https://${computedApiHost}`;
+    const webOrigin = `https://${computedWebHost}`;
+
+    // Create SiteConfiguration to manage OIDC and other config
+    const siteConfig = new SiteConfiguration({
+      webOrigin,
+      bffOrigin: apiOrigin, // BFF is served from the API host
+      oidcAuthority: maybe('FMORK_SITE_OIDC_AUTHORITY'),
+      oidcClientId: maybe('FMORK_SITE_OIDC_CLIENT_ID'),
+      oidcClientSecret: maybe('FMORK_SITE_OIDC_CLIENT_SECRET'),
+      sessionEncKey: maybe('FMORK_SITE_SESSION_ENC_KEY'),
+      bffJwtSecret: maybe('FMORK_SITE_BFF_JWT_SECRET'),
+    });
+
+    // Get environment variables for Lambda from SiteConfiguration
+    const lambdaEnv = siteConfig.toLambdaEnvironment();
 
     const handler = new NodejsFunction(this, 'ApiHandler', {
       entry: apiEntry,
@@ -86,7 +86,7 @@ export class ApiStack extends Stack {
         NODE_OPTIONS: '--enable-source-maps',
         TABLE_NAME: props.table.tableName,
         EVENTS_BUS_NAME: props.eventBus.eventBusName,
-        ...optionalEnv,
+        ...lambdaEnv,
       },
     });
 
