@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc -b",
     "cdk": "cdk",
-    "synth": "cdk synth --verbose",
+    "synth": "cdk synth",
     "deploy": "cdk deploy --all --require-approval never"
   },
   "devDependencies": {
