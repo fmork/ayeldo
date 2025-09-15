@@ -21,8 +21,12 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
                 tags "UI"
             }
 
-            api = container "Domain API" "Domain orchestration and business logic." "TypeScript (Node.js)" {
+            api = container "BFF / API Controllers" "Thin HTTP layer (routing, auth context, delegates to Flow/Query Services)." "TypeScript (Node.js)" {
                 tags "API"
+            }
+
+            flow = container "Flow/Query Services" "Orchestration layer: validates input (zod), enforces policies, composes domain service calls, emits events." "TypeScript (Node.js)" {
+                tags "Service"
             }
 
             albums = container "Album Service" "Album hierarchy, visibility, ACL attachment." "Domain service" {
@@ -79,16 +83,21 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
             // BFF to domain
             api -> stats "Query metrics for UI"
 
-            // Domain to services
-            api -> albums "Manage albums"
-            api -> images "Manage images / uploads"
-            api -> pricelists "Manage price lists"
-            api -> pricing "Quote totals"
-            api -> carts "Create/update cart"
-            api -> orders "Create/advance order"
-            api -> policy "Check access to albums/images"
-            api -> eventbus "Emit domain events"
-            api -> metadata "Read/write data"
+            // Delegation boundary
+            api -> flow "Delegate request (validated orchestration)"
+            flow -> web "Return composed responses"
+
+            // Flow layer to domain services
+            flow -> albums "Manage albums"
+            flow -> images "Manage images / uploads"
+            flow -> pricelists "Manage price lists"
+            flow -> pricing "Quote totals"
+            flow -> carts "Create/update cart"
+            flow -> orders "Create/advance order"
+            flow -> policy "Check access to albums/images"
+            flow -> eventbus "Emit domain events"
+            flow -> metadata "Read/write data"
+            flow -> stats "Query aggregates/metrics"
 
             // Data and processing
             albums -> metadata "Persist album metadata"
@@ -133,8 +142,9 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
             platform.api -> oidc "Exchange code for tokens (server-side)"
             platform.api -> platform.web "Set httpOnly session cookie; redirect to app"
             platform.web -> platform.api "Onboarding: upsert profile"
-            platform.api -> platform.metadata "Persist user + (optional) customer"
-            platform.api -> platform.eventbus "UserCreated | UserJoinedCustomer"
+            platform.api -> platform.flow "Delegate onboarding orchestration"
+            platform.flow -> platform.metadata "Persist user + (optional) customer"
+            platform.flow -> platform.eventbus "UserCreated | UserJoinedCustomer"
             platform.api -> platform.web "Onboarding complete"
         }
 
@@ -142,20 +152,24 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
             autoLayout
             user -> platform.web "Create/arrange album"
             platform.web -> platform.api "Create album {visibility, access}"
-            platform.api -> platform.albums "Create album"
+            platform.api -> platform.flow "Create album (delegate)"
+            platform.flow -> platform.albums "Create album"
             platform.albums -> platform.metadata "Persist album"
 
             user -> platform.web "Set monetization"
             platform.web -> platform.api "Attach priceListId (if paid)"
-            platform.api -> platform.pricelists "Validate/attach"
+            platform.api -> platform.flow "Attach price list (delegate)"
+            platform.flow -> platform.pricelists "Validate/attach"
             platform.pricelists -> platform.metadata "Persist"
 
             user -> platform.web "Upload images"
             platform.web -> platform.api "Register metadata, request upload URLs"
-            platform.api -> platform.images "Register/prepare"
+            platform.api -> platform.flow "Register image (delegate)"
+            platform.flow -> platform.images "Register/prepare"
             platform.images -> platform.assets "Coordinate upload"
             platform.web -> platform.api "Confirm upload completed, mark uploaded"
-            platform.api -> platform.images "Mark uploaded"
+            platform.api -> platform.flow "Mark uploaded (delegate)"
+            platform.flow -> platform.images "Mark uploaded"
             platform.images -> platform.eventbus "ImageUploaded"
             platform.eventbus -> platform.analytics "Trigger downstream metrics"
         }
@@ -164,19 +178,22 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
             autoLayout
             visitor -> platform.web "Open album URL"
             platform.web -> platform.api "Request album"
-            platform.api -> platform.albums "Fetch album"
+            platform.api -> platform.flow "Fetch album (delegate)"
+            platform.flow -> platform.albums "Fetch album"
             platform.albums -> platform.metadata "Read album"
-            platform.api -> platform.policy "Evaluate access"
+            platform.flow -> platform.policy "Evaluate access"
             platform.policy -> platform.metadata "Read ACL/visibility"
-            platform.api -> platform.web "Allow or deny; if allow, return listing"
+            platform.flow -> platform.web "Allow or deny; if allow, return listing"
 
             visitor -> platform.web "View images"
             platform.web -> platform.api "Fetch image metadata"
-            platform.api -> platform.images "Read images"
+            platform.api -> platform.flow "Fetch images (delegate)"
+            platform.flow -> platform.images "Read images"
             platform.images -> platform.metadata "Read image metadata"
 
             platform.web -> platform.api "Record view event"
-            platform.api -> platform.eventbus "Publish"
+            platform.api -> platform.flow "Publish view event (delegate)"
+            platform.flow -> platform.eventbus "Publish"
             platform.eventbus -> platform.analytics "Update counters"
             platform.analytics -> platform.stats "Increment views"
         }
@@ -185,40 +202,46 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
             autoLayout
             visitor -> platform.web "Add image(s) to cart"
             platform.web -> platform.api "Upsert cart"
-            platform.api -> platform.carts "Create/update"
+            platform.api -> platform.flow "Create/update cart (delegate)"
+            platform.flow -> platform.carts "Create/update"
             platform.carts -> platform.metadata "Persist cart"
 
             platform.web -> platform.api "Price cart, quote totals"
-            platform.api -> platform.pricing "Compute totals"
+            platform.api -> platform.flow "Price cart (delegate)"
+            platform.flow -> platform.pricing "Compute totals"
             platform.pricing -> platform.pricelists "Read rules"
             platform.pricelists -> platform.metadata "Fetch price list"
-            platform.api -> platform.web "Totals"
+            platform.flow -> platform.web "Totals"
 
             visitor -> platform.web "Checkout"
             platform.web -> platform.api "Create order from cart"
-            platform.api -> platform.orders "Create order"
+            platform.api -> platform.flow "Create order (delegate)"
+            platform.flow -> platform.orders "Create order"
             platform.orders -> platform.metadata "Persist order"
             platform.orders -> payments "Create payment session"
             payments -> platform.orders "Webhook: payment_succeeded/failed"
-            platform.api -> platform.eventbus "OrderPaid | OrderFailed"
+            platform.flow -> platform.eventbus "OrderPaid | OrderFailed"
             platform.eventbus -> platform.analytics "Record conversion"
             platform.analytics -> platform.stats "Increment buys"
 
             platform.web -> platform.api "Return from payment (client-side redirect), load order status"
-            platform.api -> platform.orders "Read status"
-            platform.api -> platform.web "Receipt / download availability"
+            platform.api -> platform.flow "Read order status (delegate)"
+            platform.flow -> platform.orders "Read status"
+            platform.flow -> platform.web "Receipt / download availability"
         }
 
         dynamic platform "flow-5-analytics-and-stats" "Analytics & Stats (Event-Driven + BFF Reads)" {
             autoLayout
             platform.web -> platform.api "Record telemetry (view/download/cart/order)"
-            platform.api -> platform.eventbus "Publish telemetry events"
+            platform.api -> platform.flow "Telemetry (delegate)"
+            platform.flow -> platform.eventbus "Publish telemetry events"
             platform.eventbus -> platform.analytics "Consume"
             platform.analytics -> platform.stats "Upsert counters & rollups"
 
             platform.web -> platform.api "Fetch metrics"
-            platform.api -> platform.stats "Query aggregates"
-            platform.api -> platform.web "Return metrics"
+            platform.api -> platform.flow "Metrics query (delegate)"
+            platform.flow -> platform.stats "Query aggregates"
+            platform.flow -> platform.web "Return metrics"
         }
 
         styles {
