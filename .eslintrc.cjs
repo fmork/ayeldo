@@ -24,8 +24,12 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['*.js', '*.cjs'],
+      files: ['*.js', '*.cjs', '*.mjs'],
       parser: null,
+      rules: {
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/explicit-module-boundary-types': 'off',
+      },
     },
     {
       files: ['**/*.test.ts', '**/*.test.tsx'],

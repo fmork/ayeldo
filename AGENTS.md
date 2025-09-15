@@ -149,7 +149,7 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
 ## 🛠 Build & Artifacts (Option A)
 
 - **Approach**: Prebuild deployable assets outside CDK, then point stacks at `infra/cdk/assets`.
-- **Lambdas**: `scripts/build-artifacts.mjs` uses esbuild to bundle each `packages/*/src/functions/**/handler.ts` into a compact single file: `infra/cdk/assets/lambdas/<pkg>-<func>/index.mjs` (+ `.map`).
+- **Lambdas**: `scripts/build-artifacts.mjs` uses esbuild to bundle each `packages/*/src/functions/**/handler.ts` into a compact single file: `infra/cdk/assets/lambdas/<pkg>-<func>/index.js` (+ `.map`).
 - **Web app**: Vite `build.outDir` honors `OUT_DIR` env var; root script places output in `infra/cdk/assets/web`.
 - **CDK**: Use `lambda.Code.fromAsset('<path>')` and `handler: 'index.main'` with `Runtime.NODEJS_20_X` instead of `NodejsFunction` bundling.
 - **Scripts**:

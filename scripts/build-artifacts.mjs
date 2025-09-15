@@ -15,6 +15,10 @@ const lambdasOutBase = path.join(assetsBase, 'lambdas');
 
 // Recursively find Lambda handler entry points with pattern:
 // packages/<pkg>/src/functions/**/handler.ts
+/**
+ * Recursively discover Lambda handler entry points.
+ * @returns {Promise<Array<{pkg: string, funcId: string, entry: string}>>}
+ */
 async function findLambdaEntries() {
   /** @type {Array<{pkg:string, funcId:string, entry:string}>} */
   const entries = [];
@@ -52,15 +56,27 @@ async function findLambdaEntries() {
   return entries;
 }
 
+/**
+ * @param {string} p
+ * @returns {Promise<void>}
+ */
 async function ensureDir(p) {
   await fs.mkdir(p, { recursive: true });
 }
 
+/**
+ * @param {string} p
+ * @param {string} content
+ * @returns {Promise<void>}
+ */
 async function writeText(p, content) {
   await ensureDir(path.dirname(p));
   await fs.writeFile(p, content, 'utf8');
 }
 
+/**
+ * @returns {Promise<void>}
+ */
 async function main() {
   const entries = await findLambdaEntries();
   if (entries.length === 0) {
@@ -73,7 +89,7 @@ async function main() {
   const results = [];
   for (const { pkg, funcId, entry } of entries) {
     const outDir = path.join(lambdasOutBase, `${pkg}-${funcId}`);
-    const outfile = path.join(outDir, 'index.mjs');
+    const outfile = path.join(outDir, 'index.js');
     const tsconfigPath = path.join(repoRoot, 'tsconfig.base.json');
 
     console.log(`\nBundling ${pkg}/${funcId} -> ${path.relative(repoRoot, outfile)}`);
@@ -82,7 +98,7 @@ async function main() {
       bundle: true,
       minify: true,
       sourcemap: 'external',
-      format: 'esm',
+      format: 'cjs',
       platform: 'node',
       target: 'node20',
       outfile,

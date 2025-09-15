@@ -10,6 +10,9 @@
       ],
       "@ayeldo/utils": [
         "packages/utils/src"
+      ],
+      "@ayeldo/infra-aws": [
+        "packages/infra-aws/src"
       ]
     },
     "target": "ES2022",
