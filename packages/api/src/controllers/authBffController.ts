@@ -10,13 +10,16 @@ export interface AuthBffControllerProps {
   readonly logWriter: ILogWriter;
   readonly oidc: OidcClientOpenId;
   readonly sessions: SessionService;
+  readonly isDevelopment?: boolean;
 }
 
 export class AuthBffController extends PublicController {
   private readonly authFlow: AuthFlowService;
+  private readonly isDevelopment: boolean;
 
   public constructor(props: AuthBffControllerProps) {
     super(props.baseUrl, props.logWriter);
+    this.isDevelopment = props.isDevelopment ?? false;
     this.authFlow = new AuthFlowService({
       oidc: props.oidc,
       sessions: props.sessions,
@@ -52,15 +55,20 @@ export class AuthBffController extends PublicController {
       await this.performRequest(
         async () => {
           const result = await this.authFlow.handleCallback((req as any).query);
-          (res as any).cookie?.('__Host-sid', result.sid, {
+
+          // Development-friendly cookie settings
+          const isSecure = !this.isDevelopment;
+          const sidCookieName = this.isDevelopment ? 'sid' : '__Host-sid';
+
+          (res as any).cookie?.(sidCookieName, result.sid, {
             httpOnly: true,
-            secure: true,
+            secure: isSecure,
             sameSite: 'lax',
             path: '/',
           });
           (res as any).cookie?.('csrf', result.csrf, {
             httpOnly: false,
-            secure: true,
+            secure: isSecure,
             sameSite: 'lax',
             path: '/',
           });
@@ -77,9 +85,10 @@ export class AuthBffController extends PublicController {
     this.addPost('/auth/logout', async (req, res) => {
       await this.performRequest(
         async () => {
-          const sid = (req as any).cookies?.['__Host-sid'] as string | undefined;
+          const sidCookieName = this.isDevelopment ? 'sid' : '__Host-sid';
+          const sid = (req as any).cookies?.[sidCookieName] as string | undefined;
           await this.authFlow.logout(sid);
-          (res as any).clearCookie?.('__Host-sid');
+          (res as any).clearCookie?.(sidCookieName);
           (res as any).clearCookie?.('csrf');
           (res as any).status(204).end();
           return { loggedOut: true } as const;
@@ -92,7 +101,12 @@ export class AuthBffController extends PublicController {
     // GET /session — minimal profile state
     this.addGet('/session', async (req, res) => {
       await this.performRequest(
-        () => this.authFlow.sessionInfo((req as any).cookies?.['__Host-sid'] as string | undefined),
+        () => {
+          const sidCookieName = this.isDevelopment ? 'sid' : '__Host-sid';
+          return this.authFlow.sessionInfo(
+            (req as any).cookies?.[sidCookieName] as string | undefined,
+          );
+        },
         res,
         (r) => (r.loggedIn ? 200 : 401),
       );

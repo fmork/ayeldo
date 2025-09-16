@@ -229,7 +229,16 @@ export const rootBffController = new RootBffController({ baseUrl: '', logWriter 
 
 // Only create BFF controllers if OIDC is configured
 export const authBffController =
-  oidc && sessions ? new AuthBffController({ baseUrl: '', logWriter, oidc, sessions }) : undefined;
+  oidc && sessions
+    ? new AuthBffController({
+        baseUrl: '',
+        logWriter,
+        oidc,
+        sessions,
+        isDevelopment:
+          process.env['NODE_ENV'] === 'development' || siteConfig.apiBaseUrl.includes('localhost'),
+      })
+    : undefined;
 
 export const cartBffController = sessions
   ? new CartBffController({
@@ -303,8 +312,10 @@ export const server = new Server({
         siteConfig.webOrigin,
         siteConfig.bffOrigin,
         // Development origins
-        'http://localhost:*',
-        'http://127.0.0.1:*',
+        /^http:\/\/localhost:\d+$/, // http://localhost:3000, 5174, etc.
+        /^https:\/\/localhost:\d+$/, // https://localhost:3000, 5174, etc.
+        /^http:\/\/127\.0\.0\.1:\d+$/, // http://127.0.0.1:3000, 5174, etc.
+        /^https:\/\/127\.0\.0\.1:\d+$/, // https://127.0.0.1:3000, 5174, etc.
       ];
 
       logWriter.info(`CORS: Allowed origins: ${allowedOrigins.join(', ')}`);
