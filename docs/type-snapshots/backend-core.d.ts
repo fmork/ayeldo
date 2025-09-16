@@ -14,16 +14,26 @@ declare module '@fmork/backend-core/src/security/ClaimBasedAuthorizer' {
     requiredGroups?: string[];
   }
 
+  interface AuthorizationResult {
+    success: boolean;
+    user?: any;
+    error?: {
+      status: number;
+      message: string;
+    };
+  }
+
   export class ClaimBasedAuthorizer {
-    constructor(props: {
-      jwtAuthorization: unknown;
-      logWriter: unknown;
-      claimNames: string[];
-    });
+    constructor(props: { jwtAuthorization: unknown; logWriter: unknown; claimNames: string[] });
 
     createAuthorizer(
-      requirement?: AuthorizationRequirement
+      requirement?: AuthorizationRequirement,
     ): (req: unknown, res: unknown, next: unknown) => Promise<void>;
+
+    authorizeToken(
+      token: string,
+      requirement?: AuthorizationRequirement,
+    ): Promise<AuthorizationResult>;
   }
 }
 
@@ -42,7 +52,7 @@ declare module '@fmork/backend-core/src/security/GroupBasedAuthorizer' {
     });
 
     createAuthorizer(
-      requirement?: AuthorizationRequirement
+      requirement?: AuthorizationRequirement,
     ): (req: unknown, res: unknown, next: unknown) => Promise<void>;
   }
 }
@@ -76,27 +86,15 @@ declare module '@fmork/backend-core/src/controllers' {
 
     protected getRouter(): unknown;
 
-    protected abstract addGet(
-      path: string,
-      handler: (req: unknown, res: unknown) => void
-    ): void;
-    protected abstract addPut(
-      path: string,
-      handler: (req: unknown, res: unknown) => void
-    ): void;
-    protected abstract addPost(
-      path: string,
-      handler: (req: unknown, res: unknown) => void
-    ): void;
-    protected abstract addDelete(
-      path: string,
-      handler: (req: unknown, res: unknown) => void
-    ): void;
+    protected abstract addGet(path: string, handler: (req: unknown, res: unknown) => void): void;
+    protected abstract addPut(path: string, handler: (req: unknown, res: unknown) => void): void;
+    protected abstract addPost(path: string, handler: (req: unknown, res: unknown) => void): void;
+    protected abstract addDelete(path: string, handler: (req: unknown, res: unknown) => void): void;
 
     protected performRequest<T>(
       request: () => Promise<T> | T,
       res: unknown,
-      getStatusCode?: (result: T) => number
+      getStatusCode?: (result: T) => number,
     ): Promise<void>;
   }
 
@@ -113,7 +111,7 @@ declare module '@fmork/backend-core/src/controllers' {
     constructor(
       baseUrl: string,
       logWriter: unknown,
-      authorizer: (req: unknown, res: unknown, next: unknown) => Promise<void>
+      authorizer: (req: unknown, res: unknown, next: unknown) => Promise<void>,
     );
 
     protected addGet(path: string, handler: (req: unknown, res: unknown) => void): void;
@@ -128,28 +126,30 @@ declare module '@fmork/backend-core/src/controllers' {
       logWriter: unknown,
       authorizerOrFactory:
         | ((req: unknown, res: unknown, next: unknown) => Promise<void>)
-        | ((requirement?: AuthorizationRequirement) => (req: unknown, res: unknown, next: unknown) => Promise<void>)
+        | ((
+            requirement?: AuthorizationRequirement,
+          ) => (req: unknown, res: unknown, next: unknown) => Promise<void>),
     );
 
     protected addGet(
       path: string,
       handler: (req: unknown, res: unknown) => void,
-      authRequirement?: AuthorizationRequirement
+      authRequirement?: AuthorizationRequirement,
     ): void;
     protected addPost(
       path: string,
       handler: (req: unknown, res: unknown) => void,
-      authRequirement?: AuthorizationRequirement
+      authRequirement?: AuthorizationRequirement,
     ): void;
     protected addPut(
       path: string,
       handler: (req: unknown, res: unknown) => void,
-      authRequirement?: AuthorizationRequirement
+      authRequirement?: AuthorizationRequirement,
     ): void;
     protected addDelete(
       path: string,
       handler: (req: unknown, res: unknown) => void,
-      authRequirement?: AuthorizationRequirement
+      authRequirement?: AuthorizationRequirement,
     ): void;
   }
 
@@ -159,28 +159,30 @@ declare module '@fmork/backend-core/src/controllers' {
       logWriter: unknown,
       authorizerOrFactory:
         | ((req: unknown, res: unknown, next: unknown) => Promise<void>)
-        | ((requirement?: AuthorizationRequirement) => (req: unknown, res: unknown, next: unknown) => Promise<void>)
+        | ((
+            requirement?: AuthorizationRequirement,
+          ) => (req: unknown, res: unknown, next: unknown) => Promise<void>),
     );
 
     protected addGet(
       path: string,
       handler: (req: unknown, res: unknown) => void,
-      authRequirement?: AuthorizationRequirement
+      authRequirement?: AuthorizationRequirement,
     ): void;
     protected addPost(
       path: string,
       handler: (req: unknown, res: unknown) => void,
-      authRequirement?: AuthorizationRequirement
+      authRequirement?: AuthorizationRequirement,
     ): void;
     protected addPut(
       path: string,
       handler: (req: unknown, res: unknown) => void,
-      authRequirement?: AuthorizationRequirement
+      authRequirement?: AuthorizationRequirement,
     ): void;
     protected addDelete(
       path: string,
       handler: (req: unknown, res: unknown) => void,
-      authRequirement?: AuthorizationRequirement
+      authRequirement?: AuthorizationRequirement,
     ): void;
   }
 }

@@ -2,7 +2,7 @@ import type { ILogWriter } from '@fmork/backend-core';
 import * as crypto from 'node:crypto';
 import type { ISessionStore, IStateStore } from '../stores/sessionStore';
 import type { SessionRecord, TokenBundle } from '../types/session';
-import { base64url, encryptTokens, randomId, signHs256Jwt } from './crypto';
+import { base64url, decryptTokens, encryptTokens, randomId, signHs256Jwt } from './crypto';
 import type { OidcClientOpenId } from './oidcOpenIdClient';
 
 export interface SessionServiceProps {
@@ -126,6 +126,32 @@ export class SessionService {
 
   public async logout(sid: string): Promise<void> {
     await this.store.deleteSession(sid);
+  }
+
+  /**
+   * Get the OIDC access token from a session for JWT validation.
+   * Returns undefined if session doesn't exist or tokens are expired.
+   */
+  public async getOidcAccessToken(sid: string): Promise<string | undefined> {
+    const session = await this.store.getSession(sid);
+    if (!session) return undefined;
+
+    try {
+      const tokens = decryptTokens(this.encKeyB64, session.tokensEnc);
+      const nowSec = Math.floor(Date.now() / 1000);
+
+      // Check if tokens are still valid (with 1 minute buffer)
+      if (tokens.expiresAt <= nowSec + 60) {
+        this.logger.warn(`Access token expired for session ${sid}`);
+        return undefined;
+      }
+
+      return tokens.accessToken;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      this.logger.error(`Failed to decrypt tokens for session ${sid}`, error);
+      return undefined;
+    }
   }
 
   public signApiJwt(sub: string, tenantId?: string, roles?: readonly string[]): string {

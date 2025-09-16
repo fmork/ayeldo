@@ -27,12 +27,14 @@ import { OrderController } from '../controllers/orderController';
 import { PaymentController } from '../controllers/paymentController';
 import { ReferenceClaimAuthorizedApiController } from '../controllers/referenceClaimAuthorizedApiController';
 import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
+import { TenantAdminController } from '../controllers/tenantAdminController';
 import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake';
 // BFF controllers and services (merged from packages/bff)
 import { AuthBffController } from '../controllers/authBffController';
 import { CartBffController } from '../controllers/cartBffController';
 import { RootBffController } from '../controllers/rootBffController';
 import { OidcClientOpenId, type OidcOpenIdConfig } from '../services/oidcOpenIdClient';
+import { SessionBasedAuthorizer } from '../services/sessionBasedAuthorizer';
 import { SessionService } from '../services/sessionService';
 import { SignedUrlProviderFake } from '../storage/signedUrlProviderFake';
 import { MemorySessionStore, MemoryStateStore } from '../stores/sessionStore';
@@ -239,6 +241,27 @@ export const cartBffController = sessions
     })
   : undefined;
 
+// Session-based authorizer for authenticated endpoints
+export const sessionBasedAuthorizer = sessions
+  ? new SessionBasedAuthorizer({
+      sessionService: sessions,
+      logWriter,
+      claimBasedAuthorizer,
+    })
+  : undefined;
+
+// Tenant admin controller (requires authentication)
+export const tenantAdminController =
+  sessions && sessionBasedAuthorizer
+    ? new TenantAdminController({
+        baseUrl: '',
+        logWriter,
+        jsonUtil,
+        sessionService: sessions,
+        authorizer: sessionBasedAuthorizer.createAuthorizer,
+      })
+    : undefined;
+
 const requestLogger = new RequestLogMiddleware({ logWriter });
 const serverPort: number = process.env['PORT']
   ? Number.parseInt(process.env['PORT'] as string, 10)
@@ -256,6 +279,8 @@ export const server = new Server({
     rootBffController,
     ...(authBffController ? [authBffController] : []),
     ...(cartBffController ? [cartBffController] : []),
+    // Authenticated controllers
+    ...(tenantAdminController ? [tenantAdminController] : []),
   ],
   port: serverPort,
   requestLogger,

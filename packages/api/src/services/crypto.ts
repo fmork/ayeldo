@@ -25,6 +25,19 @@ export function encryptTokens(keyB64: string, kid: string, bundle: TokenBundle):
   } as const;
 }
 
+export function decryptTokens(keyB64: string, blob: EncBlob): TokenBundle {
+  const key = Buffer.from(keyB64, 'base64');
+  const iv = Buffer.from(blob.iv, 'base64');
+  const tag = Buffer.from(blob.tag, 'base64');
+  const ciphertext = Buffer.from(blob.ciphertext, 'base64');
+
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+  decipher.setAuthTag(tag);
+
+  const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+  return JSON.parse(decrypted.toString('utf8')) as TokenBundle;
+}
+
 export function signHs256Jwt(secretB64: string, payload: Record<string, unknown>): string {
   const secret = Buffer.from(secretB64, 'base64');
   const header = { alg: 'HS256', typ: 'JWT' };
