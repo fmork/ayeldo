@@ -8,107 +8,87 @@ import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import Typography from '@mui/material/Typography';
-import type { FC, MouseEvent } from 'react';
+import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 import { useSession } from '../../app/contexts/SessionContext';
-import { useSiteConfiguration } from '../../app/SiteConfigurationContext';
-import { getCsrfToken } from '../../services/csrf/getCsrfToken';
 
 const drawerWidth = 240;
 
 interface MobileDrawerProps {
-    readonly isOpen: boolean;
-    readonly onClose: () => void;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
 }
 
 const MobileDrawer: FC<MobileDrawerProps> = ({ isOpen, onClose }) => {
-    const { t, i18n } = useTranslation();
-    const session = useSession();
-    const site = useSiteConfiguration();
+  const { t, i18n } = useTranslation();
+  const session = useSession();
 
-    const doLogout = async (e?: MouseEvent<HTMLButtonElement>): Promise<void> => {
-        e?.preventDefault();
-        try {
-            await fetch('/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    [site.csrfHeaderName]: getCsrfToken() ?? '',
-                },
-            });
-        } finally {
-            // Hard reload to refresh session state and cookies
-            globalThis.location?.reload();
-        }
-    };
+  const navItems = [
+    { label: t('nav.home'), to: '/' },
+    { label: t('nav.albumDemo'), to: '/albums/demo' },
+    { label: t('nav.cart'), to: '/cart' },
+  ] as const;
 
-    const navItems = [
-        { label: t('nav.home'), to: '/' },
-        { label: t('nav.albumDemo'), to: '/albums/demo' },
-        { label: t('nav.cart'), to: '/cart' },
-    ] as const;
+  const drawerContent = (
+    <Box onClick={onClose} sx={{ textAlign: 'center' }}>
+      <Typography variant="h6" sx={{ my: 2 }}>
+        {t('app.title')}
+      </Typography>
+      <Divider />
+      <List>
+        {navItems.map((item) => (
+          <ListItem key={item.to} disablePadding>
+            <ListItemButton component={RouterLink} to={item.to} sx={{ textAlign: 'left' }}>
+              <ListItemText primary={item.label} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+        <Divider sx={{ my: 1 }} />
+        {!session?.loggedIn ? (
+          <ListItem disablePadding>
+            <ListItemButton component={RouterLink} to="/login">
+              <ListItemText primary={t('app.login')} />
+            </ListItemButton>
+          </ListItem>
+        ) : (
+          <ListItem disablePadding>
+            <ListItemButton component={RouterLink} to="/logout">
+              <ListItemText primary={t('app.logout')} />
+            </ListItemButton>
+          </ListItem>
+        )}
+        <ListItem>
+          <Select
+            size="small"
+            value={i18n.resolvedLanguage || 'en'}
+            onChange={(e) => void i18n.changeLanguage(String(e.target.value))}
+            variant="outlined"
+          >
+            <MenuItem value="en">English</MenuItem>
+            <MenuItem value="sv">Svenska</MenuItem>
+          </Select>
+        </ListItem>
+      </List>
+    </Box>
+  );
 
-    const drawerContent = (
-        <Box onClick={onClose} sx={{ textAlign: 'center' }}>
-            <Typography variant="h6" sx={{ my: 2 }}>
-                {t('app.title')}
-            </Typography>
-            <Divider />
-            <List>
-                {navItems.map((item) => (
-                    <ListItem key={item.to} disablePadding>
-                        <ListItemButton component={RouterLink} to={item.to} sx={{ textAlign: 'left' }}>
-                            <ListItemText primary={item.label} />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
-                <Divider sx={{ my: 1 }} />
-                {!session?.loggedIn ? (
-                    <ListItem disablePadding>
-                        <ListItemButton component={RouterLink} to="/login">
-                            <ListItemText primary={t('app.login')} />
-                        </ListItemButton>
-                    </ListItem>
-                ) : (
-                    <ListItem disablePadding>
-                        <ListItemButton onClick={() => void doLogout()}>
-                            <ListItemText primary={t('app.logout')} />
-                        </ListItemButton>
-                    </ListItem>
-                )}
-                <ListItem>
-                    <Select
-                        size="small"
-                        value={i18n.resolvedLanguage || 'en'}
-                        onChange={(e) => void i18n.changeLanguage(String(e.target.value))}
-                        variant="outlined"
-                    >
-                        <MenuItem value="en">English</MenuItem>
-                        <MenuItem value="sv">Svenska</MenuItem>
-                    </Select>
-                </ListItem>
-            </List>
-        </Box>
-    );
-
-    return (
-        <Box component="nav">
-            <Drawer
-                variant="temporary"
-                open={isOpen}
-                onClose={onClose}
-                ModalProps={{ keepMounted: true }}
-                sx={{
-                    display: { xs: 'block', sm: 'none' },
-                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-                }}
-            >
-                {drawerContent}
-            </Drawer>
-        </Box>
-    );
+  return (
+    <Box component="nav">
+      <Drawer
+        variant="temporary"
+        open={isOpen}
+        onClose={onClose}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: 'block', sm: 'none' },
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+    </Box>
+  );
 };
 
 export default MobileDrawer;

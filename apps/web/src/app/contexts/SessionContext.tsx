@@ -1,41 +1,87 @@
 import type { FC, ReactNode } from 'react';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { useLazyGetSessionQuery } from '../../services/api/bffApi';
 
 export interface SessionInfo {
-    readonly loggedIn: boolean;
-    readonly sub?: string;
-    readonly email?: string;
-    readonly name?: string;
+  readonly loggedIn: boolean;
+  readonly sub?: string;
+  readonly email?: string;
+  readonly name?: string;
 }
 
-const SessionContext = createContext<SessionInfo | undefined>(undefined);
+export interface SessionContextType {
+  readonly session: SessionInfo | undefined;
+  readonly refreshSession: () => Promise<void>;
+}
+
+const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
 export const useSession = (): SessionInfo | undefined => {
-    return useContext(SessionContext);
+  return useContext(SessionContext)?.session;
+};
+
+export const useSessionActions = (): { refreshSession: () => Promise<void> } => {
+  const context = useContext(SessionContext);
+  if (!context) {
+    throw new Error('useSessionActions must be used within SessionProvider');
+  }
+  return { refreshSession: context.refreshSession };
 };
 
 export const SessionProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    const [session, setSession] = useState<SessionInfo>({ loggedIn: false });
+  const [session, setSession] = useState<SessionInfo>({ loggedIn: false });
+  const [triggerGetSession] = useLazyGetSessionQuery();
 
-    useEffect(() => {
-        fetch('/session', {
-            credentials: 'include',
-        })
-            .then(async (res) => {
-                if (res.ok) {
-                    const data = await res.json();
-                    setSession({
-                        loggedIn: true,
-                        sub: data.sub,
-                        email: data.email,
-                        name: data.name,
-                    });
-                } else {
-                    setSession({ loggedIn: false });
-                }
-            })
-            .catch(() => setSession({ loggedIn: false }));
-    }, []);
+  const fetchSession = useCallback(async (): Promise<void> => {
+    try {
+      const result = await triggerGetSession().unwrap();
+      if ('sub' in result && result.loggedIn) {
+        const sessionInfo: SessionInfo = {
+          loggedIn: true,
+          sub: result.sub,
+          ...(result.email !== undefined && { email: result.email }),
+          ...(result.name !== undefined && { name: result.name }),
+        };
+        setSession(sessionInfo);
+      } else {
+        setSession({ loggedIn: false });
+      }
+    } catch {
+      setSession({ loggedIn: false });
+    }
+  }, [triggerGetSession]);
 
-    return <SessionContext.Provider value={session}>{children}</SessionContext.Provider>;
+  // Initial session fetch
+  useEffect(() => {
+    void fetchSession();
+  }, [fetchSession]);
+
+  // Refresh session when the window gains focus (useful after OIDC redirect)
+  useEffect(() => {
+    const handleFocus = (): void => {
+      void fetchSession();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [fetchSession]);
+
+  // Refresh session when user returns to the tab (useful after OIDC redirect)
+  useEffect(() => {
+    const handleVisibilityChange = (): void => {
+      if (!document.hidden) {
+        void fetchSession();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [fetchSession]);
+
+  const contextValue: SessionContextType = {
+    session,
+    refreshSession: fetchSession,
+  };
+
+  return <SessionContext.Provider value={contextValue}>{children}</SessionContext.Provider>;
 };

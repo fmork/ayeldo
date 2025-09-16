@@ -13,7 +13,7 @@ export const bffApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Album', 'Image', 'Cart', 'Order', 'PriceList'],
+  tagTypes: ['Album', 'Image', 'Cart', 'Order', 'PriceList', 'Session'],
   endpoints: (builder) => ({
     getAuthorizeUrl: builder.query<{ url: string }, { redirect?: string }>({
       query: (args) => {
@@ -21,7 +21,26 @@ export const bffApi = createApi({
         return `/auth/authorize-url${params}`;
       },
     }),
+    getSession: builder.query<
+      { loggedIn: true; sub: string; email?: string; name?: string } | { loggedIn: false },
+      void
+    >({
+      query: () => '/session',
+      transformErrorResponse: () => ({ loggedIn: false as const }),
+    }),
+    logout: builder.mutation<{ loggedOut: boolean }, void>({
+      query: () => ({
+        url: '/auth/logout',
+        method: 'POST',
+      }),
+      invalidatesTags: ['Session'],
+    }),
   }),
 });
 
-export const { useLazyGetAuthorizeUrlQuery } = bffApi;
+export const {
+  useLazyGetAuthorizeUrlQuery,
+  useGetSessionQuery,
+  useLazyGetSessionQuery,
+  useLogoutMutation,
+} = bffApi;

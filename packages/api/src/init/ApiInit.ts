@@ -303,9 +303,8 @@ export const server = new Server({
         siteConfig.webOrigin,
         siteConfig.bffOrigin,
         // Development origins
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:5173', // Vite dev server default
+        'http://localhost',
+        'http://127.0.0.1',
       ];
 
       logWriter.info(`CORS: Allowed origins: ${allowedOrigins.join(', ')}`);

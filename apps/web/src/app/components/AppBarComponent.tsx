@@ -7,12 +7,10 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import type { FC, MouseEvent } from 'react';
+import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 import { useSession } from '../../app/contexts/SessionContext';
-import { useSiteConfiguration } from '../../app/SiteConfigurationContext';
-import { getCsrfToken } from '../../services/csrf/getCsrfToken';
 
 interface AppBarComponentProps {
     readonly onMenuToggle: () => void;
@@ -21,24 +19,6 @@ interface AppBarComponentProps {
 const AppBarComponent: FC<AppBarComponentProps> = ({ onMenuToggle }) => {
     const { t, i18n } = useTranslation();
     const session = useSession();
-    const site = useSiteConfiguration();
-
-    const doLogout = async (e?: MouseEvent<HTMLButtonElement>): Promise<void> => {
-        e?.preventDefault();
-        try {
-            await fetch('/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    [site.csrfHeaderName]: getCsrfToken() ?? '',
-                },
-            });
-        } finally {
-            // Hard reload to refresh session state and cookies
-            globalThis.location?.reload();
-        }
-    };
 
     const navItems = [
         { label: t('nav.home'), to: '/' },
@@ -77,7 +57,7 @@ const AppBarComponent: FC<AppBarComponentProps> = ({ onMenuToggle }) => {
                             {t('app.login')}
                         </Button>
                     ) : (
-                        <Button onClick={(e) => void doLogout(e)} sx={{ color: '#fff' }}>
+                        <Button component={RouterLink} to="/logout" sx={{ color: '#fff' }}>
                             {t('app.logout')}
                         </Button>
                     )}

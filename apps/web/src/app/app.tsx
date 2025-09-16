@@ -14,13 +14,13 @@ const App: FC = () => {
     <>
       <SiteConfigurationContext.Provider value={siteConfig}>
         <AppThemeProvider>
-          <SessionProvider>
-            <Provider store={store}>
+          <Provider store={store}>
+            <SessionProvider>
               <BrowserRouter>
                 <AppRoutes />
               </BrowserRouter>
-            </Provider>
-          </SessionProvider>
+            </SessionProvider>
+          </Provider>
         </AppThemeProvider>
       </SiteConfigurationContext.Provider>
     </>
