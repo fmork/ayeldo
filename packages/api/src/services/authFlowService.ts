@@ -97,8 +97,10 @@ export class AuthFlowService {
   }
 
   public async sessionInfo(sid: string | undefined): Promise<SessionInfo> {
+    this.logger.info(`Retrieving session info for sid=${sid ?? '<none>'}`);
     if (!sid) return { loggedIn: false } as const;
     const sess = await this.sessions.getSession(sid);
+    this.logger.info(`Session info retrieved: ${JSON.stringify(sess)}`);
     if (!sess) return { loggedIn: false } as const;
     const out: SessionInfoLoggedIn = {
       loggedIn: true,
@@ -106,6 +108,8 @@ export class AuthFlowService {
       ...(sess.email !== undefined ? { email: sess.email } : {}),
       ...(sess.name !== undefined ? { name: sess.name } : {}),
     } as const;
+
+    this.logger.info(`Session info returned: ${JSON.stringify(out)}`);
     return out;
   }
 
