@@ -1,3 +1,13 @@
+import {
+  Box,
+  Button,
+  Container,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Typography
+} from '@mui/material';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSiteConfiguration } from '../../../app/SiteConfigurationContext';
@@ -24,27 +34,38 @@ const LoginPage: FC = () => {
   };
 
   return (
-    <>
-      <section>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2>{t('app.welcome')}</h2>
-          <div>
-            <label htmlFor="lang">Language: </label>
-            <select
-              id="lang"
-              onChange={(e) => void i18n.changeLanguage(String(e.target.value))}
+    <Container maxWidth="sm">
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4" component="h2">
+            {t('app.welcome')}
+          </Typography>
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <InputLabel id="language-select-label">Language</InputLabel>
+            <Select
+              labelId="language-select-label"
+              id="language-select"
               value={i18n.resolvedLanguage || 'en'}
+              label="Language"
+              onChange={(e) => void i18n.changeLanguage(String(e.target.value))}
             >
-              <option value="en">English</option>
-              <option value="sv">Svenska</option>
-            </select>
-          </div>
-        </header>
-        <button onClick={() => void onLogin()} disabled={isFetching}>
+              <MenuItem value="en">English</MenuItem>
+              <MenuItem value="sv">Svenska</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={() => void onLogin()}
+          disabled={isFetching}
+          sx={{ mt: 2 }}
+        >
           {isFetching ? 'Redirecting…' : t('app.login')}
-        </button>
-      </section>
-    </>
+        </Button>
+      </Box>
+    </Container>
   );
 
 }
