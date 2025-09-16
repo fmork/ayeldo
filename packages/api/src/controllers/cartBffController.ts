@@ -39,9 +39,9 @@ export class CartBffController extends PublicController {
     // Use shared CSRF wrapper (double-submit cookie check)
     const requireCsrf = requireCsrfWrapper;
 
-    // GET /bff/carts/:tenantId/:cartId — fetch cart and priced summary
+    // GET /carts/:tenantId/:cartId — fetch cart and priced summary
     this.addGet(
-      '/bff/carts/:tenantId/:cartId',
+      '/carts/:tenantId/:cartId',
       requireSession(async (req, res, sid) => {
         const params = z
           .object({ tenantId: z.string().min(1), cartId: z.string().min(1) })
@@ -51,9 +51,9 @@ export class CartBffController extends PublicController {
       }),
     );
 
-    // POST /bff/carts/:tenantId/:cartId/items — add and return priced cart
+    // POST /carts/:tenantId/:cartId/items — add and return priced cart
     this.addPost(
-      '/bff/carts/:tenantId/:cartId/items',
+      '/carts/:tenantId/:cartId/items',
       requireSession(
         requireCsrf(async (req, res, sid) => {
           const params = z
@@ -69,9 +69,9 @@ export class CartBffController extends PublicController {
       ),
     );
 
-    // DELETE /bff/carts/:tenantId/:cartId/items — remove and return priced cart
+    // DELETE /carts/:tenantId/:cartId/items — remove and return priced cart
     this.addDelete(
-      '/bff/carts/:tenantId/:cartId/items',
+      '/carts/:tenantId/:cartId/items',
       requireSession(
         requireCsrf(async (req, res, sid) => {
           const params = z
