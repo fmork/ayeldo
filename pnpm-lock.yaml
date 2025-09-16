@@ -146,8 +146,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       '@fmork/backend-core':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.2.0
+        version: 3.2.0
       aws-xray-sdk-core:
         specifier: ^3.10.3
         version: 3.10.3
@@ -833,8 +833,8 @@ packages:
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@fmork/backend-core@3.1.0':
-    resolution: {integrity: sha512-3esHzAYMxgePvrH2k8Dm7NUASbfRATAktEiyBLE/mQ8P6fFNCvj2acBemC+u4hHwLwbqQqlWm9vDx7UFRPcWWA==, tarball: https://npm.pkg.github.com/download/@fmork/backend-core/3.1.0/f31298c83cd71e2f3c355d17551752a7279a7a15}
+  '@fmork/backend-core@3.2.0':
+    resolution: {integrity: sha512-hSCciNp+1qY5cNcjoHrdCtNI/iVYMdh6imnXLP5wiXqTDGLB1w3schQO4VIW6+g139iJUkvoSfx1GBRw6lTaqQ==, tarball: https://npm.pkg.github.com/download/@fmork/backend-core/3.2.0/f7e03e50f9ebc87760804905d5cc424f10b723d6}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -4582,7 +4582,7 @@ snapshots:
 
   '@eslint/js@8.57.1': {}
 
-  '@fmork/backend-core@3.1.0':
+  '@fmork/backend-core@3.2.0':
     dependencies:
       '@types/aws-lambda': 8.10.152
       axios: 1.12.2
