@@ -1,7 +1,11 @@
-import { createRootLogger } from '@ayeldo/utils';
-import type { EventEnvelope } from '@ayeldo/types';
-import { AnalyticsConsumer } from '../../analytics/analyticsConsumer';
 import { DdbDocumentClientAdapter, StatsRepoDdb } from '@ayeldo/infra-aws';
+import type { EventEnvelope } from '@ayeldo/types';
+import { createRootLogger } from '@ayeldo/utils';
+import AWSXRay from 'aws-xray-sdk-core';
+import { AnalyticsConsumer } from '../../analytics/analyticsConsumer';
+
+// Enable X-Ray tracing
+AWSXRay.config([AWSXRay.plugins.ECSPlugin, AWSXRay.plugins.EC2Plugin]);
 
 interface LambdaEventBridgeEvent {
   readonly ['detail-type']?: string;
@@ -25,4 +29,3 @@ export async function main(event: unknown): Promise<void> {
 
   await consumer.handle(detail);
 }
-

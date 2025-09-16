@@ -15,6 +15,8 @@ export interface AnalyticsStackProps extends StackProps {
 }
 
 export class AnalyticsStack extends Stack {
+  public readonly analyticsFunction: lambda.Function;
+
   constructor(scope: Construct, id: string, props: AnalyticsStackProps) {
     super(scope, id, props);
 
@@ -30,6 +32,7 @@ export class AnalyticsStack extends Stack {
       memorySize: 256,
       timeout: Duration.seconds(15),
       logRetention: 30,
+      tracing: lambda.Tracing.ACTIVE,
       environment: {
         NODE_OPTIONS: '--enable-source-maps',
         TABLE_NAME: props.table.tableName,
@@ -38,6 +41,9 @@ export class AnalyticsStack extends Stack {
 
     // Permissions: function can read/write stats table
     props.table.grantReadWriteData(fn);
+
+    // Store reference for observability
+    this.analyticsFunction = fn;
 
     // EventBridge rule to route relevant events to analytics consumer
     const rule = new Rule(this, 'AnalyticsRule', {

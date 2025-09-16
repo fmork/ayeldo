@@ -7,6 +7,7 @@ import { CertStack } from '../src/cert-stack';
 import { CoreStack } from '../src/core-stack';
 import { computeDomainConfig } from '../src/domain';
 import { EventsStack } from '../src/events-stack';
+import { ObservabilityStack } from '../src/observability-stack';
 
 const app = new App();
 
@@ -72,3 +73,12 @@ const analytics = new AnalyticsStack(app, `AyeldoAnalyticsStack-${envName}`, {
 });
 Tags.of(analytics).add('Environment', envName);
 Tags.of(analytics).add('Service', 'ayeldo');
+
+const observability = new ObservabilityStack(app, `AyeldoObservabilityStack-${envName}`, {
+  ...(env as { env?: { account?: string; region?: string } }),
+  apiGatewayId: api.restApi.restApiId,
+  lambdaFunctions: [api.httpHandlerFunction, analytics.analyticsFunction],
+  dlQueues: events.dlQueues,
+});
+Tags.of(observability).add('Environment', envName);
+Tags.of(observability).add('Service', 'ayeldo');

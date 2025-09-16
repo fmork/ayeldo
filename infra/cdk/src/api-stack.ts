@@ -29,6 +29,9 @@ export interface ApiStackProps extends StackProps {
 }
 
 export class ApiStack extends Stack {
+  public readonly httpHandlerFunction: NodejsFunction;
+  public readonly restApi: LambdaRestApi;
+
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
@@ -84,6 +87,7 @@ export class ApiStack extends Stack {
       memorySize: 512,
       timeout: Duration.seconds(15),
       logRetention: RetentionDays.ONE_MONTH,
+      tracing: lambda.Tracing.ACTIVE,
       bundling: {
         sourceMap: true,
         minify: true,
@@ -116,6 +120,9 @@ export class ApiStack extends Stack {
     props.table.grantReadWriteData(handler);
     props.eventBus.grantPutEventsTo(handler);
 
+    // Store reference to handler for observability
+    this.httpHandlerFunction = handler;
+
     // Custom domain setup (certificate + hosted zone) if configured
     let zone: IHostedZone | undefined;
     let apiCert: Certificate | undefined;
@@ -140,20 +147,11 @@ export class ApiStack extends Stack {
       deployOptions: {
         stageName: 'prod',
         accessLogDestination: new LogGroupLogDestination(accessLogGroup),
-        accessLogFormat: AccessLogFormat.jsonWithStandardFields({
-          caller: true,
-          httpMethod: true,
-          ip: true,
-          protocol: true,
-          requestTime: true,
-          resourcePath: true,
-          responseLength: true,
-          status: true,
-          user: true,
-        }),
+        accessLogFormat: AccessLogFormat.jsonWithStandardFields(),
         loggingLevel: MethodLoggingLevel.INFO,
         dataTraceEnabled: false,
         metricsEnabled: true,
+        tracingEnabled: true,
       },
       ...(props.domainConfig && apiCert
         ? {
@@ -167,6 +165,9 @@ export class ApiStack extends Stack {
           }
         : {}),
     });
+
+    // Store reference to API for observability
+    this.restApi = api;
 
     // Route53 alias for custom domain
     if (props.domainConfig && api.domainName && zone) {

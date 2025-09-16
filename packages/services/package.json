@@ -5,7 +5,9 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsc -b",
@@ -13,9 +15,10 @@
     "test": "jest -c ../../jest.config.ts --passWithNoTests"
   },
   "dependencies": {
-    "@ayeldo/types": "workspace:*",
     "@ayeldo/core": "workspace:*",
+    "@ayeldo/infra-aws": "workspace:*",
+    "@ayeldo/types": "workspace:*",
     "@ayeldo/utils": "workspace:*",
-    "@ayeldo/infra-aws": "workspace:*"
+    "aws-xray-sdk-core": "^3.10.3"
   }
 }

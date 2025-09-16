@@ -1,6 +1,10 @@
 import { runWithRequestContext } from '@ayeldo/utils';
+import AWSXRay from 'aws-xray-sdk-core';
 import ServerlessHttp from 'serverless-http';
 import { logWriter, server } from '../../init/ApiInit';
+
+// Enable X-Ray tracing
+AWSXRay.config([AWSXRay.plugins.ECSPlugin, AWSXRay.plugins.EC2Plugin]);
 
 logWriter.info('Loading API handler');
 
