@@ -11,7 +11,7 @@ import { useLazyGetAuthorizeUrlQuery } from '../../../services/api/bffApi';
 
 const LoginPage: FC = () => {
   const [trigger, { isFetching }] = useLazyGetAuthorizeUrlQuery();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { webOrigin } = useSiteConfiguration();
 
   const onLogin = async (): Promise<void> => {

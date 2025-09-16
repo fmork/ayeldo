@@ -28,7 +28,6 @@ import {
   Fab,
   FormControl,
   FormControlLabel,
-  Grid,
   IconButton,
   InputLabel,
   LinearProgress,
@@ -407,32 +406,32 @@ const ThemeShowcase: FC = () => {
         <Typography variant="h4" gutterBottom>
           Buttons
         </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
+          <Box sx={{ flex: 1 }}>
             <Typography variant="h6" gutterBottom>Contained Buttons</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Button variant="contained" color="primary">Primary</Button>
               <Button variant="contained" color="secondary">Secondary</Button>
               <Button variant="contained" disabled>Disabled</Button>
             </Box>
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <Typography variant="h6" gutterBottom>Outlined Buttons</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Button variant="outlined" color="primary">Primary</Button>
               <Button variant="outlined" color="secondary">Secondary</Button>
               <Button variant="outlined" disabled>Disabled</Button>
             </Box>
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <Typography variant="h6" gutterBottom>Text Buttons</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Button variant="text" color="primary">Primary</Button>
               <Button variant="text" color="secondary">Secondary</Button>
               <Button variant="text" disabled>Disabled</Button>
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
 
       <Divider sx={{ my: 4 }} />
@@ -442,8 +441,8 @@ const ThemeShowcase: FC = () => {
         <Typography variant="h4" gutterBottom>
           Form Controls
         </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
+          <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <TextField label="Standard Input" variant="outlined" />
               <TextField label="Filled Input" variant="filled" />
@@ -459,8 +458,8 @@ const ThemeShowcase: FC = () => {
                 </Select>
               </FormControl>
             </Box>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <RadioGroup>
                 <FormControlLabel value="option1" control={<Radio />} label="Radio Option 1" />
@@ -485,8 +484,8 @@ const ThemeShowcase: FC = () => {
                 <Slider defaultValue={30} />
               </Box>
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
 
       <Divider sx={{ my: 4 }} />
@@ -496,8 +495,8 @@ const ThemeShowcase: FC = () => {
         <Typography variant="h4" gutterBottom>
           Cards & Papers
         </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
+          <Box sx={{ flex: 1 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -512,8 +511,8 @@ const ThemeShowcase: FC = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <Paper elevation={3} sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>
                 Elevated Paper
@@ -522,8 +521,8 @@ const ThemeShowcase: FC = () => {
                 Paper component with elevation=3 showing depth and shadow.
               </Typography>
             </Paper>
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <Paper variant="outlined" sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>
                 Outlined Paper
@@ -532,8 +531,8 @@ const ThemeShowcase: FC = () => {
                 Paper component with outlined variant showing border instead of shadow.
               </Typography>
             </Paper>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
 
       <Divider sx={{ my: 4 }} />
@@ -543,8 +542,8 @@ const ThemeShowcase: FC = () => {
         <Typography variant="h4" gutterBottom>
           Interactive Elements
         </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
+          <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <Box>
                 <Typography variant="h6" gutterBottom>Chips</Typography>
@@ -552,7 +551,7 @@ const ThemeShowcase: FC = () => {
                   <Chip label="Default" />
                   <Chip label="Primary" color="primary" />
                   <Chip label="Secondary" color="secondary" />
-                  <Chip label="Deletable" onDelete={() => { }} />
+                  <Chip label="Deletable" onDelete={() => console.log('Delete clicked')} />
                   <Chip label="Disabled" disabled />
                 </Box>
               </Box>
@@ -571,8 +570,8 @@ const ThemeShowcase: FC = () => {
                 </Box>
               </Box>
             </Box>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <Box>
                 <Typography variant="h6" gutterBottom>Progress Indicators</Typography>
@@ -602,8 +601,8 @@ const ThemeShowcase: FC = () => {
                 </Box>
               </Box>
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
 
       <Divider sx={{ my: 4 }} />
@@ -613,8 +612,8 @@ const ThemeShowcase: FC = () => {
         <Typography variant="h4" gutterBottom>
           Lists & Navigation
         </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
+          <Box sx={{ flex: 1 }}>
             <Typography variant="h6" gutterBottom>List Components</Typography>
             <Paper>
               <List>
@@ -640,8 +639,8 @@ const ThemeShowcase: FC = () => {
                 </ListItem>
               </List>
             </Paper>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <Typography variant="h6" gutterBottom>Navigation Elements</Typography>
             <Box sx={{ mb: 3 }}>
               <Breadcrumbs>
@@ -657,8 +656,8 @@ const ThemeShowcase: FC = () => {
                 <Tab label="Tab Three" />
               </Tabs>
             </Paper>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
 
       <Divider sx={{ my: 4 }} />
@@ -733,8 +732,8 @@ const ThemeShowcase: FC = () => {
         <Typography variant="h4" gutterBottom>
           Theme Configuration
         </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
+          <Box sx={{ flex: 1 }}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>Typography Settings</Typography>
               <Typography variant="body2">
@@ -750,8 +749,8 @@ const ThemeShowcase: FC = () => {
                 Bold({defaultTypography.fontWeightBold})
               </Typography>
             </Paper>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>Shape Settings</Typography>
               <Typography variant="body2">
@@ -767,8 +766,8 @@ const ThemeShowcase: FC = () => {
                 Example with default border radius
               </Box>
             </Paper>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
     </Container>
   );
