@@ -1,9 +1,11 @@
 import type { FC } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSiteConfiguration } from '../../../app/SiteConfigurationContext';
 import { useLazyGetAuthorizeUrlQuery } from '../../../services/api/bffApi';
 
 const LoginPage: FC = () => {
   const [trigger, { isFetching }] = useLazyGetAuthorizeUrlQuery();
+  const { t, i18n } = useTranslation();
   const { webOrigin } = useSiteConfiguration();
 
   const onLogin = async (): Promise<void> => {
@@ -24,9 +26,22 @@ const LoginPage: FC = () => {
   return (
     <>
       <section>
-        <h2>Login</h2>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2>{t('app.welcome')}</h2>
+          <div>
+            <label htmlFor="lang">Language: </label>
+            <select
+              id="lang"
+              onChange={(e) => void i18n.changeLanguage(e.target.value)}
+              defaultValue={i18n.language || 'en'}
+            >
+              <option value="en">English</option>
+              <option value="nb">Norsk (Bokmål)</option>
+            </select>
+          </div>
+        </header>
         <button onClick={() => void onLogin()} disabled={isFetching}>
-          {isFetching ? 'Redirecting…' : 'Click here to sign in'}
+          {isFetching ? 'Redirecting…' : t('app.login')}
         </button>
       </section>
     </>
