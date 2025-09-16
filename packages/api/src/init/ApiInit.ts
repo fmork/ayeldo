@@ -303,8 +303,8 @@ export const server = new Server({
         siteConfig.webOrigin,
         siteConfig.bffOrigin,
         // Development origins
-        'http://localhost',
-        'http://127.0.0.1',
+        'http://localhost:*',
+        'http://127.0.0.1:*',
       ];
 
       logWriter.info(`CORS: Allowed origins: ${allowedOrigins.join(', ')}`);
