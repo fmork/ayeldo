@@ -9,6 +9,7 @@ import {
   OrderRepoDdb,
   PriceListRepoDdb,
 } from '@ayeldo/infra-aws';
+import TenantRepoDdb from '@ayeldo/infra-aws/src/tenantRepoDdb';
 import { createRootLogger, getEventBridgeClient, loadEnv } from '@ayeldo/utils';
 import type { ILogWriter } from '@fmork/backend-core';
 import {
@@ -28,6 +29,7 @@ import { PaymentController } from '../controllers/paymentController';
 import { ReferenceClaimAuthorizedApiController } from '../controllers/referenceClaimAuthorizedApiController';
 import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
 import { TenantAdminController } from '../controllers/tenantAdminController';
+import { TenantController } from '../controllers/tenantController';
 import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake';
 // Controllers and services that include former BFF responsibilities (previously in packages/bff).
 // These were merged into the API package; controller/class names may still include 'Bff' for
@@ -38,6 +40,7 @@ import { RootController } from '../controllers/rootController';
 import { OidcClientOpenId, type OidcOpenIdConfig } from '../services/oidcOpenIdClient';
 import { SessionBasedAuthorizer } from '../services/sessionBasedAuthorizer';
 import { SessionService } from '../services/sessionService';
+import { TenantService } from '../services/tenantService';
 import { SignedUrlProviderFake } from '../storage/signedUrlProviderFake';
 import { MemorySessionStore, MemoryStateStore } from '../stores/sessionStore';
 
@@ -176,6 +179,22 @@ export const mediaController = new MediaController({
   logWriter,
   albumRepo,
   imageRepo,
+});
+
+// Tenant repository, service and controller (public onboarding)
+const tenantRepo = new TenantRepoDdb({ tableName, client: ddb });
+
+const tenantService = new TenantService({
+  tenantRepo,
+  publisher: eventPublisher,
+  jsonUtil,
+  logger: logWriter,
+});
+
+export const tenantController = new TenantController({
+  baseUrl: '',
+  logWriter,
+  tenantService,
 });
 
 // BFF wiring
