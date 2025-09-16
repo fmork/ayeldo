@@ -20,7 +20,7 @@ Agents should always consult these documents before scaffolding or modifying cod
 
 ## 📝 Coding Guidelines (TypeScript)
 
-Put functionality into well-designed, focused classes. Inject depedencies through constructors, follwing the following pattern:
+Put functionality into well-designed, focused classes. Inject depedencies through constructors, following the following pattern:
 
 ```typescript
 interface MyClassProps {
@@ -37,8 +37,6 @@ export class MyClass {
 ```
 
 ### React components
-
-This is my preferred style of writing a React component:
 
 ```typescript
 import { FC } from 'react';
@@ -195,7 +193,7 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
   - Use React MUI (Material‑UI) components.
   - Use MUI (Material‑UI) theming for styling.
   - Prepare theming enabling tenants to have custom themes.
-  - Routing with `react-router-dom` for: `/login`, `/albums/:id`, `/cart`, `/checkout/result`.
+  - Routing with `react-router-dom` for: `/auth/signin` (formerly `/login`), `/albums/:id`, `/cart`, `/checkout/result`.
   - API access via a typed fetch wrapper that talks only to the BFF. Always send `credentials: 'include'` and an `X-CSRF-Token` header.
   - Configuration via Vite env (`VITE_BFF_BASE_URL`); in dev, set a Vite proxy to the BFF origin to simplify CORS and cookie forwarding.
   - Do not expose OIDC tokens in the browser. BFF issues and manages HttpOnly session cookies.
@@ -251,7 +249,7 @@ When an AI agent generates code, it should:
 3. **Follow coding rules** (strict TS, zod validation, async/await, no any).
 4. **Respect architecture** (BFF → API → Services, ports, events).
 5. **Produce tests** for new domain logic.
-6. **Verify correctness** so that generated code does not contain errors. **ALWAYS** `scripts/build.sh` before a task is handed off in order to verify that nothing is broken.
+6. **Verify correctness** so that generated code does not contain errors. **ALWAYS** `scripts/build.sh` before a task is handed off in order to verify that nothing is broken. **Verify your working directory** before running the script.
 7. **Document** new features in `docs/` as needed.
 
 ---

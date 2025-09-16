@@ -2,8 +2,8 @@
   "app": {
     "title": "Ayeldo",
     "welcome": "Welcome",
-    "login": "Sign in",
-    "logout": "Sign out"
+    "signin": "Sign in",
+    "signout": "Sign out"
   },
   "signin": {
     "username": "Username",
@@ -16,6 +16,10 @@
     "loading_session": "Loading session...",
     "already_logged_in": "You are already logged in. Redirecting...",
     "you_will_be_redirected_to_signin": "You will be automatically redirected to the sign-in page."
+  },
+  "prompt": {
+    "click_to_signin": "Click the button below to sign in.",
+    "please_wait": "Please wait a moment…"
   },
   "nav": {
     "home": "Home",

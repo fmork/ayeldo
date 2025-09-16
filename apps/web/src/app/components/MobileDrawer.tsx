@@ -47,14 +47,14 @@ const MobileDrawer: FC<MobileDrawerProps> = ({ isOpen, onClose }) => {
         <Divider sx={{ my: 1 }} />
         {!session?.loggedIn ? (
           <ListItem disablePadding>
-            <ListItemButton component={RouterLink} to="/login">
-              <ListItemText primary={t('app.login')} />
+            <ListItemButton component={RouterLink} to="/auth/signin">
+              <ListItemText primary={t('app.signin')} />
             </ListItemButton>
           </ListItem>
         ) : (
           <ListItem disablePadding>
-            <ListItemButton component={RouterLink} to="/logout">
-              <ListItemText primary={t('app.logout')} />
+            <ListItemButton component={RouterLink} to="/auth/signout">
+              <ListItemText primary={t('app.signout')} />
             </ListItemButton>
           </ListItem>
         )}

@@ -12,6 +12,7 @@ import PageIsLoading from '../PageIsLoading';
     </EnsureUserIsAuthenticated>
 
   The component will redirect to /login if the user is not authenticated.
+  The component will redirect to /auth/signin if the user is not authenticated.
 */
 
 interface AuthElementProps { element?: ReactNode; children?: ReactNode }
@@ -29,7 +30,7 @@ const EnsureUserIsAuthenticated: FC<AuthElementProps> = ({ element, children }) 
   if (!session.loggedIn) {
     const location = useLocation();
     const returnTo = `${location.pathname}${location.search || ''}`;
-    return <Navigate to={`/login?returnTo=${encodeURIComponent(returnTo)}`} replace />;
+    return <Navigate to={`/auth/signin?returnTo=${encodeURIComponent(returnTo)}`} replace />;
   }
 
   // Authenticated: render explicit element, children, or nested Outlet
