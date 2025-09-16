@@ -235,8 +235,6 @@ export const authBffController =
         logWriter,
         oidc,
         sessions,
-        isDevelopment:
-          process.env['NODE_ENV'] === 'development' || siteConfig.apiBaseUrl.includes('localhost'),
       })
     : undefined;
 

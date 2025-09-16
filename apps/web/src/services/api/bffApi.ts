@@ -5,6 +5,10 @@ import { getCsrfToken } from '../csrf/getCsrfToken';
 export const bffApi = createApi({
   reducerPath: 'bffApi',
   baseQuery: fetchBaseQuery({
+    // In dev, when the BFF origin differs from the web origin we rely on the
+    // Vite dev server proxy. Using a relative baseUrl ensures requests are
+    // made to the dev server origin (same-origin) so cookies are handled by
+    // the browser normally. In production/site builds, use the full apiBaseUrl.
     baseUrl: siteConfig.apiBaseUrl,
     credentials: 'include',
     prepareHeaders: (headers) => {

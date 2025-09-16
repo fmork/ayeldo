@@ -11,7 +11,14 @@ export default defineConfig(({ mode }) => {
   if (bff) {
     proxy['/api'] = {
       target: bff,
-      changeOrigin: true,
+      // Keep the original Host header so the BFF will see requests as coming
+      // from the dev server origin (e.g. http://localhost:5174). This allows
+      // the backend to set cookies without a Domain attribute, which makes
+      // them belong to the browser-visible origin (localhost) when using the
+      // dev proxy. If changeOrigin is true the Host header is rewritten to
+      // the target and Set-Cookie cookies will be tied to the target domain,
+      // which is not what we want for local dev.
+      changeOrigin: false,
       secure: false,
     };
   }

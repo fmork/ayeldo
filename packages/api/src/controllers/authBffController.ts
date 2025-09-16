@@ -10,16 +10,14 @@ export interface AuthBffControllerProps {
   readonly logWriter: ILogWriter;
   readonly oidc: OidcClientOpenId;
   readonly sessions: SessionService;
-  readonly isDevelopment?: boolean;
 }
 
 export class AuthBffController extends PublicController {
   private readonly authFlow: AuthFlowService;
-  private readonly isDevelopment: boolean;
 
   public constructor(props: AuthBffControllerProps) {
     super(props.baseUrl, props.logWriter);
-    this.isDevelopment = props.isDevelopment ?? false;
+    // Backend always runs in production-like environments; no dev flags.
     this.authFlow = new AuthFlowService({
       oidc: props.oidc,
       sessions: props.sessions,
@@ -56,20 +54,20 @@ export class AuthBffController extends PublicController {
         async () => {
           const result = await this.authFlow.handleCallback((req as any).query);
 
-          // Development-friendly cookie settings
-          const isSecure = !this.isDevelopment;
-          const sidCookieName = this.isDevelopment ? 'sid' : '__Host-sid';
-
-          (res as any).cookie?.(sidCookieName, result.sid, {
+          // Cookies are always set to be cross-site friendly. The backend
+          // never runs locally, so session cookies must be Secure and use
+          // SameSite=None to allow cross-origin XHR when used with
+          // credentials: 'include'. We also use the __Host- prefix.
+          (res as any).cookie?.('__Host-sid', result.sid, {
             httpOnly: true,
-            secure: isSecure,
-            sameSite: 'lax',
+            secure: true,
+            sameSite: 'none',
             path: '/',
           });
           (res as any).cookie?.('csrf', result.csrf, {
             httpOnly: false,
-            secure: isSecure,
-            sameSite: 'lax',
+            secure: true,
+            sameSite: 'none',
             path: '/',
           });
           (res as any).redirect?.(result.redirectTarget) ??
@@ -85,10 +83,9 @@ export class AuthBffController extends PublicController {
     this.addPost('/auth/logout', async (req, res) => {
       await this.performRequest(
         async () => {
-          const sidCookieName = this.isDevelopment ? 'sid' : '__Host-sid';
-          const sid = (req as any).cookies?.[sidCookieName] as string | undefined;
+          const sid = (req as any).cookies?.['__Host-sid'] as string | undefined;
           await this.authFlow.logout(sid);
-          (res as any).clearCookie?.(sidCookieName);
+          (res as any).clearCookie?.('__Host-sid');
           (res as any).clearCookie?.('csrf');
           (res as any).status(204).end();
           return { loggedOut: true } as const;
@@ -102,9 +99,8 @@ export class AuthBffController extends PublicController {
     this.addGet('/session', async (req, res) => {
       await this.performRequest(
         () => {
-          const sidCookieName = this.isDevelopment ? 'sid' : '__Host-sid';
           return this.authFlow.sessionInfo(
-            (req as any).cookies?.[sidCookieName] as string | undefined,
+            (req as any).cookies?.['__Host-sid'] as string | undefined,
           );
         },
         res,
