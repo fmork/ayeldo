@@ -28,30 +28,10 @@ const colorDefinitions: Record<string, ColorDefinition> = {
     G: 97,
     B: 117,
   },
-  primaryLight: {
-    R: 66,
-    G: 165,
-    B: 245,
-  },
-  primaryDark: {
-    R: 21,
-    G: 101,
-    B: 192,
-  },
   secondary: {
-    R: 156,
-    G: 39,
-    B: 176,
-  },
-  secondaryLight: {
-    R: 186,
-    G: 104,
-    B: 200,
-  },
-  secondaryDark: {
-    R: 123,
-    G: 31,
-    B: 162,
+    R: 160,
+    G: 135,
+    B: 105,
   },
   backgroundDefault: {
     R: 250,
@@ -73,14 +53,10 @@ const colorDefinitions: Record<string, ColorDefinition> = {
 export const defaultColors = {
   primary: {
     main: `rgba(${colorDefinitions['primary'].R}, ${colorDefinitions['primary'].G}, ${colorDefinitions['primary'].B}, 1)`,
-    light: `rgba(${colorDefinitions['primaryLight'].R}, ${colorDefinitions['primaryLight'].G}, ${colorDefinitions['primaryLight'].B}, 1)`,
-    dark: `rgba(${colorDefinitions['primaryDark'].R}, ${colorDefinitions['primaryDark'].G}, ${colorDefinitions['primaryDark'].B}, 1)`,
     contrastText: `rgba(${colorDefinitions['contrastText'].R}, ${colorDefinitions['contrastText'].G}, ${colorDefinitions['contrastText'].B}, 1)`,
   },
   secondary: {
     main: `rgba(${colorDefinitions['secondary'].R}, ${colorDefinitions['secondary'].G}, ${colorDefinitions['secondary'].B}, 1)`,
-    light: `rgba(${colorDefinitions['secondaryLight'].R}, ${colorDefinitions['secondaryLight'].G}, ${colorDefinitions['secondaryLight'].B}, 1)`,
-    dark: `rgba(${colorDefinitions['secondaryDark'].R}, ${colorDefinitions['secondaryDark'].G}, ${colorDefinitions['secondaryDark'].B}, 1)`,
     contrastText: `rgba(${colorDefinitions['contrastText'].R}, ${colorDefinitions['contrastText'].G}, ${colorDefinitions['contrastText'].B}, 1)`,
   },
   background: {
@@ -97,7 +73,18 @@ export const defaultColors = {
 
 // Default typography variables
 export const defaultTypography = {
-  fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+  fontFamily: [
+    'Alegreya sans',
+    'Segoe UI',
+    'Roboto',
+    'Oxygen',
+    'Ubuntu',
+    'Cantarell',
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    'sans-serif',
+  ].join(','),
   fontSize: 14,
   fontWeightLight: 300,
   fontWeightRegular: 400,
