@@ -6,6 +6,7 @@ import CartPage from '../features/cart/pages/cartPage';
 import CheckoutResultPage from '../features/checkout/pages/resultPage';
 import HomePage from '../features/home/pages/homePage';
 import Layout from './components/Layout';
+import ThemeShowcase from './components/ThemeShowcase';
 
 const AppRoutes: FC = () => {
 
@@ -18,6 +19,7 @@ const AppRoutes: FC = () => {
           <Route path="/albums/:id" element={<AlbumPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout/result" element={<CheckoutResultPage />} />
+          <Route path="/theme-showcase" element={<ThemeShowcase />} />
         </Route>
       </Routes>
     </>

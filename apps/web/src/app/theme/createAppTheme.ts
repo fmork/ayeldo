@@ -1,6 +1,115 @@
 import type { Theme } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 
+// Default color palette variables for maximum reusability
+
+interface ColorDefinition {
+  R: number;
+  G: number;
+  B: number;
+}
+
+const colorDefinitions: Record<string, ColorDefinition> = {
+  black: { R: 0, G: 0, B: 0 },
+  white: { R: 255, G: 255, B: 255 },
+
+  text: {
+    R: 0,
+    G: 0,
+    B: 0,
+  },
+  contrastText: {
+    R: 255,
+    G: 255,
+    B: 255,
+  },
+  primary: {
+    R: 57,
+    G: 97,
+    B: 117,
+  },
+  primaryLight: {
+    R: 66,
+    G: 165,
+    B: 245,
+  },
+  primaryDark: {
+    R: 21,
+    G: 101,
+    B: 192,
+  },
+  secondary: {
+    R: 156,
+    G: 39,
+    B: 176,
+  },
+  secondaryLight: {
+    R: 186,
+    G: 104,
+    B: 200,
+  },
+  secondaryDark: {
+    R: 123,
+    G: 31,
+    B: 162,
+  },
+  backgroundDefault: {
+    R: 250,
+    G: 250,
+    B: 250,
+  },
+  backgroundPaper: {
+    R: 255,
+    G: 255,
+    B: 255,
+  },
+  divider: {
+    R: 0,
+    G: 0,
+    B: 0,
+  },
+};
+
+export const defaultColors = {
+  primary: {
+    main: `rgba(${colorDefinitions['primary'].R}, ${colorDefinitions['primary'].G}, ${colorDefinitions['primary'].B}, 1)`,
+    light: `rgba(${colorDefinitions['primaryLight'].R}, ${colorDefinitions['primaryLight'].G}, ${colorDefinitions['primaryLight'].B}, 1)`,
+    dark: `rgba(${colorDefinitions['primaryDark'].R}, ${colorDefinitions['primaryDark'].G}, ${colorDefinitions['primaryDark'].B}, 1)`,
+    contrastText: `rgba(${colorDefinitions['contrastText'].R}, ${colorDefinitions['contrastText'].G}, ${colorDefinitions['contrastText'].B}, 1)`,
+  },
+  secondary: {
+    main: `rgba(${colorDefinitions['secondary'].R}, ${colorDefinitions['secondary'].G}, ${colorDefinitions['secondary'].B}, 1)`,
+    light: `rgba(${colorDefinitions['secondaryLight'].R}, ${colorDefinitions['secondaryLight'].G}, ${colorDefinitions['secondaryLight'].B}, 1)`,
+    dark: `rgba(${colorDefinitions['secondaryDark'].R}, ${colorDefinitions['secondaryDark'].G}, ${colorDefinitions['secondaryDark'].B}, 1)`,
+    contrastText: `rgba(${colorDefinitions['contrastText'].R}, ${colorDefinitions['contrastText'].G}, ${colorDefinitions['contrastText'].B}, 1)`,
+  },
+  background: {
+    default: `rgba(${colorDefinitions['backgroundDefault'].R}, ${colorDefinitions['backgroundDefault'].G}, ${colorDefinitions['backgroundDefault'].B}, 1)`,
+    paper: `rgba(${colorDefinitions['backgroundPaper'].R}, ${colorDefinitions['backgroundPaper'].G}, ${colorDefinitions['backgroundPaper'].B}, 1)`,
+  },
+  text: {
+    primary: `rgba(${colorDefinitions['text'].R}, ${colorDefinitions['text'].G}, ${colorDefinitions['text'].B}, 0.87)`,
+    secondary: `rgba(${colorDefinitions['text'].R}, ${colorDefinitions['text'].G}, ${colorDefinitions['text'].B}, 0.6)`,
+    disabled: `rgba(${colorDefinitions['text'].R}, ${colorDefinitions['text'].G}, ${colorDefinitions['text'].B}, 0.38)`,
+  },
+  divider: `rgba(${colorDefinitions['divider'].R}, ${colorDefinitions['divider'].G}, ${colorDefinitions['divider'].B}, 0.12)`,
+} as const;
+
+// Default typography variables
+export const defaultTypography = {
+  fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+  fontSize: 14,
+  fontWeightLight: 300,
+  fontWeightRegular: 400,
+  fontWeightMedium: 500,
+  fontWeightBold: 700,
+} as const;
+
+// Default shape variables
+export const defaultShape = {
+  borderRadius: 8,
+} as const;
+
 export interface TenantThemeOptions {
   readonly palette?: {
     readonly primary?: { main: string };
@@ -16,17 +125,17 @@ export function createAppTheme(opts?: TenantThemeOptions): Theme {
   const theme = createTheme({
     palette: {
       mode: 'light',
-      primary: { main: opts?.palette?.primary?.main ?? '#1976d2' },
-      secondary: { main: opts?.palette?.secondary?.main ?? '#9c27b0' },
+      primary: { main: opts?.palette?.primary?.main ?? defaultColors.primary.main },
+      secondary: { main: opts?.palette?.secondary?.main ?? defaultColors.secondary.main },
       background: {
-        default: opts?.palette?.background?.default ?? '#fafafa',
-        paper: opts?.palette?.background?.paper ?? '#ffffff',
+        default: opts?.palette?.background?.default ?? defaultColors.background.default,
+        paper: opts?.palette?.background?.paper ?? defaultColors.background.paper,
       },
     },
     typography: {
-      fontFamily: opts?.typography?.fontFamily ?? 'Roboto, Helvetica, Arial, sans-serif',
+      fontFamily: opts?.typography?.fontFamily ?? defaultTypography.fontFamily,
     },
-    shape: { borderRadius: 8 },
+    shape: { borderRadius: defaultShape.borderRadius },
   });
   return theme;
 }
