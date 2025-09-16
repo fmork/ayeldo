@@ -13,7 +13,7 @@ import { useSiteConfiguration } from '../../../app/SiteConfigurationContext';
 import { useLazyGetAuthorizeUrlQuery } from '../../../services/api/bffApi';
 
 const LoginPage: FC = () => {
-  const [trigger, { isFetching }] = useLazyGetAuthorizeUrlQuery();
+  const [trigger, { isFetching, isLoading }] = useLazyGetAuthorizeUrlQuery();
   const { t } = useTranslation();
   const { webOrigin } = useSiteConfiguration();
   const navigate = useNavigate();
@@ -85,7 +85,7 @@ const LoginPage: FC = () => {
       <Box sx={{ mt: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h4" component="h2">
-            {t('app.welcome')}
+            {t('app.login')}
           </Typography>
         </Box>
 
@@ -99,18 +99,23 @@ const LoginPage: FC = () => {
         ) : (
           <>
             <Typography sx={{ mb: 2 }}>
-              You will be redirected to log in automatically, or click the button below if it doesn't happen.
+              {t("signin.you_will_be_redirected_to_signin")}
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              onClick={() => void onLogin()}
-              disabled={isFetching}
-              sx={{ mt: 2 }}
-            >
-              {isFetching ? 'Redirecting…' : t('app.login')}
-            </Button>
+            {
+              (!isFetching && !isLoading) ? (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  onClick={() => void onLogin()}
+                  disabled={isFetching}
+                  sx={{ mt: 2 }}
+                >
+                  {isFetching ? 'Redirecting…' : t('app.login')}
+                </Button>
+              ) : (<></>)
+            }
+
           </>
         )}
       </Box>

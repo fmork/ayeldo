@@ -53,23 +53,13 @@ const AppBarComponent: FC<AppBarComponentProps> = ({ onMenuToggle }) => {
             </Button>
           ))}
           {(!session?.loggedIn) ? (
-            <>
-              <Button component={RouterLink} to="/login" sx={{ color: '#fff' }}>
-                {t('app.login')}
-              </Button>
-              <Button component={RouterLink} to="/logout" sx={{ color: '#fff' }}>
-                {t('app.logout')}
-              </Button>
-            </>
+            <Button component={RouterLink} to="/login" sx={{ color: '#fff' }}>
+              {t('app.login')}
+            </Button>
           ) : (
-            <>
-              <Button component={RouterLink} to="/login" sx={{ color: '#fff' }}>
-                {t('app.login')}
-              </Button>
-              <Button component={RouterLink} to="/logout" sx={{ color: '#fff' }}>
-                {t('app.logout')}
-              </Button>
-            </>
+            <Button component={RouterLink} to="/logout" sx={{ color: '#fff' }}>
+              {t('app.logout')}
+            </Button>
           )}
           <Select
             size="small"

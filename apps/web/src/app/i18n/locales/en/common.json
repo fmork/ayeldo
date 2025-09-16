@@ -5,6 +5,18 @@
     "login": "Sign in",
     "logout": "Sign out"
   },
+  "signin": {
+    "username": "Username",
+    "password": "Password",
+    "submit": "Submit",
+    "forgot_password": "Forgot password?",
+    "no_account": "Don't have an account? Sign up",
+    "error_invalid_credentials": "Invalid username or password",
+    "error_required_field": "This field is required",
+    "loading_session": "Loading session...",
+    "already_logged_in": "You are already logged in. Redirecting...",
+    "you_will_be_redirected_to_signin": "You will be automatically redirected to the sign-in page."
+  },
   "nav": {
     "home": "Home",
     "albumDemo": "Album Demo",
