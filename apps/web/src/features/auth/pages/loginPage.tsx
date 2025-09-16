@@ -2,10 +2,6 @@ import {
   Box,
   Button,
   Container,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
   Typography
 } from '@mui/material';
 import type { FC } from 'react';
@@ -40,19 +36,6 @@ const LoginPage: FC = () => {
           <Typography variant="h4" component="h2">
             {t('app.welcome')}
           </Typography>
-          <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel id="language-select-label">Language</InputLabel>
-            <Select
-              labelId="language-select-label"
-              id="language-select"
-              value={i18n.resolvedLanguage || 'en'}
-              label="Language"
-              onChange={(e) => void i18n.changeLanguage(String(e.target.value))}
-            >
-              <MenuItem value="en">English</MenuItem>
-              <MenuItem value="sv">Svenska</MenuItem>
-            </Select>
-          </FormControl>
         </Box>
         <Button
           variant="contained"
