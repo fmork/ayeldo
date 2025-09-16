@@ -4,5 +4,10 @@
     "welcome": "Welcome",
     "login": "Sign in",
     "logout": "Sign out"
+  },
+  "nav": {
+    "home": "Home",
+    "albumDemo": "Album Demo",
+    "cart": "Cart"
   }
 }

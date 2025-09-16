@@ -32,11 +32,11 @@ const LoginPage: FC = () => {
             <label htmlFor="lang">Language: </label>
             <select
               id="lang"
-              onChange={(e) => void i18n.changeLanguage(e.target.value)}
-              defaultValue={i18n.language || 'en'}
+              onChange={(e) => void i18n.changeLanguage(String(e.target.value))}
+              value={i18n.resolvedLanguage || 'en'}
             >
               <option value="en">English</option>
-              <option value="nb">Norsk (Bokmål)</option>
+              <option value="sv">Svenska</option>
             </select>
           </div>
         </header>

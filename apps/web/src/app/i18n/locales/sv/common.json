@@ -4,5 +4,10 @@
     "welcome": "Välkommen",
     "login": "Logga in",
     "logout": "Logga ut"
+  },
+  "nav": {
+    "home": "Hem",
+    "albumDemo": "Albumdemo",
+    "cart": "Kundvagn"
   }
 }
