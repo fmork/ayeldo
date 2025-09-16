@@ -10,12 +10,18 @@ AWSXRay.config([AWSXRay.plugins.ECSPlugin, AWSXRay.plugins.EC2Plugin]);
 logWriter.info('Loading API handler');
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-server.useMiddleware((req: HttpRequest, _res: HttpResponse, _next: () => void) => {
-  const headers = req.headers ?? {};
-  const cookies = req.cookies ?? {};
+server.useMiddleware((req: HttpRequest, _res: HttpResponse, next: () => void) => {
+  try {
+    const headers = req.headers ?? {};
+    const cookies = req.cookies ?? {};
 
-  logWriter.info(`HTTP Request headers: ${JSON.stringify(headers)}`);
-  logWriter.info(`HTTP Request cookies: ${JSON.stringify(cookies)}`);
+    logWriter.info(`HTTP Request headers: ${JSON.stringify(headers)}`);
+    logWriter.info(`HTTP Request cookies: ${JSON.stringify(cookies)}`);
+  } catch (error) {
+    logWriter.error(`Error logging HTTP request: ${error}`, error as Error);
+  }
+
+  next();
 });
 
 server.useMiddleware((req: unknown, res: unknown, next: unknown) => {
