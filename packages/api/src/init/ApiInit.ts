@@ -297,11 +297,12 @@ export const server = new Server({
       origin: string | undefined,
       callback: (err: Error | null, allow?: boolean) => void,
     ): void => {
-      logWriter.info(`CORS request from origin: ${origin || 'no-origin'}`);
+      const corsMessages: string[] = [];
+      corsMessages.push(`CORS request from origin: ${origin || 'no-origin'}`);
 
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) {
-        logWriter.info('CORS: Allowing request with no origin');
+        corsMessages.push('CORS: Allowing request with no origin');
         return callback(null, true);
       }
 
@@ -316,7 +317,7 @@ export const server = new Server({
         /^https:\/\/127\.0\.0\.1:\d+$/,
       ];
 
-      logWriter.info(
+      corsMessages.push(
         'CORS: Allowed origins: ' +
           allowedOrigins.map((o) => (typeof o === 'string' ? o : o.toString())).join(', '),
       );
@@ -335,10 +336,11 @@ export const server = new Server({
       );
 
       if (isAllowed) {
-        logWriter.info(`CORS: Allowing origin ${origin}`);
         callback(null, true);
       } else {
-        logWriter.warn(`CORS: Rejecting origin ${origin}`);
+        corsMessages.push(`CORS: Rejecting origin ${origin}`);
+        logWriter.info(corsMessages.join('\n'));
+
         callback(new Error(`Not allowed by CORS: ${origin}`));
       }
     },
