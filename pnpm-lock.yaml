@@ -92,10 +92,10 @@ importers:
         version: 18.3.7(@types/react@18.3.24)
       '@vitejs/plugin-react':
         specifier: ^4.3.1
-        version: 4.7.0(vite@5.4.20(@types/node@20.19.14))
+        version: 4.7.0(vite@5.4.20(@types/node@24.5.0))
       vite:
         specifier: ^5.4.1
-        version: 5.4.20(@types/node@20.19.14)
+        version: 5.4.20(@types/node@24.5.0)
 
   infra/cdk:
     dependencies:
@@ -146,8 +146,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       '@fmork/backend-core':
-        specifier: ^3.2.0
-        version: 3.2.0
+        specifier: ^3.3.0
+        version: 3.3.0
       aws-xray-sdk-core:
         specifier: ^3.10.3
         version: 3.10.3
@@ -839,8 +839,8 @@ packages:
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@fmork/backend-core@3.2.0':
-    resolution: {integrity: sha512-hSCciNp+1qY5cNcjoHrdCtNI/iVYMdh6imnXLP5wiXqTDGLB1w3schQO4VIW6+g139iJUkvoSfx1GBRw6lTaqQ==, tarball: https://npm.pkg.github.com/download/@fmork/backend-core/3.2.0/f7e03e50f9ebc87760804905d5cc424f10b723d6}
+  '@fmork/backend-core@3.3.0':
+    resolution: {integrity: sha512-0LduTty0V3yw2SQch2Z/VMf5hvpY8W0sobTfPpCmhfcESrd4IoyaMugFVOpuWZSuy++2A+LvdSI24C5Y4xVRUw==, tarball: https://npm.pkg.github.com/download/@fmork/backend-core/3.3.0/7bfb5d04e4bd9d450c4e9cea2464d73dd0754db5}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -4600,11 +4600,12 @@ snapshots:
 
   '@eslint/js@8.57.1': {}
 
-  '@fmork/backend-core@3.2.0':
+  '@fmork/backend-core@3.3.0':
     dependencies:
       '@types/aws-lambda': 8.10.152
       axios: 1.12.2
       body-parser: 2.2.0
+      cookie-parser: 1.4.7
       cors: 2.8.5
       dotenv: 17.2.2
       express: 5.1.0
@@ -4721,7 +4722,7 @@ snapshots:
 
   '@jest/pattern@30.0.1':
     dependencies:
-      '@types/node': 20.19.14
+      '@types/node': 24.5.0
       jest-regex-util: 30.0.1
     optional: true
 
@@ -4839,7 +4840,7 @@ snapshots:
       '@jest/schemas': 30.0.5
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 20.19.14
+      '@types/node': 24.5.0
       '@types/yargs': 17.0.33
       chalk: 4.1.2
     optional: true
@@ -5646,7 +5647,7 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@vitejs/plugin-react@4.7.0(vite@5.4.20(@types/node@20.19.14))':
+  '@vitejs/plugin-react@4.7.0(vite@5.4.20(@types/node@24.5.0))':
     dependencies:
       '@babel/core': 7.28.4
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.28.4)
@@ -5654,7 +5655,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.27
       '@types/babel__core': 7.20.5
       react-refresh: 0.17.0
-      vite: 5.4.20(@types/node@20.19.14)
+      vite: 5.4.20(@types/node@24.5.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -6750,7 +6751,7 @@ snapshots:
   jest-haste-map@30.1.0:
     dependencies:
       '@jest/types': 30.0.5
-      '@types/node': 20.19.14
+      '@types/node': 24.5.0
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -6911,7 +6912,7 @@ snapshots:
   jest-util@30.0.5:
     dependencies:
       '@jest/types': 30.0.5
-      '@types/node': 20.19.14
+      '@types/node': 24.5.0
       chalk: 4.1.2
       ci-info: 4.3.0
       graceful-fs: 4.2.11
@@ -6947,7 +6948,7 @@ snapshots:
 
   jest-worker@30.1.0:
     dependencies:
-      '@types/node': 20.19.14
+      '@types/node': 24.5.0
       '@ungap/structured-clone': 1.3.0
       jest-util: 30.0.5
       merge-stream: 2.0.0
@@ -7768,13 +7769,13 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite@5.4.20(@types/node@20.19.14):
+  vite@5.4.20(@types/node@24.5.0):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.5.6
       rollup: 4.50.1
     optionalDependencies:
-      '@types/node': 20.19.14
+      '@types/node': 24.5.0
       fsevents: 2.3.3
 
   void-elements@3.1.0: {}
