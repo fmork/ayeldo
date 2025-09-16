@@ -191,7 +191,7 @@ Codex prompt: Create CDK stacks with environment variables wired into lambdas an
 
 ## 13) Observability
 
-- ☐ Structured logs (pino, requestId)
+- ✅ Structured logs (pino, requestId)
 - ☐ CloudWatch dashboards: errors, latency, DLQs
 - ☐ X-Ray tracing BFF→API→DynamoDB
 

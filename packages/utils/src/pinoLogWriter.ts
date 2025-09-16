@@ -1,4 +1,5 @@
 import pino, { type Logger as PinoLogger } from 'pino';
+import { getRequestContext } from './requestContext';
 
 /**
  * Minimal pino-backed logger with the same shape as ILogWriter
@@ -12,19 +13,27 @@ export class PinoLogWriter {
   }
 
   public debug(text: string): void {
-    this.logger.debug(text);
+    const ctx = getRequestContext();
+    if (ctx) this.logger.debug({ requestId: ctx.requestId }, text);
+    else this.logger.debug(text);
   }
 
   public info(text: string): void {
-    this.logger.info(text);
+    const ctx = getRequestContext();
+    if (ctx) this.logger.info({ requestId: ctx.requestId }, text);
+    else this.logger.info(text);
   }
 
   public warn(text: string): void {
-    this.logger.warn(text);
+    const ctx = getRequestContext();
+    if (ctx) this.logger.warn({ requestId: ctx.requestId }, text);
+    else this.logger.warn(text);
   }
 
   public error(text: string, error: Error): void {
-    this.logger.error(error, text);
+    const ctx = getRequestContext();
+    if (ctx) this.logger.error({ err: error, requestId: ctx.requestId }, text);
+    else this.logger.error(error, text);
   }
 
   /**
