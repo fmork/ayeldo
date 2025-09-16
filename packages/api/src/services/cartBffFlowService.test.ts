@@ -1,4 +1,4 @@
-import { CartBffFlowService } from './cartBffFlowService';
+import { CartFlowService } from './cartFlowService';
 
 // Minimal mock logger
 const mkLogger = () => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn() });
@@ -20,7 +20,7 @@ function mkSessions(overrides?: Partial<any>) {
   } as any;
 }
 
-describe('CartBffFlowService', () => {
+describe('CartFlowService', () => {
   const apiBaseUrl = 'https://internal-api';
 
   test('getCartWithPricing performs two calls and returns parsed bodies', async () => {
@@ -32,7 +32,7 @@ describe('CartBffFlowService', () => {
     });
     http.post.mockResolvedValue({ status: 200, body: JSON.stringify({ total: 0 }), headers: {} });
     const sessions = mkSessions();
-    const svc = new CartBffFlowService({
+    const svc = new CartFlowService({
       apiBaseUrl,
       httpClient: http,
       logger: mkLogger() as any,
@@ -52,7 +52,7 @@ describe('CartBffFlowService', () => {
     http.post
       .mockResolvedValueOnce({ status: 204, body: '', headers: {} })
       .mockResolvedValueOnce({ status: 200, body: JSON.stringify({ total: 42 }), headers: {} });
-    const svc = new CartBffFlowService({ apiBaseUrl, httpClient: http, logger: mkLogger() as any });
+    const svc = new CartFlowService({ apiBaseUrl, httpClient: http, logger: mkLogger() as any });
     const priced = await svc.addItemAndPrice({
       tenantId: 't1',
       cartId: 'c9',
@@ -71,7 +71,7 @@ describe('CartBffFlowService', () => {
 
   test('addItemAndPrice rejects invalid payload (quantity <=0)', async () => {
     const http = mkHttpClient();
-    const svc = new CartBffFlowService({ apiBaseUrl, httpClient: http, logger: mkLogger() as any });
+    const svc = new CartFlowService({ apiBaseUrl, httpClient: http, logger: mkLogger() as any });
     await expect(
       svc.addItemAndPrice({
         tenantId: 't1',
@@ -86,7 +86,7 @@ describe('CartBffFlowService', () => {
     const http = mkHttpClient();
     http.delete.mockResolvedValue({ status: 204, body: '', headers: {} });
     http.post.mockResolvedValue({ status: 200, body: JSON.stringify({ total: 10 }), headers: {} });
-    const svc = new CartBffFlowService({ apiBaseUrl, httpClient: http, logger: mkLogger() as any });
+    const svc = new CartFlowService({ apiBaseUrl, httpClient: http, logger: mkLogger() as any });
     const priced = await svc.removeItemAndPrice({
       tenantId: 't1',
       cartId: 'c7',
@@ -102,7 +102,7 @@ describe('CartBffFlowService', () => {
     const http = mkHttpClient();
     http.get.mockResolvedValue({ status: 200, body: JSON.stringify({ id: 'c1' }), headers: {} });
     http.post.mockResolvedValue({ status: 200, body: JSON.stringify({ total: 0 }), headers: {} });
-    const svc = new CartBffFlowService({ apiBaseUrl, httpClient: http, logger: mkLogger() as any });
+    const svc = new CartFlowService({ apiBaseUrl, httpClient: http, logger: mkLogger() as any });
     await svc.getCartWithPricing({ tenantId: 't', cartId: 'c' });
     expect(http.get.mock.calls[0][0].headers).toBeUndefined();
   });
@@ -117,7 +117,7 @@ describe('CartBffFlowService', () => {
       }),
     });
     const logger = mkLogger();
-    const svc = new CartBffFlowService({
+    const svc = new CartFlowService({
       apiBaseUrl,
       httpClient: http,
       logger: logger as any,

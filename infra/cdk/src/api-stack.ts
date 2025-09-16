@@ -56,10 +56,13 @@ export class ApiStack extends Stack {
     const apiOrigin = `https://${computedApiHost}`;
     const webOrigin = `https://${computedWebHost}`;
 
-    // Create SiteConfiguration to manage OIDC and other config
+    // Create SiteConfiguration to manage OIDC and other config. Historically this project
+    // used the acronym "BFF" for a backend-for-frontend service. The responsibilities are
+    // now served by the HTTP API; we keep the `bffOrigin` property for backward compatibility
+    // but it represents the API origin.
     const siteConfig = new SiteConfiguration({
       webOrigin,
-      bffOrigin: apiOrigin, // BFF is served from the API host
+      bffOrigin: apiOrigin, // API origin (keeps historical bffOrigin prop for compat)
       ...(maybe('FMORK_SITE_OIDC_AUTHORITY') && {
         oidcAuthority: maybe('FMORK_SITE_OIDC_AUTHORITY') as string,
       }),

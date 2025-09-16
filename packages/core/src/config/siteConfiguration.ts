@@ -16,6 +16,9 @@ export interface SiteConfigurationProps {
 export class SiteConfiguration {
   private readonly _webOrigin: string;
   private readonly _bffOrigin: string;
+  // Note: the project previously used a distinct "BFF" service. The HTTP API now
+  // includes those responsibilities. `_bffOrigin` is retained for backward compatibility
+  // but represents the HTTP API origin (preferred name: API origin).
   private readonly _apiBasePath: string;
   private readonly _csrfHeaderName: string;
   private readonly _oidcScopes: string;
@@ -48,6 +51,11 @@ export class SiteConfiguration {
     return this._bffOrigin;
   }
 
+  // Backwards-compatible alias for documentation clarity: API origin (includes former BFF)
+  public get apiOrigin(): string {
+    return this._bffOrigin;
+  }
+
   public get apiBasePath(): string {
     return this._apiBasePath;
   }
@@ -56,7 +64,7 @@ export class SiteConfiguration {
     return this._csrfHeaderName;
   }
 
-  // Full base URL the browser should call (BFF only)
+  // Full base URL the browser should call (HTTP API; formerly called BFF)
   public get apiBaseUrl(): string {
     return `${this._bffOrigin}${this.ensureLeadingSlash(this._apiBasePath)}`;
   }

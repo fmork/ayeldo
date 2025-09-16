@@ -194,7 +194,10 @@ export class CoreStack extends Stack {
     if (props?.domainConfig) {
       new CfnOutput(this, 'ComputedWebHost', { value: props.domainConfig.webHost });
       new CfnOutput(this, 'ComputedApiHost', { value: props.domainConfig.apiHost });
-      new CfnOutput(this, 'ComputedBffHost', { value: props.domainConfig.bffHost });
+      // Backwards-compatible output: the old "BFF" host (now the HTTP API / backend host)
+      // Keep the resource value the same (props.domainConfig.bffHost) but present it under
+      // a clearer name to avoid the historical 'BFF' acronym in new deployments.
+      new CfnOutput(this, 'ComputedBackendHost', { value: props.domainConfig.bffHost });
       new CfnOutput(this, 'ComputedCdnHost', { value: props.domainConfig.cdnHost });
     }
   }

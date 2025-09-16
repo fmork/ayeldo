@@ -17,11 +17,11 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
 
         platform = softwareSystem "Image Sharing & Selling Platform" "Web-based service to share and sell images." {
 
-            web = container "Web App" "Browser UI. Initiates auth via BFF; receives only httpOnly session cookies." "TypeScript/React" {
+            web = container "Web App" "Browser UI. Initiates auth via HTTP API (merged BFF responsibilities); receives only httpOnly session cookies." "TypeScript/React" {
                 tags "UI"
             }
 
-            api = container "BFF / API Controllers" "Thin HTTP layer (routing, auth context, delegates to Flow/Query Services)." "TypeScript (Node.js)" {
+            api = container "HTTP API / Controllers" "Thin HTTP layer (routing, auth context, delegates to Flow/Query Services). This container includes the former BFF responsibilities which were merged into the HTTP API process." "TypeScript (Node.js)" {
                 tags "API"
             }
 

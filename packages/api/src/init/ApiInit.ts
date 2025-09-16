@@ -29,10 +29,12 @@ import { ReferenceClaimAuthorizedApiController } from '../controllers/referenceC
 import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
 import { TenantAdminController } from '../controllers/tenantAdminController';
 import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake';
-// BFF controllers and services (merged from packages/bff)
-import { AuthBffController } from '../controllers/authBffController';
-import { CartBffController } from '../controllers/cartBffController';
-import { RootBffController } from '../controllers/rootBffController';
+// Controllers and services that include former BFF responsibilities (previously in packages/bff).
+// These were merged into the API package; controller/class names may still include 'Bff' for
+// historical reasons.
+import { AuthController } from '../controllers/authController';
+import { CartFrontendController } from '../controllers/cartController';
+import { RootController } from '../controllers/rootController';
 import { OidcClientOpenId, type OidcOpenIdConfig } from '../services/oidcOpenIdClient';
 import { SessionBasedAuthorizer } from '../services/sessionBasedAuthorizer';
 import { SessionService } from '../services/sessionService';
@@ -87,6 +89,7 @@ function createSiteConfigurationFromEnv(): SiteConfiguration {
 const siteConfig = createSiteConfigurationFromEnv();
 
 // Log configuration status
+// Note: `bffOrigin` currently represents the HTTP API origin (formerly called BFF).
 logWriter.info(
   `Site configuration: webOrigin=${siteConfig.webOrigin}, bffOrigin=${siteConfig.bffOrigin}`,
 );
@@ -225,12 +228,12 @@ if (siteConfig.isOidcConfigured) {
   }
 }
 
-export const rootBffController = new RootBffController({ baseUrl: '', logWriter });
+export const rootBffController = new RootController({ baseUrl: '', logWriter });
 
 // Only create BFF controllers if OIDC is configured
 export const authBffController =
   oidc && sessions
-    ? new AuthBffController({
+    ? new AuthController({
         baseUrl: '',
         logWriter,
         oidc,
@@ -239,7 +242,7 @@ export const authBffController =
     : undefined;
 
 export const cartBffController = sessions
-  ? new CartBffController({
+  ? new CartFrontendController({
       baseUrl: '',
       logWriter,
       apiBaseUrl: siteConfig.apiBaseUrl,
