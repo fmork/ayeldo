@@ -20,6 +20,7 @@ import {
   Server,
   TokenKeyCache,
 } from '@fmork/backend-core';
+import cookieParser from 'cookie-parser';
 import { z } from 'zod';
 import { CartController } from '../controllers/cartController';
 import { MediaController } from '../controllers/mediaController';
@@ -270,6 +271,48 @@ export const tenantAdminController =
     : undefined;
 
 const requestLogger = new RequestLogMiddleware({ logWriter });
+
+// Enhance the requestLogger so it also logs all request headers and parsed
+// cookies (cookie-parser will populate req.cookies when cookieParser runs).
+// Server installs `requestLogger.logRequest` early (before controllers), so
+// wrapping it here guarantees our debug logging runs before routes.
+const originalLogRequest = requestLogger.logRequest.bind(requestLogger);
+const enhancedLogRequest = async (req: unknown, res: unknown, next: unknown): Promise<void> => {
+  try {
+    // Run cookie-parser to populate req.cookies so the original request
+    // logger (installed by Server) can access cookies even though
+    // cookieParser middleware may be added later in handler.ts.
+    const cp = cookieParser();
+    await new Promise<void>((resolve) => {
+      try {
+        cp(req as unknown as never, res as unknown as never, () => resolve());
+      } catch (e) {
+        resolve();
+      }
+    });
+
+    const r = req as {
+      headers?: Record<string, string | string[] | undefined>;
+      cookies?: Record<string, string>;
+    };
+    logWriter.info(`REQ HEADERS: ${JSON.stringify(r.headers ?? {})}`);
+    logWriter.info(`REQ COOKIES: ${JSON.stringify(r.cookies ?? {})}`);
+  } catch (e) {
+    logWriter.warn(
+      `Failed to log headers/cookies in enhancedRequestLogger: ${(e as Error).message}`,
+    );
+  }
+  // Delegate to original logger and await if it returns a Promise
+  await originalLogRequest(
+    req as unknown as never,
+    res as unknown as never,
+    next as unknown as never,
+  );
+};
+
+// Replace the request logger with the enhanced version so Server.initialize
+// picks it up when it installs middleware.
+requestLogger.logRequest = enhancedLogRequest.bind(requestLogger);
 const serverPort: number = process.env['PORT']
   ? Number.parseInt(process.env['PORT'] as string, 10)
   : 3000;
