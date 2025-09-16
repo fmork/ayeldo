@@ -2,6 +2,7 @@ import type { IEventPublisher, IOrderRepo, IPaymentProvider } from '@ayeldo/core
 import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
 // zod validation handled inside PaymentFlowService
+import { requireCsrfForController } from '../middleware/csrfGuard';
 import { PaymentFlowService } from '../services/paymentFlowService';
 
 export interface PaymentControllerProps {
@@ -28,16 +29,19 @@ export class PaymentController extends PublicController {
 
   public initialize(): HttpRouter {
     // POST /tenants/:tenantId/orders/:orderId/checkout-sessions
-    this.addPost('/tenants/:tenantId/orders/:orderId/checkout-sessions', async (req, res) => {
-      await this.performRequest(
-        () => {
-          const r = req as unknown as { params: Record<string, unknown>; body: unknown };
-          return this.flow.createCheckout({ ...r.params, ...(r.body as object) });
-        },
-        res,
-        () => 201,
-      );
-    });
+    this.addPost(
+      '/tenants/:tenantId/orders/:orderId/checkout-sessions',
+      requireCsrfForController(async (req, res) => {
+        await this.performRequest(
+          () => {
+            const r = req as unknown as { params: Record<string, unknown>; body: unknown };
+            return this.flow.createCheckout({ ...r.params, ...(r.body as object) });
+          },
+          res as unknown as Parameters<typeof this.performRequest>[1],
+          () => 201,
+        );
+      }),
+    );
 
     // POST /webhooks/stripe — verify signature and update order state
     this.addPost('/webhooks/stripe', async (req, res) => {

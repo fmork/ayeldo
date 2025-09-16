@@ -1,6 +1,7 @@
 import type { ICartRepo, IDownloadUrlProvider, IOrderRepo, IPriceListRepo } from '@ayeldo/core';
 import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
+import { requireCsrfForController } from '../middleware/csrfGuard';
 import { OrderFlowService } from '../services/orderFlowService';
 
 export interface OrderControllerProps {
@@ -27,13 +28,16 @@ export class OrderController extends PublicController {
 
   public initialize(): HttpRouter {
     // POST /tenants/:tenantId/carts/:cartId/order — create order from cart
-    this.addPost('/tenants/:tenantId/carts/:cartId/order', async (req, res) => {
-      await this.performRequest(
-        () => this.flow.createFromCart((req as unknown as { params: unknown }).params),
-        res,
-        () => 201,
-      );
-    });
+    this.addPost(
+      '/tenants/:tenantId/carts/:cartId/order',
+      requireCsrfForController(async (req, res) => {
+        await this.performRequest(
+          () => this.flow.createFromCart((req as unknown as { params: unknown }).params),
+          res as unknown as Parameters<typeof this.performRequest>[1],
+          () => 201,
+        );
+      }),
+    );
 
     // GET /tenants/:tenantId/orders/:orderId — fetch order status/details
     this.addGet('/tenants/:tenantId/orders/:orderId', async (req, res) => {
@@ -45,13 +49,16 @@ export class OrderController extends PublicController {
     });
 
     // POST /tenants/:tenantId/orders/:orderId/fulfill — transition to fulfilled and return signed download URL
-    this.addPost('/tenants/:tenantId/orders/:orderId/fulfill', async (req, res) => {
-      await this.performRequest(
-        () => this.flow.fulfill((req as unknown as { params: unknown }).params),
-        res,
-        () => 200,
-      );
-    });
+    this.addPost(
+      '/tenants/:tenantId/orders/:orderId/fulfill',
+      requireCsrfForController(async (req, res) => {
+        await this.performRequest(
+          () => this.flow.fulfill((req as unknown as { params: unknown }).params),
+          res as unknown as Parameters<typeof this.performRequest>[1],
+          () => 200,
+        );
+      }),
+    );
 
     return this.getRouter();
   }

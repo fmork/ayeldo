@@ -201,11 +201,17 @@ Codex prompt: Add pino logger + X-Ray capture; build a CloudWatch dashboard stac
 
 ## 14) Security Hardening
 
-- ☐ Cookies: HttpOnly, Secure, SameSite
-- ☐ CSRF: double-submit or custom header
+- ✅ Cookies: HttpOnly, Secure, SameSite
+- ✅ CSRF: double-submit (guard + controller wrapper + tests)
 - ☐ Input validation: zod on every handler
 - ☐ Signed S3/CloudFront URLs for downloads
-- ☐ Rotate BFF signing key via SSM Param Store
+
+Notes:
+
+- Implemented a double-submit CSRF guard in `packages/api/src/middleware/csrfGuard.ts` and a controller-compatible adapter `requireCsrfForController`.
+- Wrapped browser-exposed state-changing handlers (examples: `authBffController`, `orderController`, `paymentController`, `tenantAdminController`, `cartController`) with the controller wrapper.
+- Added unit tests at `packages/api/src/middleware/__tests__/csrfGuard.test.ts` covering success and failure cases for the guard and wrappers.
+- Cookies (session and csrf) are issued with HttpOnly/secure/SameSite=None in the auth BFF callback.
 
 Codex prompt: Add middleware that validates zod schema and rejects with 400; add CSRF guard and tests.
 

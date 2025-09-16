@@ -2,6 +2,7 @@
 import type { AxiosHttpClient, HttpRouter, ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
 import { z } from 'zod';
+import { requireCsrfWrapper } from '../middleware/csrfGuard';
 import { CartBffFlowService } from '../services/cartBffFlowService';
 import type { SessionService } from '../services/sessionService';
 
@@ -35,15 +36,8 @@ export class CartBffController extends PublicController {
         return handler(req, res, sid);
       };
 
-    const requireCsrf =
-      (handler: (req: any, res: any, sid?: string) => Promise<void>) =>
-      async (req: any, res: any, sid?: string) => {
-        const token = (req.headers?.['x-csrf-token'] ?? (req.headers as any)?.['X-CSRF-Token']) as
-          | string
-          | undefined;
-        if (!token) return res.status(403).json({ error: 'Missing CSRF token' });
-        await handler(req, res, sid);
-      };
+    // Use shared CSRF wrapper (double-submit cookie check)
+    const requireCsrf = requireCsrfWrapper;
 
     // GET /bff/carts/:tenantId/:cartId — fetch cart and priced summary
     this.addGet(

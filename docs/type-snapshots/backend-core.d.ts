@@ -69,6 +69,34 @@ declare module '@fmork/backend-core/src/security/AuthorizationTypes' {
 }
 
 declare module '@fmork/backend-core/src/controllers' {
+  export interface HttpResponse {
+    status(code: number): HttpResponse;
+    json(data: any): void;
+    send(data?: any): void;
+    setHeader(name: string, value: string): void;
+    /** Sets a cookie on the response */
+    cookie(name: string, value: string | Record<string, unknown>, options?: CookieOptions): void;
+    /** Clears a cookie on the response */
+    clearCookie(name: string, options?: CookieOptions): void;
+    on(event: string, listener: (...args: any[]) => void): void;
+    write(chunk: any): void;
+    end(chunk?: any): void;
+    // Escape hatch for advanced scenarios (streaming, etc.)
+    raw?(): any;
+  }
+
+  export type CookieOptions = {
+    domain?: string;
+    encode?: (val: string) => string;
+    expires?: Date;
+    httpOnly?: boolean;
+    maxAge?: number;
+    path?: string;
+    secure?: boolean;
+    signed?: boolean;
+    sameSite?: boolean | 'lax' | 'strict' | 'none';
+  };
+
   interface AuthorizationRequirement {
     requiredValues?: string[];
     /** @deprecated Use requiredValues instead */
@@ -93,7 +121,7 @@ declare module '@fmork/backend-core/src/controllers' {
 
     protected performRequest<T>(
       request: () => Promise<T> | T,
-      res: unknown,
+      res: HttpResponse,
       getStatusCode?: (result: T) => number,
     ): Promise<void>;
   }

@@ -1,9 +1,10 @@
 import type { ICartRepo, IEventPublisher, IPriceListRepo } from '@ayeldo/core';
 import { TieredPricingEngine } from '@ayeldo/core';
-import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
+import type { HttpResponse, HttpRouter, ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
 import { z } from 'zod';
 import { addCartItem, getCart, priceCart, removeCartItem } from '../handlers/carts';
+import { requireCsrfForController } from '../middleware/csrfGuard';
 
 export interface CartControllerProps {
   readonly baseUrl: string;
@@ -28,20 +29,8 @@ export class CartController extends PublicController {
   }
 
   public initialize(): HttpRouter {
-    // Simple CSRF header check middleware
-    const requireCsrf =
-      <R>(handler: (req: unknown, res: R) => Promise<void>) =>
-      async (req: unknown, res: R) => {
-        const headers = (req as { headers?: Record<string, unknown> }).headers ?? {};
-        const token = (headers['x-csrf-token'] ?? headers['X-CSRF-Token']) as string | undefined;
-        if (!token || token.length === 0) {
-          (res as unknown as { status: (code: number) => { json: (body: unknown) => void } })
-            .status(403)
-            .json({ error: 'Missing CSRF token' });
-          return;
-        }
-        await handler(req, res);
-      };
+    // Use shared controller-compatible CSRF guard
+    const requireCsrf = requireCsrfForController;
     // POST /tenants/:tenantId/carts/:cartId/price
     this.addPost('/tenants/:tenantId/carts/:cartId/price', async (req, res) => {
       const paramsSchema = z.object({ tenantId: z.string().min(1), cartId: z.string().min(1) });
@@ -90,7 +79,7 @@ export class CartController extends PublicController {
               { tenantId, cartId, ...body },
               { cartRepo: this.cartRepo, publisher: this.publisher },
             ),
-          res,
+          res as unknown as HttpResponse,
           () => 201,
         );
       }),
@@ -112,7 +101,7 @@ export class CartController extends PublicController {
               { tenantId, cartId, ...body },
               { cartRepo: this.cartRepo, publisher: this.publisher },
             ),
-          res,
+          res as unknown as HttpResponse,
           () => 204,
         );
       }),

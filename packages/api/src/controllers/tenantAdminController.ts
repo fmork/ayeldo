@@ -1,11 +1,13 @@
 import type {
   AuthorizationRequirement,
   HttpMiddleware,
+  HttpResponse,
   HttpRouter,
   ILogWriter,
   JsonUtil,
 } from '@fmork/backend-core';
 import { ClaimAuthorizedController } from '@fmork/backend-core';
+import { requireCsrfForController } from '../middleware/csrfGuard';
 import type { SessionService } from '../services/sessionService';
 
 export interface TenantAdminControllerProps {
@@ -37,15 +39,18 @@ export class TenantAdminController extends ClaimAuthorizedController {
     this.addGet(
       '/admin/tenants',
       async (_req, res) => {
-        await this.performRequest(async () => {
-          // TODO: Implement actual tenant listing logic
-          return {
-            tenants: [
-              { id: 'tenant-1', name: 'Demo Tenant 1', status: 'active' },
-              { id: 'tenant-2', name: 'Demo Tenant 2', status: 'inactive' },
-            ],
-          };
-        }, res);
+        await this.performRequest(
+          async () => {
+            // TODO: Implement actual tenant listing logic
+            return {
+              tenants: [
+                { id: 'tenant-1', name: 'Demo Tenant 1', status: 'active' },
+                { id: 'tenant-2', name: 'Demo Tenant 2', status: 'inactive' },
+              ],
+            };
+          },
+          res as unknown as HttpResponse,
+        );
       },
       { requiredValues: ['tenant-admin', 'super-admin'] },
     );
@@ -53,8 +58,10 @@ export class TenantAdminController extends ClaimAuthorizedController {
     // POST /admin/tenants - Create a new tenant (requires super-admin role)
     this.addPost(
       '/admin/tenants',
-      async (req, res) => {
-        const tenantData = this.jsonUtil.getParsedRequestBody<Record<string, unknown>>(req.body);
+      requireCsrfForController(async (req, res) => {
+        const tenantData = this.jsonUtil.getParsedRequestBody<Record<string, unknown>>(
+          (req as unknown as { body: unknown }).body,
+        );
 
         await this.performRequest(
           async () => {
@@ -67,48 +74,53 @@ export class TenantAdminController extends ClaimAuthorizedController {
             };
             return newTenant;
           },
-          res,
+          res as unknown as HttpResponse,
           () => 201,
         );
-      },
+      }),
       { requiredValues: ['super-admin'] },
     );
 
     // PUT /admin/tenants/:tenantId - Update tenant (requires tenant-admin role)
     this.addPut(
       '/admin/tenants/:tenantId',
-      async (req, res) => {
-        const { tenantId } = (req as { params: { tenantId: string } }).params;
-        const updateData = this.jsonUtil.getParsedRequestBody<Record<string, unknown>>(req.body);
+      requireCsrfForController(async (req, res) => {
+        const { tenantId } = (req as unknown as { params: { tenantId: string } }).params;
+        const updateData = this.jsonUtil.getParsedRequestBody<Record<string, unknown>>(
+          (req as unknown as { body: unknown }).body,
+        );
 
-        await this.performRequest(async () => {
-          // TODO: Implement actual tenant update logic
-          const updatedTenant = {
-            id: tenantId,
-            ...updateData,
-            updatedAt: new Date().toISOString(),
-          };
-          return updatedTenant;
-        }, res);
-      },
+        await this.performRequest(
+          async () => {
+            // TODO: Implement actual tenant update logic
+            const updatedTenant = {
+              id: tenantId,
+              ...updateData,
+              updatedAt: new Date().toISOString(),
+            };
+            return updatedTenant;
+          },
+          res as unknown as HttpResponse,
+        );
+      }),
       { requiredValues: ['tenant-admin', 'super-admin'] },
     );
 
     // DELETE /admin/tenants/:tenantId - Delete tenant (requires super-admin role)
     this.addDelete(
       '/admin/tenants/:tenantId',
-      async (req, res) => {
-        const { tenantId } = (req as { params: { tenantId: string } }).params;
+      requireCsrfForController(async (req, res) => {
+        const { tenantId } = (req as unknown as { params: { tenantId: string } }).params;
 
         await this.performRequest(
           async () => {
             // TODO: Implement actual tenant deletion logic
             return { id: tenantId, deleted: true };
           },
-          res,
+          res as unknown as HttpResponse,
           () => 204,
         );
-      },
+      }),
       { requiredValues: ['super-admin'] },
     );
 
@@ -116,18 +128,21 @@ export class TenantAdminController extends ClaimAuthorizedController {
     this.addGet(
       '/admin/tenants/:tenantId/users',
       async (req, res) => {
-        const { tenantId } = (req as { params: { tenantId: string } }).params;
+        const { tenantId } = (req as unknown as { params: { tenantId: string } }).params;
 
-        await this.performRequest(async () => {
-          // TODO: Implement actual user listing logic
-          return {
-            tenantId,
-            users: [
-              { id: 'user-1', email: 'admin@example.com', role: 'admin' },
-              { id: 'user-2', email: 'user@example.com', role: 'user' },
-            ],
-          };
-        }, res);
+        await this.performRequest(
+          async () => {
+            // TODO: Implement actual user listing logic
+            return {
+              tenantId,
+              users: [
+                { id: 'user-1', email: 'admin@example.com', role: 'admin' },
+                { id: 'user-2', email: 'user@example.com', role: 'user' },
+              ],
+            };
+          },
+          res as unknown as HttpResponse,
+        );
       },
       { requiredValues: ['tenant-admin', 'super-admin'] },
     );
@@ -135,9 +150,11 @@ export class TenantAdminController extends ClaimAuthorizedController {
     // POST /admin/tenants/:tenantId/users - Add user to tenant (requires tenant-admin role)
     this.addPost(
       '/admin/tenants/:tenantId/users',
-      async (req, res) => {
-        const { tenantId } = (req as { params: { tenantId: string } }).params;
-        const userData = this.jsonUtil.getParsedRequestBody<Record<string, unknown>>(req.body);
+      requireCsrfForController(async (req, res) => {
+        const { tenantId } = (req as unknown as { params: { tenantId: string } }).params;
+        const userData = this.jsonUtil.getParsedRequestBody<Record<string, unknown>>(
+          (req as unknown as { body: unknown }).body,
+        );
 
         await this.performRequest(
           async () => {
@@ -150,10 +167,10 @@ export class TenantAdminController extends ClaimAuthorizedController {
             };
             return newUser;
           },
-          res,
+          res as unknown as HttpResponse,
           () => 201,
         );
-      },
+      }),
       { requiredValues: ['tenant-admin', 'super-admin'] },
     );
 

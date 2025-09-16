@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
+import { requireCsrfForController } from '../middleware/csrfGuard';
 import { AuthFlowService } from '../services/authFlowService';
 import type { OidcClientOpenId } from '../services/oidcOpenIdClient';
 import type { SessionService } from '../services/sessionService';
@@ -80,20 +81,23 @@ export class AuthBffController extends PublicController {
     });
 
     // POST /auth/logout
-    this.addPost('/auth/logout', async (req, res) => {
-      await this.performRequest(
-        async () => {
-          const sid = (req as any).cookies?.['__Host-sid'] as string | undefined;
-          await this.authFlow.logout(sid);
-          (res as any).clearCookie?.('__Host-sid');
-          (res as any).clearCookie?.('csrf');
-          (res as any).status(204).end();
-          return { loggedOut: true } as const;
-        },
-        res,
-        () => 204,
-      );
-    });
+    this.addPost(
+      '/auth/logout',
+      requireCsrfForController(async (req, res) => {
+        await this.performRequest(
+          async () => {
+            const sid = (req as any).cookies?.['__Host-sid'] as string | undefined;
+            await this.authFlow.logout(sid);
+            (res as any).clearCookie?.('__Host-sid');
+            (res as any).clearCookie?.('csrf');
+            (res as any).status(204).end();
+            return { loggedOut: true } as const;
+          },
+          res as unknown as Parameters<typeof this.performRequest>[1],
+          () => 204,
+        );
+      }),
+    );
 
     // GET /session — minimal profile state
     this.addGet('/session', async (req, res) => {
