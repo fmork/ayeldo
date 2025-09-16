@@ -307,20 +307,36 @@ export const server = new Server({
         return callback(null, true);
       }
 
-      // List of allowed origins
-      const allowedOrigins = [
+      // List of allowed origins (string or RegExp entries)
+      const allowedOrigins: (string | RegExp)[] = [
         siteConfig.webOrigin,
         siteConfig.bffOrigin,
-        // Development origins
-        /^http:\/\/localhost:\d+$/, // http://localhost:3000, 5174, etc.
-        /^https:\/\/localhost:\d+$/, // https://localhost:3000, 5174, etc.
-        /^http:\/\/127\.0\.0\.1:\d+$/, // http://127.0.0.1:3000, 5174, etc.
-        /^https:\/\/127\.0\.0\.1:\d+$/, // https://127.0.0.1:3000, 5174, etc.
+        // Development origins: allow any localhost/127.0.0.1 port
+        /^http:\/\/localhost:\d+$/,
+        /^https:\/\/localhost:\d+$/,
+        /^http:\/\/127\.0\.0\.1:\d+$/,
+        /^https:\/\/127\.0\.0\.1:\d+$/,
       ];
 
-      logWriter.info(`CORS: Allowed origins: ${allowedOrigins.join(', ')}`);
+      logWriter.info(
+        'CORS: Allowed origins: ' +
+          allowedOrigins.map((o) => (typeof o === 'string' ? o : o.toString())).join(', '),
+      );
 
-      if (allowedOrigins.includes(origin)) {
+      const isAllowed = Boolean(
+        origin &&
+          allowedOrigins.some((entry) => {
+            if (typeof entry === 'string') {
+              return entry === origin;
+            }
+            if (entry instanceof RegExp) {
+              return entry.test(origin);
+            }
+            return false;
+          }),
+      );
+
+      if (isAllowed) {
         logWriter.info(`CORS: Allowing origin ${origin}`);
         callback(null, true);
       } else {
