@@ -7,10 +7,21 @@
     "declaration": true,
     "disableSourceOfProjectReferenceRedirect": true
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts"],
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/**/*.test.ts"
+  ],
   "references": [
-    { "path": "../types" },
-    { "path": "../core" }
+    {
+      "path": "../types"
+    },
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../utils"
+    }
   ]
 }

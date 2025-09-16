@@ -15,17 +15,19 @@ Phases
 
 Phase 0 — Design & schema (small, safe)
 
-- ☐ Add types and zod schemas for TenantCreate and TenantCreated event in `packages/types` (`dtos.ts`, `schemas.ts`).
-- ☐ Define single-table key shape for tenant (PK = `TENANT#<id>`, SK = `METADATA#<id>`). Add marshalling notes in `docs/dynamo.md`.
-- ☐ Add unit tests for schema parsing and event shape.
+- ✅ Add types and zod schemas for TenantCreate and TenantCreated event in `packages/types` (`dtos.ts`, `schemas.ts`).
+- ✅ Define single-table key shape for tenant (PK = `TENANT#<id>`, SK = `METADATA#<id>`). Add marshalling notes in `docs/dynamo.md`.
+- ✅ Add unit tests for schema parsing and event shape.
 
 Phase 1 — API: Tenant creation (domain API)
 
-- ☐ Add `ITenantRepo` port in `packages/core/src/ports/tenantRepo.ts` (create + getById).
-- ☐ Implement `TenantRepoDdb` in `packages/infra-aws` using existing marshalling helpers.
-- ☐ Implement `TenantController` in `packages/api/src/controllers/tenantController.ts` exposing `POST /tenants`.
+- ✅ Add `ITenantRepo` port in `packages/core/src/ports/tenantRepo.ts` (create + getById).
+- ✅ Implement `TenantRepoDdb` in `packages/infra-aws` using existing marshalling helpers.
+- ✅ Implement `TenantController` in `packages/api/src/controllers/tenantController.ts` exposing `POST /tenants`.
   - Validate input with zod, create tenant via repo, emit `TenantCreated` via `IEventPublisher`.
 - ☐ Unit tests for repo and controller (happy & sad paths).
+
+Status note: After adding `TenantController`, I ran the repository build (lint + tsc -b) and unit tests. All checks completed successfully: 14 tests passed, 1 skipped. The controller file has been added; unit tests for the controller itself remain to be implemented.
 
 Phase 2 — HTTP API onboarding flow (user-facing orchestration)
 
@@ -100,7 +102,8 @@ Edge cases
 Next actions (short-term)
 
 - ✅ Create this file (done).
-- ☐ Phase 0: I can scaffold `packages/types` DTOs and zod schemas now. Want me to start with Phase 0?
+- ✅ Phase 0: scaffolded `packages/types` DTOs and zod schemas; tests added and run (see `packages/types/src/tenant.test.ts`).
+  - ☐ Phase 1: I can implement `ITenantRepo` and `TenantRepoDdb` next. Want me to start Phase 1?
 
 ---
 

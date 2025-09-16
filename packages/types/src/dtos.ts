@@ -82,3 +82,19 @@ export interface OrderDto {
   readonly createdAt: string; // ISO timestamp
   readonly updatedAt: string; // ISO timestamp
 }
+
+export interface TenantCreateDto {
+  readonly name: string;
+  readonly ownerEmail: string;
+  readonly adminName?: string;
+  readonly plan?: string;
+}
+
+export interface TenantDto {
+  readonly id: Ulid;
+  readonly name: string;
+  readonly ownerEmail: string;
+  readonly plan: string;
+  readonly status: 'active' | 'pending' | 'suspended';
+  readonly createdAt: string; // ISO timestamp
+}

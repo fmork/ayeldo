@@ -1,16 +1,16 @@
 import { z } from 'zod';
-import { CartState, OrderState } from './state';
 import type {
   AlbumDto,
+  CartDto,
+  CartItemDto,
   ImageDto,
+  OrderDto,
+  OrderLineDto,
   PriceItemDto,
   PriceListDto,
-  CartItemDto,
-  CartDto,
-  OrderLineDto,
-  OrderDto,
 } from './dtos';
 import { isoTimestampSchema, ulidSchema } from './events';
+import { CartState, OrderState } from './state';
 
 export const albumSchema = z.object({
   id: z.string().min(1),
@@ -52,11 +52,7 @@ export const cartItemSchema = z.object({
   quantity: z.number().int().positive(),
 }) satisfies z.ZodType<CartItemDto>;
 
-export const cartStateSchema = z.enum([
-  CartState.Active,
-  CartState.Expired,
-  CartState.CheckedOut,
-]);
+export const cartStateSchema = z.enum([CartState.Active, CartState.Expired, CartState.CheckedOut]);
 
 export const cartSchema = z.object({
   id: z.string().min(1),
@@ -96,3 +92,19 @@ export const orderSchema = z.object({
 }) satisfies z.ZodType<OrderDto>;
 
 export const ulidStringSchema = ulidSchema;
+
+export const tenantCreateSchema = z.object({
+  name: z.string().min(1),
+  ownerEmail: z.string().email(),
+  adminName: z.string().optional(),
+  plan: z.string().optional(),
+});
+
+export const tenantSchema = z.object({
+  id: ulidSchema,
+  name: z.string().min(1),
+  ownerEmail: z.string().email(),
+  plan: z.string().min(1),
+  status: z.enum(['active', 'pending', 'suspended']),
+  createdAt: isoTimestampSchema,
+});
