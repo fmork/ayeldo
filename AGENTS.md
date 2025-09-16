@@ -244,13 +244,14 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
 
 ## ✅ Agent Workflow
 
-When Codex (or another AI agent) generates code, it should:
+When an AI agent generates code, it should:
 
 1. **Check references** (`C4 DSL`, `todo.md`, `dynamo.md`, `events.md`).
-2. **Follow coding rules** (strict TS, zod validation, async/await, no any).
-3. **Respect architecture** (BFF → API → Services, ports, events).
-4. **Produce tests** for new domain logic.
-5. **Verify correctness** so that generated code does not contain errors. **ALWAYS** `scripts/build.sh` before a task is handed off in order to verify that nothing is broken.
-6. **Document** new features in `docs/` as needed.
+2. **Update itself on** manual code changes, so that it does not overwrite and corrupt files.
+3. **Follow coding rules** (strict TS, zod validation, async/await, no any).
+4. **Respect architecture** (BFF → API → Services, ports, events).
+5. **Produce tests** for new domain logic.
+6. **Verify correctness** so that generated code does not contain errors. **ALWAYS** `scripts/build.sh` before a task is handed off in order to verify that nothing is broken.
+7. **Document** new features in `docs/` as needed.
 
 ---
