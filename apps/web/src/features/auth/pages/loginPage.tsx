@@ -7,7 +7,7 @@ import {
 import type { FC } from 'react';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useSession } from '../../../app/contexts/SessionContext';
 import { useSiteConfiguration } from '../../../app/SiteConfigurationContext';
 import { useLazyGetAuthorizeUrlQuery } from '../../../services/api/bffApi';
@@ -17,6 +17,7 @@ const LoginPage: FC = () => {
   const { t } = useTranslation();
   const { webOrigin } = useSiteConfiguration();
   const navigate = useNavigate();
+  const location = useLocation();
   const session = useSession();
   const hasAttemptedLogin = useRef(false);
 
@@ -39,7 +40,14 @@ const LoginPage: FC = () => {
       const initiateLogin = async (): Promise<void> => {
         try {
           // Hardcode redirect to web app root using centralized site configuration
-          const redirect = webOrigin;
+          // If the login page was given a returnTo query param, include it so
+          // the post-auth redirect can return the user to the intended path.
+          const urlParams = new URLSearchParams(location.search);
+          const returnTo = urlParams.get('returnTo') ?? undefined;
+          // Wrap the original returnTo so the provider returns to our signed-in landing
+          // page which will refresh session and then navigate to the original target.
+          const signedInPath = returnTo ? `/auth/signedin?returnTo=${encodeURIComponent(returnTo)}` : '/auth/signedin';
+          const redirect = `${webOrigin.replace(/\/$/, '')}${signedInPath}`;
           const result = await trigger({ redirect }).unwrap();
           const g = globalThis as unknown as { location?: { assign?: (u: string) => void } };
           g.location?.assign?.(result.url);
@@ -66,7 +74,12 @@ const LoginPage: FC = () => {
 
     try {
       // Hardcode redirect to web app root using centralized site configuration
-      const redirect = webOrigin;
+      // Propagate returnTo param when present so the signin flow returns to
+      // the desired path after authentication.
+      const urlParams = new URLSearchParams(location.search);
+      const returnTo = urlParams.get('returnTo') ?? undefined;
+      const signedInPath = returnTo ? `/auth/signedin?returnTo=${encodeURIComponent(returnTo)}` : '/auth/signedin';
+      const redirect = `${webOrigin.replace(/\/$/, '')}${signedInPath}`;
       const result = await trigger({ redirect }).unwrap();
       const g = globalThis as unknown as { location?: { assign?: (u: string) => void } };
       g.location?.assign?.(result.url);
