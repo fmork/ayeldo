@@ -354,7 +354,11 @@ export const server = new Server({
   ],
   port: serverPort,
   requestLogger,
-  logWriter,
+  logging: {
+    logWriter: logWriter,
+    logRoutesOnInitialize: false,
+    logCorsRejections: true,
+  },
   corsOptions: {
     origin: [
       siteConfig.webOrigin,
