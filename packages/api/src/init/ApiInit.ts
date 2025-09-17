@@ -356,57 +356,15 @@ export const server = new Server({
   requestLogger,
   logWriter,
   corsOptions: {
-    origin: (
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean) => void,
-    ): void => {
-      const corsMessages: string[] = [];
-      corsMessages.push(`CORS request from origin: ${origin || 'no-origin'}`);
-
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
-        corsMessages.push('CORS: Allowing request with no origin');
-        return callback(null, true);
-      }
-
-      // List of allowed origins (string or RegExp entries)
-      const allowedOrigins: (string | RegExp)[] = [
-        siteConfig.webOrigin,
-        siteConfig.bffOrigin,
-        // Development origins: allow any localhost/127.0.0.1 port
-        /^http:\/\/localhost:\d+$/,
-        /^https:\/\/localhost:\d+$/,
-        /^http:\/\/127\.0\.0\.1:\d+$/,
-        /^https:\/\/127\.0\.0\.1:\d+$/,
-      ];
-
-      corsMessages.push(
-        'CORS: Allowed origins: ' +
-          allowedOrigins.map((o) => (typeof o === 'string' ? o : o.toString())).join(', '),
-      );
-
-      const isAllowed = Boolean(
-        origin &&
-          allowedOrigins.some((entry) => {
-            if (typeof entry === 'string') {
-              return entry === origin;
-            }
-            if (entry instanceof RegExp) {
-              return entry.test(origin);
-            }
-            return false;
-          }),
-      );
-
-      if (isAllowed) {
-        callback(null, true);
-      } else {
-        corsMessages.push(`CORS: Rejecting origin ${origin}`);
-        logWriter.info(corsMessages.join('\n'));
-
-        callback(new Error(`Not allowed by CORS: ${origin}`));
-      }
-    },
+    origin: [
+      siteConfig.webOrigin,
+      siteConfig.bffOrigin,
+      // Development origins
+      /^http:\/\/localhost:\d+$/,
+      /^https:\/\/localhost:\d+$/,
+      /^http:\/\/127\.0\.0\.1:\d+$/,
+      /^https:\/\/127\.0\.0\.1:\d+$/,
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token'],
     credentials: true,
