@@ -137,6 +137,38 @@ export class SiteConfiguration {
     } as const;
   }
 
+  // Get cookie domain for cross-subdomain access
+  public get cookieDomain(): string | undefined {
+    try {
+      // Extract hostname from webOrigin and bffOrigin
+      const webHostname = this._webOrigin.replace(/^https?:\/\//, '').split('/')[0];
+      const bffHostname = this._bffOrigin.replace(/^https?:\/\//, '').split('/')[0];
+
+      // Remove port if present
+      const webHost = webHostname.split(':')[0];
+      const bffHost = bffHostname.split(':')[0];
+
+      // Split into parts
+      const webParts = webHost.split('.');
+      const bffParts = bffHost.split('.');
+
+      // Check if we have at least 2 parts (domain.tld)
+      if (webParts.length >= 2 && bffParts.length >= 2) {
+        // Get the last two parts (domain.tld)
+        const webDomain = webParts.slice(-2).join('.');
+        const bffDomain = bffParts.slice(-2).join('.');
+
+        // If they match and both are subdomains, return the parent domain
+        if (webDomain === bffDomain && (webParts.length > 2 || bffParts.length > 2)) {
+          return `.${webDomain}`;
+        }
+      }
+    } catch {
+      // If parsing fails, return undefined
+    }
+    return undefined;
+  }
+
   // Get environment variables for Lambda deployment
   public toLambdaEnvironment(): Record<string, string> {
     const env: Record<string, string> = {

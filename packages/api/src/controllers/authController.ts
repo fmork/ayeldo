@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { SiteConfiguration } from '@ayeldo/core';
 import { tenantCreateSchema } from '@ayeldo/types/src/schemas';
 import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
@@ -10,16 +11,19 @@ export interface AuthControllerProps {
   readonly baseUrl: string;
   readonly logWriter: ILogWriter;
   readonly authFlow: AuthFlowService;
+  readonly siteConfig: SiteConfiguration;
   readonly onboardingService?: OnboardingService;
 }
 
 export class AuthController extends PublicController {
   private readonly authFlow: AuthFlowService;
+  private readonly siteConfig: SiteConfiguration;
   private readonly onboardingService?: OnboardingService | undefined;
 
   public constructor(props: AuthControllerProps) {
     super(props.baseUrl, props.logWriter);
     this.authFlow = props.authFlow;
+    this.siteConfig = props.siteConfig;
     this.onboardingService = props.onboardingService;
   }
 
@@ -67,6 +71,7 @@ export class AuthController extends PublicController {
             secure: true,
             sameSite: 'none',
             path: '/',
+            ...(this.siteConfig.cookieDomain && { domain: this.siteConfig.cookieDomain }),
           });
           (res as any).redirect?.(result.redirectTarget) ??
             (res as any).status(302)?.setHeader?.('Location', result.redirectTarget)?.end?.();
@@ -163,6 +168,7 @@ export class AuthController extends PublicController {
                 secure: true,
                 sameSite: 'none',
                 path: '/',
+                ...(this.siteConfig.cookieDomain && { domain: this.siteConfig.cookieDomain }),
               });
             }
 

@@ -13,7 +13,9 @@ export const backendApi = createApi({
     credentials: 'include',
     prepareHeaders: (headers) => {
       const csrf = getCsrfToken();
-      if (csrf) headers.set(frontendConfig.csrfHeaderName, csrf);
+      if (csrf) {
+        headers.set(frontendConfig.csrfHeaderName, csrf);
+      }
       return headers;
     },
   }),

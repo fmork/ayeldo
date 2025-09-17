@@ -255,6 +255,7 @@ export const authBffController =
         baseUrl: '',
         logWriter,
         authFlow: authFlowService,
+        siteConfig,
         onboardingService,
       })
     : undefined;
