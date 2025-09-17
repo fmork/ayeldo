@@ -7,9 +7,13 @@ Work top-down; each phase is small and independently testable.
 
 This document implements the onboarding flow sketched in `docs/architecture.c4.dsl` (flow-1-signup-and-customer-association). The objective: allow a new tenant to sign up from the SPA, create tenant metadata in the API, create an initial admin user, and return the user to the app with a valid session.
 
-Summary (one-liner)
+Summary:
 
-- SPA -> HTTP API POST /auth/signup -> HTTP API calls POST /tenants -> tenant created + TenantCreated event -> HTTP API issues session cookie + CSRF cookie -> SPA redirected to onboarding.
+- Customer onboarding requires an authenticated user (done through OIDC).
+- When a user has authenticated, the client should make a request to an endpoint in the API to check the user's status.
+- If the user is not associated with a Customer, customer onboarding should be initiated.
+- The Customer onboarding process should create a Customer object (which will be the billing partner), and when finished, there should also be a Tenant created for the customer. The Tenant represents the domain data (albums, images, ...) for the Customer.
+- In a future, we might allow for one Customer to have more than on Tenant.
 
 Phases
 

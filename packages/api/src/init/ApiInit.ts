@@ -37,6 +37,7 @@ import { AuthController } from '../controllers/authController';
 import { CartFrontendController } from '../controllers/cartController';
 import { RootController } from '../controllers/rootController';
 import { OidcClientOpenId, type OidcOpenIdConfig } from '../services/oidcOpenIdClient';
+import OnboardingService from '../services/onboardingService';
 import { SessionBasedAuthorizer } from '../services/sessionBasedAuthorizer';
 import { SessionService } from '../services/sessionService';
 import { TenantService } from '../services/tenantService';
@@ -190,6 +191,11 @@ const tenantService = new TenantService({
   logger: logWriter,
 });
 
+const onboardingService = new OnboardingService({
+  tenantService,
+  logger: logWriter,
+});
+
 // BFF wiring
 const httpClient = new AxiosHttpClient({ logWriter });
 
@@ -250,6 +256,7 @@ export const authBffController =
         logWriter,
         oidc,
         sessions,
+        onboardingService,
       })
     : undefined;
 

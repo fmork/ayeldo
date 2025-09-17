@@ -4,6 +4,7 @@ import { PublicController } from '@fmork/backend-core';
 import { requireCsrfForController } from '../middleware/csrfGuard';
 import { AuthFlowService } from '../services/authFlowService';
 import type { OidcClientOpenId } from '../services/oidcOpenIdClient';
+import type { OnboardingService } from '../services/onboardingService';
 import type { SessionService } from '../services/sessionService';
 
 export interface AuthControllerProps {
@@ -11,10 +12,12 @@ export interface AuthControllerProps {
   readonly logWriter: ILogWriter;
   readonly oidc: OidcClientOpenId;
   readonly sessions: SessionService;
+  readonly onboardingService?: OnboardingService;
 }
 
 export class AuthController extends PublicController {
   private readonly authFlow: AuthFlowService;
+  private readonly onboardingService?: OnboardingService | undefined;
 
   public constructor(props: AuthControllerProps) {
     super(props.baseUrl, props.logWriter);
@@ -24,6 +27,7 @@ export class AuthController extends PublicController {
       sessions: props.sessions,
       logger: props.logWriter,
     });
+    this.onboardingService = props.onboardingService;
   }
 
   public initialize(): HttpRouter {
@@ -111,6 +115,48 @@ export class AuthController extends PublicController {
         (r) => (r.loggedIn ? 200 : 401),
       );
     });
+
+    // POST /auth/signup - public signup creating tenant (and optionally admin user)
+    this.addPost(
+      '/auth/signup',
+      requireCsrfForController(async (req, res) => {
+        const response = res as unknown as Parameters<typeof this.performRequest>[1];
+
+        if (!this.onboardingService) {
+          // Service not configured — return 501
+          response.status?.(501)?.json?.({ error: 'Onboarding not configured' });
+          return;
+        }
+
+        const svc = this.onboardingService;
+
+        await this.performRequest(
+          async () => {
+            const result = await svc.createTenantAndMaybeSignIn((req as any).body);
+
+            // If onboarding returned session info, set cookies (not implemented)
+            if (result.session) {
+              response.cookie?.('__Host-sid', result.session.sid, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+                path: '/',
+              });
+              response.cookie?.('csrf', result.session.csrf, {
+                httpOnly: false,
+                secure: true,
+                sameSite: 'none',
+                path: '/',
+              });
+            }
+
+            return result.tenant;
+          },
+          response,
+          () => 201,
+        );
+      }),
+    );
 
     return this.getRouter();
   }
