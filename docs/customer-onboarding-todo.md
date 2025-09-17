@@ -25,9 +25,13 @@ Phase 1 — API: Tenant creation (domain API)
 - ✅ Implement `TenantRepoDdb` in `packages/infra-aws` using existing marshalling helpers.
 - ✅ Implement `TenantController` in `packages/api/src/controllers/tenantController.ts` exposing `POST /tenants`.
   - Validate input with zod, create tenant via repo, emit `TenantCreated` via `IEventPublisher`.
-- ☐ Unit tests for repo and controller (happy & sad paths).
+- ✅ Unit tests for repo and service
+  - Added `packages/infra-aws/src/tenantRepoDdb.test.ts` (TenantRepoDdb tests: create/get/query)
+  - Added `packages/api/src/services/tenantService.test.ts` (TenantService tests: happy + validation)
+- ☐ Controller unit tests (deferred)
+  - `TenantController` tests require a router/server harness to exercise CSRF and middleware reliably; deferred for now.
 
-Status note: After adding `TenantController`, I ran the repository build (lint + tsc -b) and unit tests. All checks completed successfully: 14 tests passed, 1 skipped. The controller file has been added; unit tests for the controller itself remain to be implemented.
+Status note: After adding `TenantController` and the unit tests for `TenantService` and `TenantRepoDdb`, I ran the repository build (lint + tsc -b) and unit tests. All checks completed successfully in this session: Test Suites: 1 skipped, 16 passed; Tests: 3 skipped, 73 passed. Controller-level tests remain to be implemented (see note above).
 
 Phase 2 — HTTP API onboarding flow (user-facing orchestration)
 

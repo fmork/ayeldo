@@ -9,6 +9,7 @@ import type {
 import { ClaimAuthorizedController } from '@fmork/backend-core';
 import { requireCsrfForController } from '../middleware/csrfGuard';
 import type { SessionService } from '../services/sessionService';
+import type { TenantService } from '../services/tenantService';
 
 export interface TenantAdminControllerProps {
   readonly baseUrl: string;
@@ -18,6 +19,7 @@ export interface TenantAdminControllerProps {
   readonly authorizer:
     | HttpMiddleware
     | ((requirement?: AuthorizationRequirement) => HttpMiddleware);
+  readonly tenantService: TenantService;
 }
 
 /**
@@ -27,11 +29,13 @@ export interface TenantAdminControllerProps {
 export class TenantAdminController extends ClaimAuthorizedController {
   private readonly sessionService: SessionService;
   private readonly jsonUtil: JsonUtil;
+  private readonly tenantService: TenantService;
 
   public constructor(props: TenantAdminControllerProps) {
     super(props.baseUrl, props.logWriter, props.authorizer);
     this.sessionService = props.sessionService;
     this.jsonUtil = props.jsonUtil;
+    this.tenantService = props.tenantService;
   }
 
   public initialize(): HttpRouter {
@@ -59,21 +63,10 @@ export class TenantAdminController extends ClaimAuthorizedController {
     this.addPost(
       '/admin/tenants',
       requireCsrfForController(async (req, res) => {
-        const tenantData = this.jsonUtil.getParsedRequestBody<Record<string, unknown>>(
-          (req as unknown as { body: unknown }).body,
-        );
-
+        // Delegate to TenantService which handles parsing, validation, persistence and eventing
         await this.performRequest(
-          async () => {
-            // TODO: Implement actual tenant creation logic
-            const newTenant = {
-              id: `tenant-${Date.now()}`,
-              ...tenantData,
-              status: 'active',
-              createdAt: new Date().toISOString(),
-            };
-            return newTenant;
-          },
+          () =>
+            this.tenantService.createTenantFromRequest((req as unknown as { body: unknown }).body),
           res as unknown as HttpResponse,
           () => 201,
         );

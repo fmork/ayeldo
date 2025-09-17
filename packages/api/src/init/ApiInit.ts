@@ -29,7 +29,6 @@ import { PaymentController } from '../controllers/paymentController';
 import { ReferenceClaimAuthorizedApiController } from '../controllers/referenceClaimAuthorizedApiController';
 import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
 import { TenantAdminController } from '../controllers/tenantAdminController';
-import { TenantController } from '../controllers/tenantController';
 import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake';
 // Controllers and services that include former BFF responsibilities (previously in packages/bff).
 // These were merged into the API package; controller/class names may still include 'Bff' for
@@ -181,7 +180,7 @@ export const mediaController = new MediaController({
   imageRepo,
 });
 
-// Tenant repository, service and controller (public onboarding)
+// Tenant repository and service (used by admin controller)
 const tenantRepo = new TenantRepoDdb({ tableName, client: ddb });
 
 const tenantService = new TenantService({
@@ -189,12 +188,6 @@ const tenantService = new TenantService({
   publisher: eventPublisher,
   jsonUtil,
   logger: logWriter,
-});
-
-export const tenantController = new TenantController({
-  baseUrl: '',
-  logWriter,
-  tenantService,
 });
 
 // BFF wiring
@@ -288,6 +281,7 @@ export const tenantAdminController =
         jsonUtil,
         sessionService: sessions,
         authorizer: sessionBasedAuthorizer.createAuthorizer,
+        tenantService,
       })
     : undefined;
 
