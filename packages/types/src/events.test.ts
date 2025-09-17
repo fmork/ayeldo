@@ -1,6 +1,11 @@
 import { describe, expect, test } from '@jest/globals';
 import { z } from 'zod';
-import { makeEventEnvelopeSchema, ulidSchema } from './events';
+import {
+  makeEventEnvelopeSchema,
+  tenantCreatedEventSchema,
+  tenantCreatedPayloadSchema,
+  ulidSchema,
+} from './events';
 
 const payloadSchema = z.object({ foo: z.string() });
 const evtSchema = makeEventEnvelopeSchema('TestEvent', payloadSchema);
@@ -35,3 +40,49 @@ describe('EventEnvelope schema', () => {
   });
 });
 
+describe('TenantCreated event', () => {
+  test('parses valid TenantCreated event', () => {
+    const data = {
+      id: '01H7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7',
+      type: 'TenantCreated',
+      occurredAt: '2024-01-01T00:00:00.000Z',
+      tenantId: 'tenant-123',
+      payload: {
+        tenantId: 'tenant-123',
+        tenantName: 'Acme Corp',
+        adminUserId: 'user-456',
+        adminEmail: 'admin@acme.com',
+      },
+    };
+    const parsed = tenantCreatedEventSchema.parse(data);
+    expect(parsed.payload.tenantName).toBe('Acme Corp');
+    expect(parsed.payload.adminEmail).toBe('admin@acme.com');
+  });
+
+  test('rejects invalid email in payload', () => {
+    const data = {
+      id: '01H7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7',
+      type: 'TenantCreated',
+      occurredAt: '2024-01-01T00:00:00.000Z',
+      tenantId: 'tenant-123',
+      payload: {
+        tenantId: 'tenant-123',
+        tenantName: 'Acme Corp',
+        adminUserId: 'user-456',
+        adminEmail: 'invalid-email',
+      },
+    };
+    expect(() => tenantCreatedEventSchema.parse(data)).toThrow();
+  });
+
+  test('payload schema validates independently', () => {
+    const payload = {
+      tenantId: 'tenant-123',
+      tenantName: 'Acme Corp',
+      adminUserId: 'user-456',
+      adminEmail: 'admin@acme.com',
+    };
+    const parsed = tenantCreatedPayloadSchema.parse(payload);
+    expect(parsed.tenantName).toBe('Acme Corp');
+  });
+});

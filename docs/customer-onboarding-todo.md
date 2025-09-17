@@ -68,9 +68,9 @@ Phase 2 — HTTP API onboarding flow (OIDC user orchestration)
 
 Phase 3 — Initial data & events
 
-- ☐ Implement optional seeding in `OnboardingService` (price list, sample album) as idempotent operations.
-- ☐ Emit `TenantCreated` event with tenant id + admin email; add event contract to `packages/types`.
-- ☐ Validate idempotency for event consumers.
+- ✅ Implement optional seeding in `OnboardingService` (price list, sample album) as idempotent operations.
+- ✅ Emit `TenantCreated` event with tenant id + admin email; add event contract to `packages/types`.
+- ✅ Validate idempotency for event consumers.
 
 Phase 4 — Frontend onboarding UI
 
@@ -144,7 +144,7 @@ Next actions (short-term)
 - ✅ Phase 1.5: implemented user management with OIDC integration during sign-in flow.
 - ✅ Phase 2: implemented `OnboardingService` with updated architecture (users created at sign-in, not onboarding).
 - ✅ Phase 2 completion: Added onboarding HTTP endpoint `POST /auth/onboard` to AuthController with proper OIDC authentication.
-- ☐ Phase 3: Implement seeding and event emission.
+- ✅ Phase 3: Implement seeding and event emission.
 - ☐ Phase 4: Frontend onboarding UI implementation.
 
 ---

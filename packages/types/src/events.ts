@@ -1,5 +1,5 @@
-import type { Ulid, TenantId } from './dtos';
 import { z } from 'zod';
+import type { TenantId, Ulid } from './dtos';
 
 export interface EventEnvelope<TType extends string, TPayload> {
   readonly id: Ulid;
@@ -11,19 +11,13 @@ export interface EventEnvelope<TType extends string, TPayload> {
 
 const ULID_REGEX = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
 
-export const ulidSchema = z
-  .string()
-  .length(26)
-  .regex(ULID_REGEX, 'Invalid ULID');
+export const ulidSchema = z.string().length(26).regex(ULID_REGEX, 'Invalid ULID');
 
 export const isoTimestampSchema = z.string().datetime({ offset: true });
 
 export const tenantIdSchema = z.string().min(1);
 
-export function makeEventEnvelopeSchema<
-  TPayload extends z.ZodTypeAny,
-  TType extends string,
->(
+export function makeEventEnvelopeSchema<TPayload extends z.ZodTypeAny, TType extends string>(
   typeLiteral: TType,
   payloadSchema: TPayload,
 ): z.ZodType<EventEnvelope<TType, z.infer<TPayload>>> {
@@ -35,3 +29,25 @@ export function makeEventEnvelopeSchema<
     payload: payloadSchema,
   }) as z.ZodType<EventEnvelope<TType, z.infer<TPayload>>>;
 }
+
+// TenantCreated event
+export interface TenantCreatedPayload {
+  readonly tenantId: string;
+  readonly tenantName: string;
+  readonly adminUserId: string;
+  readonly adminEmail: string;
+}
+
+export const tenantCreatedPayloadSchema = z.object({
+  tenantId: z.string().min(1),
+  tenantName: z.string().min(1),
+  adminUserId: z.string().min(1),
+  adminEmail: z.string().email(),
+});
+
+export const tenantCreatedEventSchema = makeEventEnvelopeSchema(
+  'TenantCreated',
+  tenantCreatedPayloadSchema,
+);
+
+export type TenantCreatedEvent = z.infer<typeof tenantCreatedEventSchema>;

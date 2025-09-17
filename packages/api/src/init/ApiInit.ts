@@ -198,6 +198,7 @@ const userRepo = new UserRepoDdb({ tableName, client: ddb });
 const onboardingService = new OnboardingService({
   tenantService,
   userRepo,
+  eventPublisher,
   logger: logWriter,
 });
 
