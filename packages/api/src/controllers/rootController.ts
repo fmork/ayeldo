@@ -15,10 +15,7 @@ export class RootController extends PublicController {
   public initialize(): HttpRouter {
     // GET / — return current server time in ISO format as JSON
     this.addGet('/', async (_req, res) => {
-      const nowIso = new Date().toISOString();
-      // Use json() to return a simple payload
-      (res as any).json?.({ now: nowIso }) ??
-        (res as any).status?.(200)?.end?.(JSON.stringify({ now: nowIso }));
+      await this.performRequest(async () => ({ serverTime: new Date().toISOString() }), res);
     });
 
     return this.getRouter();
