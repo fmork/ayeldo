@@ -22,6 +22,6 @@
     "@aws-sdk/s3-presigned-post": "^3.634.0",
     "@ayeldo/core": "workspace:*",
     "@ayeldo/types": "workspace:*",
-    "@fmork/backend-core": "^4.0.0"
+    "@fmork/backend-core": "^4.0.1"
   }
 }
