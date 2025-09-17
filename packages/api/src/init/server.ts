@@ -18,6 +18,10 @@ const serverPort: number = process.env['PORT']
   ? Number.parseInt(process.env['PORT'] as string, 10)
   : 3000;
 
+logWriter.info(
+  `Starting API server on port ${serverPort}, API origin: ${siteConfig.apiOrigin}, Web origin: ${siteConfig.webOrigin}`,
+);
+
 export const server = new Server({
   controllers: [
     cartController,
