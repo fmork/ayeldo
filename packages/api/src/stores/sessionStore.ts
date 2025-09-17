@@ -1,24 +1,5 @@
-import type { SessionRecord } from '../types/session';
-
-export interface IStateRecord {
-  readonly state: string;
-  readonly nonce: string;
-  readonly codeVerifier: string;
-  readonly createdAt: string;
-  readonly ttl: number;
-}
-
-export interface ISessionStore {
-  putSession: (rec: SessionRecord) => Promise<void>;
-  getSession: (sid: string) => Promise<SessionRecord | undefined>;
-  deleteSession: (sid: string) => Promise<void>;
-}
-
-export interface IStateStore {
-  putState: (rec: IStateRecord) => Promise<void>;
-  getState: (state: string) => Promise<IStateRecord | undefined>;
-  deleteState: (state: string) => Promise<void>;
-}
+import type { ISessionStore, IStateStore } from '@ayeldo/core';
+import type { SessionRecord, StateRecord } from '@ayeldo/types';
 
 export class MemorySessionStore implements ISessionStore {
   private readonly map = new Map<string, SessionRecord>();
@@ -34,11 +15,11 @@ export class MemorySessionStore implements ISessionStore {
 }
 
 export class MemoryStateStore implements IStateStore {
-  private readonly map = new Map<string, IStateRecord>();
-  public async putState(rec: IStateRecord): Promise<void> {
+  private readonly map = new Map<string, StateRecord>();
+  public async putState(rec: StateRecord): Promise<void> {
     this.map.set(rec.state, rec);
   }
-  public async getState(state: string): Promise<IStateRecord | undefined> {
+  public async getState(state: string): Promise<StateRecord | undefined> {
     return this.map.get(state);
   }
   public async deleteState(state: string): Promise<void> {

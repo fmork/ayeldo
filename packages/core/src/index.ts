@@ -9,6 +9,7 @@ export * from './ports/analytics';
 export * from './ports/events';
 export * from './ports/payments';
 export * from './ports/repositories';
+export * from './ports/sessionStore';
 export * from './ports/storage';
 export * from './services/orderStateMachine';
 export * from './services/policyEvaluator';

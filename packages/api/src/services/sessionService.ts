@@ -1,7 +1,8 @@
+import type { ISessionStore, IStateStore } from '@ayeldo/core';
+import type { SessionRecord } from '@ayeldo/types';
 import type { ILogWriter } from '@fmork/backend-core';
 import * as crypto from 'node:crypto';
-import type { ISessionStore, IStateStore } from '../stores/sessionStore';
-import type { SessionRecord, TokenBundle } from '../types/session';
+import type { TokenBundle } from '../types/session';
 import { base64url, decryptTokens, encryptTokens, randomId, signHs256Jwt } from './crypto';
 import type { OidcClientOpenId } from './oidcOpenIdClient';
 

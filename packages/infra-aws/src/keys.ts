@@ -46,6 +46,14 @@ export function skUser(userId: string): string {
   return `USER#${userId}`;
 }
 
+export function skSession(sessionId: string): string {
+  return `SESSION#${sessionId}`;
+}
+
+export function skState(state: string): string {
+  return `STATE#${state}`;
+}
+
 export function gsi1AlbumChild(parentAlbumId: string, albumId: string): Gsi1Key {
   return { GSI1PK: skAlbum(parentAlbumId), GSI1SK: skAlbum(albumId) };
 }

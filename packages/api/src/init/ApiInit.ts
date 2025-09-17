@@ -34,6 +34,7 @@ import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake
 // Controllers and services that include former BFF responsibilities (previously in packages/bff).
 // These were merged into the API package; controller/class names may still include 'Bff' for
 // historical reasons.
+import { DdbSessionStore, DdbStateStore } from '@ayeldo/infra-aws';
 import { AuthController } from '../controllers/authController';
 import { CartFrontendController } from '../controllers/cartController';
 import { RootController } from '../controllers/rootController';
@@ -44,7 +45,6 @@ import { SessionBasedAuthorizer } from '../services/sessionBasedAuthorizer';
 import { SessionService } from '../services/sessionService';
 import { TenantService } from '../services/tenantService';
 import { SignedUrlProviderFake } from '../storage/signedUrlProviderFake';
-import { MemorySessionStore, MemoryStateStore } from '../stores/sessionStore';
 
 // Root logger using @ayeldo/utils pino adapter (implements ILogWriter shape)
 export const logWriter: ILogWriter = createRootLogger('api', 'info');
@@ -241,8 +241,8 @@ if (siteConfig.isOidcConfigured) {
     oidc = new OidcClientOpenId(oidcCfg);
 
     sessions = new SessionService({
-      store: new MemorySessionStore(),
-      states: new MemoryStateStore(),
+      store: new DdbSessionStore({ tableName, client: ddb }),
+      states: new DdbStateStore({ tableName, client: ddb }),
       encKeyB64: siteConfig.sessionEncKey ?? 'c2Vzc2lvbl9lbmNfMzJieXRlc19iYXNlNjQ=',
       encKid: 'v1',
       bffJwtSecretB64: siteConfig.bffJwtSecret ?? 'YnZmX2p3dF9zZWNyZXRfYmFzZTY0',

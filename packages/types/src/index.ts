@@ -4,4 +4,5 @@ export type { UserCreateDto, UserDto } from './dtos';
 export * from './events';
 export * from './schemas';
 export { userCreateSchema, userSchema } from './schemas';
+export * from './session';
 export * from './state';
