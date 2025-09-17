@@ -146,8 +146,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       '@fmork/backend-core':
-        specifier: ^4.0.2
-        version: 4.0.2
+        specifier: ^4.0.3
+        version: 4.0.3
       aws-xray-sdk-core:
         specifier: ^3.10.3
         version: 3.10.3
@@ -197,8 +197,8 @@ importers:
         specifier: workspace:*
         version: link:../types
       '@fmork/backend-core':
-        specifier: ^4.0.2
-        version: 4.0.2
+        specifier: ^4.0.3
+        version: 4.0.3
 
   packages/services:
     dependencies:
@@ -215,8 +215,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       '@fmork/backend-core':
-        specifier: ^4.0.2
-        version: 4.0.2
+        specifier: ^4.0.3
+        version: 4.0.3
       aws-xray-sdk-core:
         specifier: ^3.10.3
         version: 3.10.3
@@ -845,8 +845,8 @@ packages:
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@fmork/backend-core@4.0.2':
-    resolution: {integrity: sha512-wgcPduWaPZsq0W7IDLr8xz8kBlJsQlwg8+YLd567MFAB0C+zY0Uvqsy+La80ZzRfdfe5iXsdi3CJN5zV+PAk/A==, tarball: https://npm.pkg.github.com/download/@fmork/backend-core/4.0.2/c920e9fe1f415f9eef6395575518b1f5b2ee503a}
+  '@fmork/backend-core@4.0.3':
+    resolution: {integrity: sha512-f4xhLg05bMr6IHPx7tPAx7dpOOAoYCw3+NgEcfRo3fv0ANprafDfQjrQrIh5GTfc0PEXCGN77bE0DTAIQMeq6g==, tarball: https://npm.pkg.github.com/download/@fmork/backend-core/4.0.3/54b336c810a81f1d3d0bb15b8e60709f1ead9833}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -4606,7 +4606,7 @@ snapshots:
 
   '@eslint/js@8.57.1': {}
 
-  '@fmork/backend-core@4.0.2':
+  '@fmork/backend-core@4.0.3':
     dependencies:
       '@types/aws-lambda': 8.10.152
       axios: 1.12.2
