@@ -120,6 +120,7 @@ const ddbEndpoint = process.env['DDB_ENDPOINT'];
 const ddb = new DdbDocumentClientAdapter({
   region,
   ...(ddbEndpoint ? { endpoint: ddbEndpoint } : {}),
+  logger: logWriter,
 });
 const cartRepo = new CartRepoDdb({ tableName, client: ddb });
 const priceListRepo = new PriceListRepoDdb({ tableName, client: ddb });

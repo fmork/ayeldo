@@ -1,6 +1,7 @@
 import { DdbDocumentClientAdapter, StatsRepoDdb } from '@ayeldo/infra-aws';
 import type { EventEnvelope } from '@ayeldo/types';
 import { createRootLogger } from '@ayeldo/utils';
+import type { ILogWriter } from '@fmork/backend-core';
 import AWSXRay from 'aws-xray-sdk-core';
 import { AnalyticsConsumer } from '../../analytics/analyticsConsumer';
 
@@ -13,7 +14,7 @@ interface LambdaEventBridgeEvent {
 }
 
 export async function main(event: unknown): Promise<void> {
-  const logger = createRootLogger('analytics', 'info');
+  const logger: ILogWriter = createRootLogger('analytics', 'info');
   const e = event as LambdaEventBridgeEvent;
   const type = e?.['detail-type'];
   if (!type) return;
@@ -23,7 +24,7 @@ export async function main(event: unknown): Promise<void> {
   const region = process.env['AWS_REGION'] ?? 'us-east-1';
   if (!tableName) throw new Error('TABLE_NAME env var is required');
 
-  const ddb = new DdbDocumentClientAdapter({ region });
+  const ddb = new DdbDocumentClientAdapter({ region, logger });
   const statsRepo = new StatsRepoDdb({ tableName, client: ddb });
   const consumer = new AnalyticsConsumer({ statsRepo, logger });
 
