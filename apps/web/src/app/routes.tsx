@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import AdminPage from '../features/admin/pages/adminPage';
 import TenantsPage from '../features/admin/pages/tenantsPage';
 import AlbumPage from '../features/albums/pages/albumPage';
+import OnboardPage from '../features/auth/pages/OnboardPage';
 import SignInPage from '../features/auth/pages/signInPage';
 import SignOutPage from '../features/auth/pages/signOutPage';
 import SignedInLandingPage from '../features/auth/pages/signedInLandingPage';
@@ -21,6 +22,7 @@ const AppRoutes: FC = () => {
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/auth/signin" element={<SignInPage />} />
+          <Route path="/auth/onboard" element={<OnboardPage />} />
           <Route path="/auth/signedin" element={<SignedInLandingPage />} />
           <Route path="/auth/signout" element={<SignOutPage />} />
           <Route path="/albums/:id" element={<AlbumPage />} />

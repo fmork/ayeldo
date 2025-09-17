@@ -32,6 +32,20 @@ export const bffApi = createApi({
       query: () => '/session',
       transformErrorResponse: () => ({ loggedIn: false as const }),
     }),
+    onboard: builder.mutation<
+      {
+        tenant: { id: string; name: string; ownerEmail: string };
+        adminUser: { id: string; email: string };
+      },
+      { name: string; ownerEmail: string; adminName?: string; plan?: string }
+    >({
+      query: (body) => ({
+        url: '/auth/onboard',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Session'],
+    }),
     logout: builder.mutation<{ loggedOut: boolean }, void>({
       query: () => ({
         url: '/auth/logout',

@@ -74,10 +74,10 @@ Phase 3 — Initial data & events
 
 Phase 4 — Frontend onboarding UI
 
-- ☐ Add `/onboard` page in `apps/web/src/features/auth` with the onboarding form and client-side validation (mirror zod schema).
-- ☐ Add RTK Query mutation that calls the HTTP API `POST /auth/onboard` using `credentials: 'include'` and `X-CSRF-Token` header.
-- ☐ On success, navigate to `/albums` or onboarding completion page.
-- ☐ Add visual feedback and error handling for common failures (email already exists, validation errors).
+- ✅ Add `/onboard` page in `apps/web/src/features/auth` with the onboarding form and client-side validation (mirror zod schema).
+- ✅ Add RTK Query mutation that calls the HTTP API `POST /auth/onboard` using `credentials: 'include'` and `X-CSRF-Token` header.
+- ✅ On success, navigate to `/albums` or onboarding completion page.
+- ✅ Add visual feedback and error handling for common failures (email already exists, validation errors).
 
 Phase 5 — Tests & QA
 
@@ -145,7 +145,7 @@ Next actions (short-term)
 - ✅ Phase 2: implemented `OnboardingService` with updated architecture (users created at sign-in, not onboarding).
 - ✅ Phase 2 completion: Added onboarding HTTP endpoint `POST /auth/onboard` to AuthController with proper OIDC authentication.
 - ✅ Phase 3: Implement seeding and event emission.
-- ☐ Phase 4: Frontend onboarding UI implementation.
+- ✅ Phase 4: Frontend onboarding UI implementation.
 
 ---
 
