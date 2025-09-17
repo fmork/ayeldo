@@ -3,12 +3,13 @@ import type { FC } from 'react';
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import PageIsLoading from '../../../app/components/PageIsLoading';
-import { useSessionActions } from '../../../app/contexts/SessionContext';
+import { useSession, useSessionActions } from '../../../app/contexts/SessionContext';
 
 const SignedInLandingPage: FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { refreshSession } = useSessionActions();
+  const session = useSession();
 
   useEffect(() => {
     let mounted = true;
@@ -36,9 +37,16 @@ const SignedInLandingPage: FC = () => {
         await new Promise((r) => setTimeout(r, delayMs));
       }
 
-      // After attempting to refresh session a few times, navigate to returnTo.
-      // The SessionProvider will have refreshed and updated session state.
-      navigate(returnTo, { replace: true });
+      // After attempting to refresh session, check if user needs onboarding
+      // If session is available and user has no tenant, redirect to onboarding
+      // Otherwise, navigate to the intended destination
+      if (session?.loggedIn && !session.tenantId) {
+        // User is authenticated but has no tenant - redirect to onboarding
+        navigate('/auth/onboard', { replace: true });
+      } else {
+        // User has a tenant or session isn't ready yet - go to intended destination
+        navigate(returnTo, { replace: true });
+      }
     };
 
     void waitForSession();
@@ -46,7 +54,7 @@ const SignedInLandingPage: FC = () => {
     return () => {
       mounted = false;
     };
-  }, [location.search, navigate, refreshSession]);
+  }, [location.search, navigate, refreshSession, session]);
 
   return (
     <Container maxWidth="sm">

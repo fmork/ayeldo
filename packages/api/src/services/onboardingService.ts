@@ -26,11 +26,9 @@ export class OnboardingService {
   }
 
   /**
-   * Create tenant (and optionally an admin user). Returns created tenant and,
-   * if sessions are available, a session payload { sid, csrf } suitable for
-   * setting cookies.
+   * Create tenant with an admin user. Returns created tenant and admin user.
    */
-  public async createTenantAndMaybeSignIn(
+  public async createTenant(
     body: unknown,
     oidcIdentity?: { sub: string; email: string; name?: string },
   ): Promise<{
@@ -38,14 +36,12 @@ export class OnboardingService {
     adminUser: UserDto;
     session?: { sid: string; csrf: string } | undefined;
   }> {
-    // 1. Create tenant
-    const tenant = await this.deps.tenantService.createTenantFromRequest(body);
-
-    // 2. Find existing admin user by OIDC identity
+    // 1. Validate OIDC identity first (fail fast)
     if (!oidcIdentity) {
       throw new Error('OIDC identity required for onboarding admin user');
     }
 
+    // 2. Find existing admin user by OIDC identity
     // User should already exist from sign-in flow
     let adminUser = await this.deps.userRepo.getUserByOidcSub(oidcIdentity.sub);
     if (!adminUser) {
@@ -58,11 +54,14 @@ export class OnboardingService {
       }
     }
 
-    // 3. Associate user with tenant (update user's tenantId)
+    // 3. Create tenant
+    const tenant = await this.deps.tenantService.createTenantFromRequest(body);
+
+    // 4. Associate user with tenant (update user's tenantId)
     // For now, we'll assume the user is created with the correct tenantId
     // In a more sophisticated system, we might need to update the user's tenant association
 
-    // 4. Emit TenantCreated event
+    // 5. Emit TenantCreated event
     await this.deps.eventPublisher.publish({
       id: makeUlid(),
       type: 'TenantCreated' as const,
@@ -76,12 +75,12 @@ export class OnboardingService {
       },
     });
 
-    // 5. Perform optional seeding if repositories are available
+    // 6. Perform optional seeding if repositories are available
     if (this.deps.albumRepo && this.deps.priceListRepo) {
       await this.performSeeding(tenant.id);
     }
 
-    // 6. Optionally create session (not implemented here)
+    // 7. Optionally create session (not implemented here)
     let sessionOut: { sid: string; csrf: string } | undefined;
     if (this.deps.sessions) {
       this.deps.logger.info('Sessions available but onboarding does not auto-create sessions.');

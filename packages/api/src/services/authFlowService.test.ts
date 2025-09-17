@@ -173,6 +173,73 @@ describe('AuthFlowService', () => {
     }
   });
 
+  test('sessionInfo includes tenantId when user has tenant', async () => {
+    const sessions = mkSessionService({
+      getSession: jest.fn().mockResolvedValue({ sub: 'u1', email: 'a@b.c', name: 'A' }),
+    });
+    const oidc = mkOidc();
+    const userRepo = mkUserRepo({
+      getUserByOidcSub: jest.fn().mockResolvedValue({
+        id: 'user-1',
+        email: 'a@b.c',
+        oidcSub: 'u1',
+        tenantId: 'tenant-123',
+      }),
+    });
+    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const info = await svc.sessionInfo('sidX');
+    expect(info.loggedIn).toBe(true);
+    if (info.loggedIn) {
+      expect(info.sub).toBe('u1');
+      expect(info.email).toBe('a@b.c');
+      expect(info.name).toBe('A');
+      expect(info.tenantId).toBe('tenant-123');
+    }
+  });
+
+  test('sessionInfo excludes tenantId when user has no tenant', async () => {
+    const sessions = mkSessionService({
+      getSession: jest.fn().mockResolvedValue({ sub: 'u1', email: 'a@b.c', name: 'A' }),
+    });
+    const oidc = mkOidc();
+    const userRepo = mkUserRepo({
+      getUserByOidcSub: jest.fn().mockResolvedValue({
+        id: 'user-1',
+        email: 'a@b.c',
+        oidcSub: 'u1',
+        tenantId: undefined,
+      }),
+    });
+    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const info = await svc.sessionInfo('sidX');
+    expect(info.loggedIn).toBe(true);
+    if (info.loggedIn) {
+      expect(info.sub).toBe('u1');
+      expect(info.email).toBe('a@b.c');
+      expect(info.name).toBe('A');
+      expect(info.tenantId).toBeUndefined();
+    }
+  });
+
+  test('sessionInfo handles user lookup failure gracefully', async () => {
+    const sessions = mkSessionService({
+      getSession: jest.fn().mockResolvedValue({ sub: 'u1', email: 'a@b.c', name: 'A' }),
+    });
+    const oidc = mkOidc();
+    const userRepo = mkUserRepo({
+      getUserByOidcSub: jest.fn().mockRejectedValue(new Error('DB connection failed')),
+    });
+    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const info = await svc.sessionInfo('sidX');
+    expect(info.loggedIn).toBe(true);
+    if (info.loggedIn) {
+      expect(info.sub).toBe('u1');
+      expect(info.email).toBe('a@b.c');
+      expect(info.name).toBe('A');
+      expect(info.tenantId).toBeUndefined(); // Should not be present due to error
+    }
+  });
+
   test('logout calls underlying session logout when sid present', async () => {
     const sessions = mkSessionService();
     const oidc = mkOidc();

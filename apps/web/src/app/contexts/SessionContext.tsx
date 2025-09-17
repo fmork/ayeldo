@@ -7,6 +7,7 @@ export interface SessionInfo {
   readonly sub?: string;
   readonly email?: string;
   readonly name?: string;
+  readonly tenantId?: string; // undefined if user hasn't completed onboarding
 }
 
 export interface SessionContextType {
@@ -41,6 +42,7 @@ export const SessionProvider: FC<{ children: ReactNode }> = ({ children }) => {
           sub: result.sub,
           ...(result.email !== undefined && { email: result.email }),
           ...(result.name !== undefined && { name: result.name }),
+          ...(result.tenantId !== undefined && { tenantId: result.tenantId }),
         };
         setSession(sessionInfo);
       } else {

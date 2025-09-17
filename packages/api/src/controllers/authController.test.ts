@@ -32,7 +32,7 @@ describe('AuthController', () => {
 
   const mkOnboardingService = (overrides?: Partial<OnboardingService>): OnboardingService =>
     ({
-      createTenantAndMaybeSignIn: jest.fn().mockResolvedValue({
+      createTenant: jest.fn().mockResolvedValue({
         tenant: { id: 'tenant-123', name: 'Test Tenant', ownerEmail: 'test@example.com' },
         adminUser: { id: 'user-123', email: 'test@example.com', oidcSub: 'user-123' },
         session: undefined,

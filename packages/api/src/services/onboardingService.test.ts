@@ -23,10 +23,7 @@ describe('OnboardingService', () => {
     });
 
     const oidcIdentity = { sub: 'oidc-123', email: 'o@e.com', name: 'Owner' };
-    const res = await svc.createTenantAndMaybeSignIn(
-      { name: 'Acme', ownerEmail: 'o@e.com' },
-      oidcIdentity,
-    );
+    const res = await svc.createTenant({ name: 'Acme', ownerEmail: 'o@e.com' }, oidcIdentity);
 
     expect(tenantSvc.createTenantFromRequest).toHaveBeenCalled();
     expect(userRepo.getUserByOidcSub).toHaveBeenCalledWith('oidc-123');
@@ -79,7 +76,7 @@ describe('OnboardingService', () => {
     });
 
     const oidcIdentity = { sub: 'oidc-456', email: 'b@example.com', name: 'Beta User' };
-    const res = await svc.createTenantAndMaybeSignIn(
+    const res = await svc.createTenant(
       { name: 'Beta Corp', ownerEmail: 'b@example.com' },
       oidcIdentity,
     );
@@ -130,7 +127,7 @@ describe('OnboardingService', () => {
     });
 
     const oidcIdentity = { sub: 'oidc-789', email: 'g@example.com', name: 'Gamma User' };
-    const res = await svc.createTenantAndMaybeSignIn(
+    const res = await svc.createTenant(
       { name: 'Gamma LLC', ownerEmail: 'g@example.com' },
       oidcIdentity,
     );

@@ -148,10 +148,7 @@ export class AuthController extends PublicController {
             };
 
             // 3. Call OnboardingService with validated body and OIDC identity
-            const result = await onboardingService.createTenantAndMaybeSignIn(
-              validatedBody,
-              oidcIdentity,
-            );
+            const result = await onboardingService.createTenant(validatedBody, oidcIdentity);
 
             // 4. On success, set session cookie and CSRF cookie if returned
             if (result.session) {

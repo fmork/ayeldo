@@ -31,6 +31,7 @@ export interface SessionInfoLoggedIn {
   readonly sub: string;
   readonly email?: string;
   readonly name?: string;
+  readonly tenantId?: string; // null if user hasn't completed onboarding
 }
 export type SessionInfo = SessionInfoLoggedOut | SessionInfoLoggedIn;
 
@@ -132,11 +133,23 @@ export class AuthFlowService {
     const sess = await this.sessions.getSession(sid);
     this.logger.info(`Session info retrieved: ${JSON.stringify(sess)}`);
     if (!sess) return { loggedIn: false } as const;
+
+    // Fetch user to get tenant information
+    let tenantId: string | undefined;
+    try {
+      const user = await this.userRepo.getUserByOidcSub(sess.sub);
+      tenantId = user?.tenantId;
+    } catch (err) {
+      this.logger.warn(`Failed to fetch user for session ${sess.sub}: ${err}`);
+      // Continue without tenant info - user might not exist yet or have DB issues
+    }
+
     const out: SessionInfoLoggedIn = {
       loggedIn: true,
       sub: sess.sub,
       ...(sess.email !== undefined ? { email: sess.email } : {}),
       ...(sess.name !== undefined ? { name: sess.name } : {}),
+      ...(tenantId !== undefined ? { tenantId } : {}),
     } as const;
 
     this.logger.info(`Session info returned: ${JSON.stringify(out)}`);
