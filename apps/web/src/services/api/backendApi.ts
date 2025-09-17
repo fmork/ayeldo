@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { siteConfig } from '../../app/SiteConfigurationContext';
+import { frontendConfig } from '../../app/FrontendConfigurationContext';
 import { getCsrfToken } from '../csrf/getCsrfToken';
 
 export const backendApi = createApi({
@@ -9,11 +9,11 @@ export const backendApi = createApi({
     // Vite dev server proxy. Using a relative baseUrl ensures requests are
     // made to the dev server origin (same-origin) so cookies are handled by
     // the browser normally. In production/site builds, use the full apiBaseUrl.
-    baseUrl: siteConfig.apiBaseUrl,
+    baseUrl: frontendConfig.apiBaseUrl,
     credentials: 'include',
     prepareHeaders: (headers) => {
       const csrf = getCsrfToken();
-      if (csrf) headers.set(siteConfig.csrfHeaderName, csrf);
+      if (csrf) headers.set(frontendConfig.csrfHeaderName, csrf);
       return headers;
     },
   }),

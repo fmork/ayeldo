@@ -28,7 +28,7 @@ cd apps/web
 # Create .env file
 echo "VITE_BFF_BASE_URL=https://$FMORK_SITE_API_HOST_NAME" >> .env
 echo "VITE_STATIC_SITE_URL=https://$FMORK_SITE_STATIC_HOST_NAME" >> .env
-
+echo "VITE_DEPLOYMENT_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> .env
 echo
 echo ".env-----"
 cat .env

@@ -9,13 +9,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSession } from '../../../app/contexts/SessionContext';
-import { useSiteConfiguration } from '../../../app/SiteConfigurationContext';
+import { useFrontendConfiguration } from '../../../app/FrontendConfigurationContext';
 import { useLazyGetAuthorizeUrlQuery } from '../../../services/api/backendApi';
 
 const SignInPage: FC = () => {
   const [trigger, { isFetching, isLoading }] = useLazyGetAuthorizeUrlQuery();
   const { t } = useTranslation();
-  const { webOrigin } = useSiteConfiguration();
+  const { webOrigin } = useFrontendConfiguration();
   const navigate = useNavigate();
   const location = useLocation();
   const session = useSession();
