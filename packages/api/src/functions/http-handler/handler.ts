@@ -47,10 +47,8 @@ server.useMiddleware((req: unknown, res: unknown, next: unknown) => {
     const method = (r.method ?? 'GET').toUpperCase();
     const url = r.url ?? '';
 
-    // Let CORS middleware handle OPTIONS requests - don't interfere here
-
-    // Only enforce CSRF for unsafe HTTP methods
-    if (!['POST', 'PUT', 'DELETE'].includes(method)) {
+    // Skip CSRF validation for OPTIONS requests (CORS preflight) and other safe methods
+    if (method === 'OPTIONS' || !['POST', 'PUT', 'DELETE'].includes(method)) {
       return (next as () => void)();
     }
 
