@@ -27,8 +27,6 @@ import { CartController } from '../controllers/cartController';
 import { MediaController } from '../controllers/mediaController';
 import { OrderController } from '../controllers/orderController';
 import { PaymentController } from '../controllers/paymentController';
-import { ReferenceClaimAuthorizedApiController } from '../controllers/referenceClaimAuthorizedApiController';
-import { ReferencePublicApiController } from '../controllers/referencePublicApiController';
 import { TenantAdminController } from '../controllers/tenantAdminController';
 import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake';
 // Controllers and services that include former BFF responsibilities (previously in packages/bff).
@@ -137,19 +135,6 @@ const payments = new StripePaymentProviderFake();
 const download = new SignedUrlProviderFake();
 
 // Instantiate controllers
-export const referencePublicApiController = new ReferencePublicApiController({
-  baseUrl: '',
-  jsonUtil,
-  logWriter,
-});
-
-export const referenceClaimAuthorizedApiController = new ReferenceClaimAuthorizedApiController({
-  baseUrl: '',
-  jsonUtil,
-  logWriter,
-  authorizer: claimBasedAuthorizer.createAuthorizer,
-});
-
 export const cartController = new CartController({
   baseUrl: '',
   logWriter,
@@ -354,8 +339,6 @@ const serverPort: number = process.env['PORT']
 
 export const server = new Server({
   controllers: [
-    referencePublicApiController,
-    referenceClaimAuthorizedApiController,
     cartController,
     orderController,
     paymentController,
