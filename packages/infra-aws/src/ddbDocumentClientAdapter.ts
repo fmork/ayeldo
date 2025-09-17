@@ -1,8 +1,17 @@
-import type { DdbClient, GetParams, PutParams, QueryParams, QueryResult, UpdateParams } from './ddbClient';
+import type { ILogWriter } from '@fmork/backend-core';
+import type {
+  DdbClient,
+  GetParams,
+  PutParams,
+  QueryParams,
+  QueryResult,
+  UpdateParams,
+} from './ddbClient';
 
 export interface DdbDocumentClientAdapterProps {
   readonly region: string;
   readonly endpoint?: string;
+  readonly logger: ILogWriter;
 }
 
 /**
@@ -12,11 +21,13 @@ export interface DdbDocumentClientAdapterProps {
 export class DdbDocumentClientAdapter implements DdbClient {
   private readonly region: string;
   private readonly endpoint: string | undefined;
+  private readonly logger: ILogWriter;
   private docClientPromise: Promise<unknown> | undefined;
 
   public constructor(props: DdbDocumentClientAdapterProps) {
     this.region = props.region;
     this.endpoint = props.endpoint;
+    this.logger = props.logger;
   }
 
   private async getDoc(): Promise<unknown> {
@@ -40,10 +51,46 @@ export class DdbDocumentClientAdapter implements DdbClient {
   public async get<TItem extends object>(params: GetParams): Promise<{ item?: TItem }> {
     const doc = (await this.getDoc()) as { send: (cmd: unknown) => Promise<unknown> };
     const { GetCommand } = await import('@aws-sdk/lib-dynamodb');
-    const out = (await doc.send(new GetCommand({ TableName: params.tableName, Key: params.key }))) as {
-      Item?: unknown;
-    };
-    return out.Item ? { item: out.Item as TItem } : {};
+    const command = new GetCommand({ TableName: params.tableName, Key: params.key });
+    try {
+      // Log the raw Get request
+      try {
+        this.logger.debug(
+          `DDB Get request: ${JSON.stringify({ TableName: params.tableName, Key: params.key })}`,
+        );
+      } catch (err) {
+        // ensure logging never throws
+        try {
+          this.logger.debug('DDB Get request: <unserializable>');
+        } catch (e) {
+          // swallow
+        }
+      }
+
+      const out = (await doc.send(command)) as { Item?: unknown };
+
+      // Log the raw Get response
+      try {
+        this.logger.debug(`DDB Get response: ${JSON.stringify(out ?? {})}`);
+      } catch (err) {
+        try {
+          this.logger.debug('DDB Get response: <unserializable>');
+        } catch (e) {
+          // swallow
+        }
+      }
+
+      return out && 'Item' in out && out.Item ? { item: out.Item as TItem } : {};
+    } catch (err) {
+      // Log the error and rethrow
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        this.logger.error('DDB Get error', err as Error);
+      } catch (e) {
+        // swallow
+      }
+      throw err;
+    }
   }
 
   public async put<TItem extends object>(params: PutParams<TItem>): Promise<void> {
@@ -62,7 +109,7 @@ export class DdbDocumentClientAdapter implements DdbClient {
         UpdateExpression: params.update,
         ExpressionAttributeNames: params.names,
         ExpressionAttributeValues: params.values as Record<string, unknown> | undefined,
-      })
+      }),
     );
   }
 
@@ -80,7 +127,7 @@ export class DdbDocumentClientAdapter implements DdbClient {
         ScanIndexForward: params.scanIndexForward,
         Limit: params.limit,
         ExclusiveStartKey: params.exclusiveStartKey as Record<string, unknown> | undefined,
-      })
+      }),
     );
     const outTyped = (out as {
       Items?: unknown[];
