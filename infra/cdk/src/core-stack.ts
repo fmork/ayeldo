@@ -61,13 +61,13 @@ export class CoreStack extends Stack {
       projectionType: ProjectionType.ALL,
     });
 
-    // GSI3: User lookup by email
-    this.table.addGlobalSecondaryIndex({
-      indexName: 'GSI3',
-      partitionKey: { name: 'GSI3PK', type: AttributeType.STRING },
-      sortKey: { name: 'GSI3SK', type: AttributeType.STRING },
-      projectionType: ProjectionType.ALL,
-    });
+    // // GSI3: User lookup by email
+    // this.table.addGlobalSecondaryIndex({
+    //   indexName: 'GSI3',
+    //   partitionKey: { name: 'GSI3PK', type: AttributeType.STRING },
+    //   sortKey: { name: 'GSI3SK', type: AttributeType.STRING },
+    //   projectionType: ProjectionType.ALL,
+    // });
 
     // Static web hosting bucket (served via CloudFront)
     this.webBucket = new Bucket(this, 'WebBucket', {
