@@ -10,6 +10,7 @@ import {
   PriceListRepoDdb,
 } from '@ayeldo/infra-aws';
 import TenantRepoDdb from '@ayeldo/infra-aws/src/tenantRepoDdb';
+import UserRepoDdb from '@ayeldo/infra-aws/src/userRepoDdb';
 import { createRootLogger, getEventBridgeClient, loadEnv } from '@ayeldo/utils';
 import type { ILogWriter } from '@fmork/backend-core';
 import {
@@ -36,6 +37,7 @@ import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake
 import { AuthController } from '../controllers/authController';
 import { CartFrontendController } from '../controllers/cartController';
 import { RootController } from '../controllers/rootController';
+import { AuthFlowService } from '../services/authFlowService';
 import { OidcClientOpenId, type OidcOpenIdConfig } from '../services/oidcOpenIdClient';
 import OnboardingService from '../services/onboardingService';
 import { SessionBasedAuthorizer } from '../services/sessionBasedAuthorizer';
@@ -191,8 +193,11 @@ const tenantService = new TenantService({
   logger: logWriter,
 });
 
+const userRepo = new UserRepoDdb({ tableName, client: ddb });
+
 const onboardingService = new OnboardingService({
   tenantService,
+  userRepo,
   logger: logWriter,
 });
 
@@ -202,6 +207,7 @@ const httpClient = new AxiosHttpClient({ logWriter });
 // Create OIDC config from SiteConfiguration if OIDC is configured
 let oidc: OidcClientOpenId | undefined;
 let sessions: SessionService | undefined;
+let authFlowService: AuthFlowService | undefined;
 
 if (siteConfig.isOidcConfigured) {
   const authority = siteConfig.oidcAuthority;
@@ -243,6 +249,13 @@ if (siteConfig.isOidcConfigured) {
       audience: 'api',
       logger: logWriter,
     });
+
+    authFlowService = new AuthFlowService({
+      oidc,
+      sessions,
+      userRepo,
+      logger: logWriter,
+    });
   }
 }
 
@@ -250,12 +263,11 @@ export const rootBffController = new RootController({ baseUrl: '', logWriter });
 
 // Only create BFF controllers if OIDC is configured
 export const authBffController =
-  oidc && sessions
+  oidc && sessions && authFlowService
     ? new AuthController({
         baseUrl: '',
         logWriter,
-        oidc,
-        sessions,
+        authFlow: authFlowService,
         onboardingService,
       })
     : undefined;

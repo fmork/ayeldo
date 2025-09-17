@@ -2,16 +2,13 @@
 import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
 import { requireCsrfForController } from '../middleware/csrfGuard';
-import { AuthFlowService } from '../services/authFlowService';
-import type { OidcClientOpenId } from '../services/oidcOpenIdClient';
+import type { AuthFlowService } from '../services/authFlowService';
 import type { OnboardingService } from '../services/onboardingService';
-import type { SessionService } from '../services/sessionService';
 
 export interface AuthControllerProps {
   readonly baseUrl: string;
   readonly logWriter: ILogWriter;
-  readonly oidc: OidcClientOpenId;
-  readonly sessions: SessionService;
+  readonly authFlow: AuthFlowService;
   readonly onboardingService?: OnboardingService;
 }
 
@@ -21,12 +18,7 @@ export class AuthController extends PublicController {
 
   public constructor(props: AuthControllerProps) {
     super(props.baseUrl, props.logWriter);
-    // Backend always runs in production-like environments; no dev flags.
-    this.authFlow = new AuthFlowService({
-      oidc: props.oidc,
-      sessions: props.sessions,
-      logger: props.logWriter,
-    });
+    this.authFlow = props.authFlow;
     this.onboardingService = props.onboardingService;
   }
 

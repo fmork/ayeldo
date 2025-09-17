@@ -1,4 +1,7 @@
-export * from './state';
+// Removed named exports to avoid conflicts
 export * from './dtos';
-export * from './schemas';
+export type { UserCreateDto, UserDto } from './dtos';
 export * from './events';
+export * from './schemas';
+export { userCreateSchema, userSchema } from './schemas';
+export * from './state';

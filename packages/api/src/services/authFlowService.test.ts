@@ -20,6 +20,16 @@ describe('AuthFlowService', () => {
     error: jest.fn(),
   });
 
+  function mkUserRepo(overrides?: Partial<any>) {
+    return {
+      getUserByOidcSub: jest.fn().mockResolvedValue(null),
+      getUserByEmail: jest.fn().mockResolvedValue(null),
+      createUser: jest.fn().mockResolvedValue({ id: 'user-id', email: 'test@example.com' }),
+      updateUserSub: jest.fn().mockResolvedValue(undefined),
+      ...overrides,
+    } as any;
+  }
+
   function mkSessionService(overrides?: Partial<any>) {
     const created: CreatedState[] = [];
     return {
@@ -33,13 +43,11 @@ describe('AuthFlowService', () => {
         created.push(s);
         return s;
       },
-      completeLogin: jest
-        .fn()
-        .mockResolvedValue({
-          sid: 'sid123',
-          csrf: 'csrf456',
-          profile: { sub: 'user-sub', email: 'e@example.com', name: 'User' },
-        }),
+      completeLogin: jest.fn().mockResolvedValue({
+        sid: 'sid123',
+        csrf: 'csrf456',
+        profile: { sub: 'user-sub', email: 'e@example.com', name: 'User' },
+      }),
       getSession: jest.fn().mockResolvedValue(undefined),
       logout: jest.fn().mockResolvedValue(undefined),
       _createdStates: created,
@@ -61,7 +69,8 @@ describe('AuthFlowService', () => {
   test('buildAuthorizeUrl without redirect uses plain state', () => {
     const sessions = mkSessionService();
     const oidc = mkOidc();
-    const svc = new AuthFlowService({ oidc, sessions, logger: mkLogger() as any });
+    const userRepo = mkUserRepo();
+    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
     const { url } = svc.buildAuthorizeUrl();
     const created = (sessions as any)._createdStates[0];
     expect(url).toContain(`state=${created.state}`);
@@ -70,7 +79,8 @@ describe('AuthFlowService', () => {
   test('buildAuthorizeUrl with redirect encodes redirect in state suffix', () => {
     const sessions = mkSessionService();
     const oidc = mkOidc(({ state }) => `auth?state=${state}`);
-    const svc = new AuthFlowService({ oidc, sessions, logger: mkLogger() as any });
+    const userRepo = mkUserRepo();
+    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
     const { url } = svc.buildAuthorizeUrl('/target/path');
     const created = (sessions as any)._createdStates[0];
     // The authorize URL should contain the base state part
@@ -80,7 +90,8 @@ describe('AuthFlowService', () => {
   test('buildLoginRedirectUrl uses fresh state each call', () => {
     const sessions = mkSessionService();
     const oidc = mkOidc();
-    const svc = new AuthFlowService({ oidc, sessions, logger: mkLogger() as any });
+    const userRepo = mkUserRepo();
+    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
     const url1 = svc.buildLoginRedirectUrl();
     const url2 = svc.buildLoginRedirectUrl();
     expect(url1).not.toEqual(url2); // random state differs
@@ -96,7 +107,8 @@ describe('AuthFlowService', () => {
       codeChallenge: 'c',
     });
     const oidc = mkOidc();
-    const svc = new AuthFlowService({ oidc, sessions, logger: mkLogger() as any });
+    const userRepo = mkUserRepo();
+    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
     // simulate recorded state so completeLogin passes
     (sessions.completeLogin as any).mockResolvedValue({
       sid: 'sid1',
@@ -128,7 +140,8 @@ describe('AuthFlowService', () => {
       profile: { sub: 'sub2' },
     });
     const oidc = mkOidc();
-    const svc = new AuthFlowService({ oidc, sessions, logger: mkLogger() as any });
+    const userRepo = mkUserRepo();
+    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
 
     const encoded = Buffer.from('javascript:alert(1)', 'utf8').toString('base64url');
     const result = await svc.handleCallback({ code: 'x', state: `${stateBase}.${encoded}` });
@@ -138,7 +151,8 @@ describe('AuthFlowService', () => {
   test('sessionInfo returns loggedOut when no sid', async () => {
     const sessions = mkSessionService();
     const oidc = mkOidc();
-    const svc = new AuthFlowService({ oidc, sessions, logger: mkLogger() as any });
+    const userRepo = mkUserRepo();
+    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
     const info = await svc.sessionInfo(undefined);
     expect(info.loggedIn).toBe(false);
   });
@@ -148,7 +162,8 @@ describe('AuthFlowService', () => {
       getSession: jest.fn().mockResolvedValue({ sub: 'u1', email: 'a@b.c', name: 'A' }),
     });
     const oidc = mkOidc();
-    const svc = new AuthFlowService({ oidc, sessions, logger: mkLogger() as any });
+    const userRepo = mkUserRepo();
+    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
     const info = await svc.sessionInfo('sidX');
     expect(info.loggedIn).toBe(true);
     if (info.loggedIn) {
@@ -161,7 +176,8 @@ describe('AuthFlowService', () => {
   test('logout calls underlying session logout when sid present', async () => {
     const sessions = mkSessionService();
     const oidc = mkOidc();
-    const svc = new AuthFlowService({ oidc, sessions, logger: mkLogger() as any });
+    const userRepo = mkUserRepo();
+    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
     await svc.logout('sid1');
     expect(sessions.logout).toHaveBeenCalledWith('sid1');
   });

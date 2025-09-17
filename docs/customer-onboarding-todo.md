@@ -5,14 +5,15 @@
 Convention: ✅ = done, ☐ = todo.  
 Work top-down; each phase is small and independently testable.
 
-This document implements the onboarding flow sketched in `docs/architecture.c4.dsl` (flow-1-signup-and-customer-association). The objective: allow a new tenant to sign up from the SPA, create tenant metadata in the API, create an initial admin user (linked to the OIDC identity), and return the user to the app with a valid session.
+This document implements the onboarding flow sketched in `docs/architecture.c4.dsl` (flow-1-signup-and-customer-association). The objective: allow a new tenant to sign up from the SPA, create tenant metadata in the API, associate an existing admin user (created during OIDC sign-in) with the tenant, and return the user to the app with a valid session.
 
 Summary:
 
 - Customer onboarding is always initiated by an authenticated user (OIDC principal).
+- User creation happens during the initial OIDC sign-in flow (via AuthFlowService.handleCallback), not during onboarding.
 - After OIDC login, the SPA calls an API endpoint to check the user's onboarding status.
 - If the user is not associated with a Customer, onboarding is triggered.
-- The onboarding process creates a Customer object (billing partner), then a Tenant for domain data (albums, images, ...), and links the current OIDC user as the initial admin.
+- The onboarding process creates a Customer object (billing partner), then a Tenant for domain data (albums, images, ...), and associates the existing OIDC user as the initial admin.
 - No public signup or password-based flows are supported; all onboarding is OIDC-based.
 
 Phases
@@ -37,15 +38,33 @@ Phase 1 — API: Tenant creation (domain API)
 
 Status note: After adding `TenantController` and the unit tests for `TenantService` and `TenantRepoDdb`, I ran the repository build (lint + tsc -b) and unit tests. All checks completed successfully in this session: Test Suites: 1 skipped, 16 passed; Tests: 3 skipped, 73 passed. Controller-level tests remain to be implemented (see note above).
 
+Phase 1.5 — User management and OIDC integration (completed)
+
+- ✅ Add `IUserRepo` port in `packages/core/src/ports/userRepo.ts` with getUserByOidcSub, getUserByEmail, createUser, updateUserSub methods.
+- ✅ Implement `UserRepoDdb` in `packages/infra-aws` using DdbClient and single-table design.
+- ✅ Integrate user creation into OIDC sign-in flow via `AuthFlowService.handleCallback`:
+  - Users are automatically created during first OIDC authentication
+  - Email fallback for user lookup when OIDC sub changes
+  - updateUserSub method to associate users found by email with OIDC sub
+- ✅ Unit tests for UserRepoDdb and AuthFlowService user creation logic.
+
 Phase 2 — HTTP API onboarding flow (OIDC user orchestration)
 
-- ☐ Add `OnboardingService` in `packages/api/src/services/onboardingService.ts` that composes tenant creation, seeding, and admin user creation (OIDC-linked).
+- ✅ Add `OnboardingService` in `packages/api/src/services/onboardingService.ts` that composes tenant creation and user-tenant association.
+- ✅ Enhanced `AuthFlowService` to create users during OIDC sign-in flow (handleCallback method):
+  - Added userRepo dependency to find/create users during authentication
+  - Added email fallback for user lookup when OIDC sub not found
+  - Added updateUserSub method to associate email-found users with OIDC sub
+- ✅ Updated `OnboardingService` to assume existing authenticated user instead of creating users:
+  - Finds existing user by OIDC identity (created during sign-in)
+  - Associates user with newly created tenant
+- ✅ Implemented proper dependency injection for AuthFlowService in ApiInit.ts
 - ☐ Add onboarding handler to `AuthController` (or `OnboardingController`) at `POST /auth/onboard`:
   - Validate body via zod DTO (e.g., { companyName, adminName, plan? }).
   - Use OIDC session to get current user identity (sub/email).
-  - Call `OnboardingService.createTenantAndAdmin(...)` which uses `ITenantRepo`, `IUserRepo` (OIDC-linked), and `IEventPublisher`.
+  - Call `OnboardingService.createTenantAndMaybeSignIn(...)` which uses `ITenantRepo`, `IUserRepo` (OIDC-linked), and `IEventPublisher`.
   - On success, set session cookie and CSRF cookie using existing `SessionService` behavior and return redirect target.
-- ☐ Unit tests for `OnboardingService` and controller wiring.
+- ✅ Unit tests for `OnboardingService` and `AuthFlowService` updated for new architecture.
 
 Phase 3 — Initial data & events
 
@@ -87,25 +106,31 @@ Security considerations
 
 Suggested files to create (small increments)
 
-- packages/types/src/dtos.ts (TenantCreate + Tenant + event types)
-- packages/types/src/schemas.ts (zod schemas)
-- packages/core/src/ports/tenantRepo.ts
-- packages/infra-aws/src/tenantRepoDdb.ts
-- packages/api/src/controllers/tenantController.ts
-- packages/api/src/services/onboardingService.ts
-- apps/web/src/features/auth/pages/signUpPage.tsx
-- apps/web/src/features/auth/api.ts (RTK mutation)
+- ✅ packages/types/src/dtos.ts (TenantCreate + Tenant + UserCreate + User + event types)
+- ✅ packages/types/src/schemas.ts (zod schemas)
+- ✅ packages/core/src/ports/tenantRepo.ts
+- ✅ packages/core/src/ports/userRepo.ts
+- ✅ packages/infra-aws/src/tenantRepoDdb.ts
+- ✅ packages/infra-aws/src/userRepoDdb.ts
+- ✅ packages/api/src/controllers/tenantController.ts
+- ✅ packages/api/src/services/onboardingService.ts
+- ✅ Enhanced packages/api/src/services/authFlowService.ts (user creation during sign-in)
+- ☐ apps/web/src/features/auth/pages/signUpPage.tsx
+- ☐ apps/web/src/features/auth/api.ts (RTK mutation)
 
 Implementation notes & small contracts
 
+- User creation happens during OIDC sign-in (AuthFlowService.handleCallback), not during onboarding
 - Contract for `POST /auth/onboard` request: { companyName: string, adminName?: string, plan?: string }
   - OIDC identity (sub/email) is taken from the session, not the request body.
+  - User must already exist (created during sign-in) before onboarding
 - Contract for `POST /tenants` request (domain API): TenantCreate DTO (id optional; server generates ULID)
-- Error modes: validation error (400), email exists (409), internal error (500).
+- Error modes: validation error (400), user not found (404), email exists (409), internal error (500).
 
 Edge cases
 
-- OIDC email already registered — return 409 with helpful message.
+- OIDC user not found during onboarding — return 404 with helpful message (user should sign in first).
+- OIDC email already registered but different sub — AuthFlowService handles this via email fallback and updateUserSub.
 - Partial failure during seeding (tenant created but seeding failed) — ensure system remains usable and provide operator remediation steps (re-run seeding job or idempotent retry).
 - Race: two onboardings for same OIDC user — repo should enforce uniqueness (conditional write) and onboarding service should handle conditional-failure gracefully.
 
@@ -113,7 +138,12 @@ Next actions (short-term)
 
 - ✅ Create this file (done).
 - ✅ Phase 0: scaffolded `packages/types` DTOs and zod schemas; tests added and run (see `packages/types/src/tenant.test.ts`).
-  - ☐ Phase 1: I can implement `ITenantRepo` and `TenantRepoDdb` next. Want me to start Phase 1?
+- ✅ Phase 1: implemented `ITenantRepo`, `TenantRepoDdb`, and `TenantService` with full test coverage.
+- ✅ Phase 1.5: implemented user management with OIDC integration during sign-in flow.
+- ✅ Phase 2: implemented `OnboardingService` with updated architecture (users created at sign-in, not onboarding).
+- ☐ Phase 2 completion: Add onboarding HTTP endpoint to AuthController.
+- ☐ Phase 3: Implement seeding and event emission.
+- ☐ Phase 4: Frontend onboarding UI implementation.
 
 ---
 

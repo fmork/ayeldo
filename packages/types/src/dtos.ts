@@ -1,3 +1,19 @@
+export interface UserDto {
+  readonly id: string;
+  readonly email: string;
+  readonly oidcSub: string;
+  readonly name?: string | undefined;
+  readonly tenantId?: string | undefined;
+  readonly createdAt: string;
+}
+
+export interface UserCreateDto {
+  // Removed incorrect export; interfaces are already exported
+  readonly email: string;
+  readonly oidcSub: string;
+  readonly name?: string | undefined;
+  readonly tenantId?: string | undefined;
+}
 import type { CartState, OrderState } from './state';
 
 export type Ulid = string;

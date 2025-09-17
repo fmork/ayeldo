@@ -1,3 +1,4 @@
+import type { IUserRepo } from '@ayeldo/core/src/ports/userRepo';
 import type { ILogWriter } from '@fmork/backend-core';
 import { z } from 'zod';
 import { base64url } from './crypto';
@@ -7,6 +8,7 @@ import type { SessionService } from './sessionService';
 export interface AuthFlowServiceProps {
   readonly oidc: OidcClientOpenId;
   readonly sessions: SessionService;
+  readonly userRepo: IUserRepo;
   readonly logger: ILogWriter;
 }
 
@@ -35,11 +37,13 @@ export type SessionInfo = SessionInfoLoggedOut | SessionInfoLoggedIn;
 export class AuthFlowService {
   private readonly oidc: OidcClientOpenId;
   private readonly sessions: SessionService;
+  private readonly userRepo: IUserRepo;
   private readonly logger: ILogWriter;
 
   public constructor(props: AuthFlowServiceProps) {
     this.oidc = props.oidc;
     this.sessions = props.sessions;
+    this.userRepo = props.userRepo;
     this.logger = props.logger;
   }
 
@@ -88,6 +92,32 @@ export class AuthFlowService {
       paramsForValidation,
     );
     this.logger.info(`Login completed successfully, sid=${sid}`);
+
+    // Ensure user object exists for OIDC identity
+    let user = await this.userRepo.getUserByOidcSub(profile.sub);
+    if (!user && profile.email) {
+      user = await this.userRepo.getUserByEmail(profile.email);
+      if (user) {
+        // Update user with OIDC sub if missing
+        if (!user.oidcSub) {
+          // This assumes a method like updateUserSub exists; if not, you may need to implement it
+          await this.userRepo.updateUserSub(user.id, profile.sub);
+          this.logger.info(`Updated user ${user.id} with OIDC sub=${profile.sub}`);
+          user = await this.userRepo.getUserByOidcSub(profile.sub);
+        }
+      }
+    }
+    if (!user) {
+      user = await this.userRepo.createUser({
+        email: profile.email ?? '',
+        oidcSub: profile.sub,
+        name: profile.name,
+      });
+      this.logger.info(`Created new user for OIDC sub=${profile.sub}`);
+    } else {
+      this.logger.debug(`User already exists for OIDC sub=${profile.sub}`);
+    }
+
     const target = this.sanitizeRedirect(redirectTarget);
     return { sid, csrf, redirectTarget: target, profile } as const;
   }

@@ -1,3 +1,4 @@
+// Removed duplicate export
 import { z } from 'zod';
 import type {
   AlbumDto,
@@ -11,6 +12,18 @@ import type {
 } from './dtos';
 import { isoTimestampSchema, ulidSchema } from './events';
 import { CartState, OrderState } from './state';
+
+export const userCreateSchema = z.object({
+  email: z.string().email(),
+  oidcSub: z.string().min(1),
+  name: z.string().optional(),
+  tenantId: z.string().optional(),
+});
+
+export const userSchema = userCreateSchema.extend({
+  id: z.string().min(1),
+  createdAt: z.string().min(1),
+});
 
 export const albumSchema = z.object({
   id: z.string().min(1),

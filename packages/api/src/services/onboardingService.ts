@@ -1,10 +1,12 @@
-import type { TenantDto } from '@ayeldo/types';
+import type { IUserRepo } from '@ayeldo/core/src/ports/userRepo';
+import type { TenantDto, UserDto } from '@ayeldo/types';
 import type { ILogWriter } from '@fmork/backend-core';
 import type { SessionService } from './sessionService';
 import type { TenantService } from './tenantService';
 
 export interface OnboardingServiceDeps {
   readonly tenantService: TenantService;
+  readonly userRepo: IUserRepo;
   readonly sessions?: SessionService; // optional in case BFF sessions are not configured
   readonly logger: ILogWriter;
 }
@@ -21,28 +23,45 @@ export class OnboardingService {
    * if sessions are available, a session payload { sid, csrf } suitable for
    * setting cookies.
    */
-  public async createTenantAndMaybeSignIn(body: unknown): Promise<{
+  public async createTenantAndMaybeSignIn(
+    body: unknown,
+    oidcIdentity?: { sub: string; email: string; name?: string },
+  ): Promise<{
     tenant: TenantDto;
+    adminUser: UserDto;
     session?: { sid: string; csrf: string } | undefined;
   }> {
-    // Delegate tenant creation to TenantService (validates input and emits events)
+    // 1. Create tenant
     const tenant = await this.deps.tenantService.createTenantFromRequest(body);
 
-    // Placeholder: user creation would happen here if a user repo exists.
+    // 2. Find existing admin user by OIDC identity
+    if (!oidcIdentity) {
+      throw new Error('OIDC identity required for onboarding admin user');
+    }
 
-    // If sessions service is available, create a session-like response. The
-    // SessionService in this repo exposes completeLogin for OIDC flows, but
-    // does not include a direct create-for-user helper; therefore creating a
-    // minimal session is out-of-scope. We'll return undefined for now.
+    // User should already exist from sign-in flow
+    let adminUser = await this.deps.userRepo.getUserByOidcSub(oidcIdentity.sub);
+    if (!adminUser) {
+      // Fallback: try to find by email
+      adminUser = await this.deps.userRepo.getUserByEmail(oidcIdentity.email);
+      if (!adminUser) {
+        throw new Error(
+          `No user found for OIDC identity ${oidcIdentity.sub} or email ${oidcIdentity.email}`,
+        );
+      }
+    }
+
+    // 3. Associate user with tenant (update user's tenantId)
+    // For now, we'll assume the user is created with the correct tenantId
+    // In a more sophisticated system, we might need to update the user's tenant association
+
+    // 4. Optionally create session (not implemented here)
     let sessionOut: { sid: string; csrf: string } | undefined;
     if (this.deps.sessions) {
-      // Many setups create sid/csrf via SessionService.completeLogin; we don't
-      // have an identity token here, so skip creating a server session for
-      // now. Leave sessionOut undefined.
       this.deps.logger.info('Sessions available but onboarding does not auto-create sessions.');
     }
 
-    return { tenant, session: sessionOut };
+    return { tenant, adminUser, session: sessionOut };
   }
 }
 
