@@ -4,7 +4,8 @@ import { AlbumRepoDdb } from '../repos/albumRepoDdb';
 import { ImageRepoDdb } from '../repos/imageRepoDdb';
 
 // Only run when LocalStack is available
-const env = ((globalThis as unknown as { process?: { env?: Record<string, string> } }).process?.env ?? {}) as Record<string, string>;
+const env = ((globalThis as unknown as { process?: { env?: Record<string, string> } }).process
+  ?.env ?? {}) as Record<string, string>;
 const hasLocalstack = !!env.LOCALSTACK_URL;
 const ddbEndpoint = env.LOCALSTACK_URL ?? '';
 const region = env.AWS_REGION ?? 'us-east-1';
@@ -14,14 +15,16 @@ class SdkDdbClient implements DdbClient {
   // Lazy-loaded to avoid requiring AWS SDK unless test runs
   private docClientPromise: Promise<any> | undefined;
 
-  constructor(private readonly endpoint: string, private readonly regionName: string) {}
+  constructor(
+    private readonly endpoint: string,
+    private readonly regionName: string,
+  ) {}
 
   private async getDocClient(): Promise<any> {
     if (!this.docClientPromise) {
       this.docClientPromise = (async () => {
-        const { DynamoDBClient, GetItemCommand, PutItemCommand, UpdateItemCommand, QueryCommand } = await import(
-          '@aws-sdk/client-dynamodb'
-        );
+        const { DynamoDBClient, GetItemCommand, PutItemCommand, UpdateItemCommand, QueryCommand } =
+          await import('@aws-sdk/client-dynamodb');
         const { DynamoDBDocumentClient } = await import('@aws-sdk/lib-dynamodb');
         const client = new DynamoDBClient({
           region: this.regionName,
@@ -38,11 +41,17 @@ class SdkDdbClient implements DdbClient {
     return this.docClientPromise;
   }
 
-  async get<TItem extends object>(params: { tableName: string; key: { PK: string; SK: string } }): Promise<{ item?: TItem }> {
+  async get<TItem extends object>(params: {
+    tableName: string;
+    key: { PK: string; SK: string };
+  }): Promise<{ item?: TItem }> {
     const { doc } = await this.getDocClient();
     const { GetCommand } = await import('@aws-sdk/lib-dynamodb');
     const out = await doc.send(
-      new GetCommand({ TableName: params.tableName, Key: { PK: params.key.PK, SK: params.key.SK } })
+      new GetCommand({
+        TableName: params.tableName,
+        Key: { PK: params.key.PK, SK: params.key.SK },
+      }),
     );
     return out.Item ? { item: out.Item as TItem } : {};
   }
@@ -53,7 +62,13 @@ class SdkDdbClient implements DdbClient {
     await doc.send(new PutCommand({ TableName: params.tableName, Item: params.item }));
   }
 
-  async update(params: { tableName: string; key: { PK: string; SK: string }; update: string; names?: Record<string, string>; values?: Record<string, unknown> }): Promise<void> {
+  async update(params: {
+    tableName: string;
+    key: { PK: string; SK: string };
+    update: string;
+    names?: Record<string, string>;
+    values?: Record<string, unknown>;
+  }): Promise<void> {
     const { doc } = await this.getDocClient();
     const { UpdateCommand } = await import('@aws-sdk/lib-dynamodb');
     await doc.send(
@@ -63,7 +78,7 @@ class SdkDdbClient implements DdbClient {
         UpdateExpression: params.update,
         ExpressionAttributeNames: params.names,
         ExpressionAttributeValues: params.values as Record<string, any> | undefined,
-      })
+      }),
     );
   }
 
@@ -81,14 +96,20 @@ class SdkDdbClient implements DdbClient {
         ScanIndexForward: params.scanIndexForward,
         Limit: params.limit,
         ExclusiveStartKey: params.exclusiveStartKey as any,
-      })
+      }),
     );
     return { items: (out.Items ?? []) as TItem[], lastEvaluatedKey: out.LastEvaluatedKey as any };
   }
 }
 
-async function createTableWithGsis(tableName: string, endpoint: string, regionName: string): Promise<void> {
-  const { DynamoDBClient, CreateTableCommand, UpdateTimeToLiveCommand } = await import('@aws-sdk/client-dynamodb');
+async function createTableWithGsis(
+  tableName: string,
+  endpoint: string,
+  regionName: string,
+): Promise<void> {
+  const { DynamoDBClient, CreateTableCommand, UpdateTimeToLiveCommand } = await import(
+    '@aws-sdk/client-dynamodb'
+  );
   const ddb = new DynamoDBClient({
     region: regionName,
     endpoint,
@@ -103,6 +124,10 @@ async function createTableWithGsis(tableName: string, endpoint: string, regionNa
         { AttributeName: 'SK', AttributeType: 'S' },
         { AttributeName: 'GSI1PK', AttributeType: 'S' },
         { AttributeName: 'GSI1SK', AttributeType: 'S' },
+        { AttributeName: 'GSI2PK', AttributeType: 'S' },
+        { AttributeName: 'GSI2SK', AttributeType: 'S' },
+        { AttributeName: 'GSI3PK', AttributeType: 'S' },
+        { AttributeName: 'GSI3SK', AttributeType: 'S' },
       ],
       KeySchema: [
         { AttributeName: 'PK', KeyType: 'HASH' },
@@ -117,13 +142,32 @@ async function createTableWithGsis(tableName: string, endpoint: string, regionNa
           ],
           Projection: { ProjectionType: 'ALL' },
         },
+        {
+          IndexName: 'GSI2',
+          KeySchema: [
+            { AttributeName: 'GSI2PK', KeyType: 'HASH' },
+            { AttributeName: 'GSI2SK', KeyType: 'RANGE' },
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+        {
+          IndexName: 'GSI3',
+          KeySchema: [
+            { AttributeName: 'GSI3PK', KeyType: 'HASH' },
+            { AttributeName: 'GSI3SK', KeyType: 'RANGE' },
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
       ],
-    })
+    }),
   );
   const { waitUntilTableExists } = await import('@aws-sdk/client-dynamodb');
   await waitUntilTableExists({ client: ddb, maxWaitTime: 30 }, { TableName: tableName });
   await ddb.send(
-    new UpdateTimeToLiveCommand({ TableName: tableName, TimeToLiveSpecification: { AttributeName: 'ttl', Enabled: true } })
+    new UpdateTimeToLiveCommand({
+      TableName: tableName,
+      TimeToLiveSpecification: { AttributeName: 'ttl', Enabled: true },
+    }),
   );
 }
 
@@ -165,16 +209,36 @@ maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
     const albumRepo = new AlbumRepoDdb({ tableName, client });
 
     // seed
-    await albumRepo.put(new Album({ id: parentId, tenantId: tenantA, title: 'Parent', createdAt: now }));
     await albumRepo.put(
-      new Album({ id: childId1, tenantId: tenantA, title: 'Child 1', parentAlbumId: parentId, createdAt: now })
+      new Album({ id: parentId, tenantId: tenantA, title: 'Parent', createdAt: now }),
     );
     await albumRepo.put(
-      new Album({ id: childId2, tenantId: tenantA, title: 'Child 2', parentAlbumId: parentId, createdAt: now })
+      new Album({
+        id: childId1,
+        tenantId: tenantA,
+        title: 'Child 1',
+        parentAlbumId: parentId,
+        createdAt: now,
+      }),
+    );
+    await albumRepo.put(
+      new Album({
+        id: childId2,
+        tenantId: tenantA,
+        title: 'Child 2',
+        parentAlbumId: parentId,
+        createdAt: now,
+      }),
     );
     // Same parent but different tenant — should be filtered out by tenant PK filter
     await albumRepo.put(
-      new Album({ id: otherTenantChild, tenantId: tenantB, title: 'Child X', parentAlbumId: parentId, createdAt: now })
+      new Album({
+        id: otherTenantChild,
+        tenantId: tenantB,
+        title: 'Child X',
+        parentAlbumId: parentId,
+        createdAt: now,
+      }),
     );
 
     const children = await albumRepo.listChildren(tenantA, parentId);
@@ -202,7 +266,7 @@ maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
         width: 10,
         height: 10,
         createdAt: now,
-      })
+      }),
     );
     await imageRepo.put(
       new Image({
@@ -215,7 +279,7 @@ maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
         width: 10,
         height: 10,
         createdAt: now,
-      })
+      }),
     );
     await imageRepo.put(
       new Image({
@@ -228,7 +292,7 @@ maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
         width: 10,
         height: 10,
         createdAt: now,
-      })
+      }),
     );
 
     const found = await imageRepo.listByAlbum(tenantA, albumId);
