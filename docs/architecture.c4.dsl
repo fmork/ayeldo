@@ -1,4 +1,4 @@
-workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
+workspace "Image Sharing & Selling Platform" "Vision/Feature Level" {
 
     !identifiers hierarchical
 
@@ -17,11 +17,11 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
 
         platform = softwareSystem "Image Sharing & Selling Platform" "Web-based service to share and sell images." {
 
-            web = container "Web App" "Browser UI. Initiates auth via HTTP API (merged BFF responsibilities); receives only httpOnly session cookies." "TypeScript/React" {
+            web = container "Web App" "Browser UI. Initiates auth via HTTP API; receives only httpOnly session cookies." "TypeScript/React" {
                 tags "UI"
             }
 
-            api = container "HTTP API / Controllers" "Thin HTTP layer (routing, auth context, delegates to Flow/Query Services). This container includes the former BFF responsibilities which were merged into the HTTP API process." "TypeScript (Node.js)" {
+            api = container "HTTP API / Controllers" "Thin HTTP layer (routing, auth context, delegates to Flow/Query Services)." "TypeScript (Node.js)" {
                 tags "API"
             }
 
@@ -66,21 +66,20 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
                 tags "Storage"
             }
 
-            // Core call graph (BFF pattern)
+            // Core call graph
             user -> web "Uses"
             visitor -> web "Uses"
             admin -> web "Uses"
             web -> api "All UI calls; no tokens in browser"
             api -> web "Redirects/callbacks; sets httpOnly session cookie"
 
-            // Authentication through BFF
+            // Authentication through API
             user -> oidc "Authenticates via redirect (UI)"
             admin -> oidc "Authenticates via redirect (UI)"
             owner -> oidc "Authenticates via redirect (UI)"
             api -> oidc "Start auth / token exchange (back channel)"
             oidc -> api "Auth code / tokens (back channel)"
 
-            // BFF to domain
             api -> stats "Query metrics for UI"
 
             // Delegation boundary
@@ -132,7 +131,7 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
             autoLayout lr
         }
 
-        dynamic platform "flow-1-signup-and-customer-association" "User Sign-Up via BFF (No tokens in Web App)" {
+        dynamic platform "flow-1-signup-and-customer-association" "User Sign-Up" {
             autoLayout lr
             user -> platform.web "Start sign-up/sign-in"
             platform.web -> platform.api "Begin OIDC flow"
@@ -174,7 +173,7 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
             platform.eventbus -> platform.analytics "Trigger downstream metrics"
         }
 
-        dynamic platform "flow-3-visitor-access-and-authorization" "Visitor Access (Public/Hidden/Restricted via BFF)" {
+        dynamic platform "flow-3-visitor-access-and-authorization" "Visitor Access (Public/Hidden/Restricted)" {
             autoLayout
             visitor -> platform.web "Open album URL"
             platform.web -> platform.api "Request album"
@@ -198,7 +197,7 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
             platform.analytics -> platform.stats "Increment views"
         }
 
-        dynamic platform "flow-4-shopping-browse-to-order" "Shopping: Browse → Cart → Checkout → Order (via BFF)" {
+        dynamic platform "flow-4-shopping-browse-to-order" "Shopping: Browse → Cart → Checkout → Order" {
             autoLayout
             visitor -> platform.web "Add image(s) to cart"
             platform.web -> platform.api "Upsert cart"
@@ -230,7 +229,7 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
             platform.flow -> platform.web "Receipt / download availability"
         }
 
-        dynamic platform "flow-5-analytics-and-stats" "Analytics & Stats (Event-Driven + BFF Reads)" {
+        dynamic platform "flow-5-analytics-and-stats" "Analytics & Stats (Event-Driven + API reads)" {
             autoLayout
             platform.web -> platform.api "Record telemetry (view/download/cart/order)"
             platform.api -> platform.flow "Telemetry (delegate)"
@@ -266,11 +265,7 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level with BFF" {
                 color #0d47a1
                 shape RoundedBox
             }
-            element "BFF" {
-                background #ede7f6
-                color #4a148c
-                shape RoundedBox
-            }
+
             element "API" {
                 background #e8f5e9
                 color #1b5e20
