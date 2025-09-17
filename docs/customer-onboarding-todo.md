@@ -59,12 +59,12 @@ Phase 2 — HTTP API onboarding flow (OIDC user orchestration)
   - Finds existing user by OIDC identity (created during sign-in)
   - Associates user with newly created tenant
 - ✅ Implemented proper dependency injection for AuthFlowService in ApiInit.ts
-- ☐ Add onboarding handler to `AuthController` (or `OnboardingController`) at `POST /auth/onboard`:
-  - Validate body via zod DTO (e.g., { companyName, adminName, plan? }).
-  - Use OIDC session to get current user identity (sub/email).
-  - Call `OnboardingService.createTenantAndMaybeSignIn(...)` which uses `ITenantRepo`, `IUserRepo` (OIDC-linked), and `IEventPublisher`.
-  - On success, set session cookie and CSRF cookie using existing `SessionService` behavior and return redirect target.
-- ✅ Unit tests for `OnboardingService` and `AuthFlowService` updated for new architecture.
+- ✅ Add onboarding handler to `AuthController` at `POST /auth/onboard`:
+  - Validates body via zod DTO (TenantCreateDto with companyName/name, adminName, plan).
+  - Uses OIDC session to get current user identity (sub/email).
+  - Calls `OnboardingService.createTenantAndMaybeSignIn(...)` which uses `ITenantRepo`, `IUserRepo` (OIDC-linked), and `IEventPublisher`.
+  - On success, sets session cookie and CSRF cookie using existing `SessionService` behavior and returns tenant + admin user data.
+- ✅ Unit tests for `OnboardingService`, `AuthFlowService`, and `AuthController` updated for new architecture.
 
 Phase 3 — Initial data & events
 
@@ -113,6 +113,8 @@ Suggested files to create (small increments)
 - ✅ packages/infra-aws/src/tenantRepoDdb.ts
 - ✅ packages/infra-aws/src/userRepoDdb.ts
 - ✅ packages/api/src/controllers/tenantController.ts
+- ✅ packages/api/src/controllers/authController.ts (with POST /auth/onboard endpoint)
+- ✅ packages/api/src/controllers/authController.test.ts
 - ✅ packages/api/src/services/onboardingService.ts
 - ✅ Enhanced packages/api/src/services/authFlowService.ts (user creation during sign-in)
 - ☐ apps/web/src/features/auth/pages/signUpPage.tsx
@@ -141,7 +143,7 @@ Next actions (short-term)
 - ✅ Phase 1: implemented `ITenantRepo`, `TenantRepoDdb`, and `TenantService` with full test coverage.
 - ✅ Phase 1.5: implemented user management with OIDC integration during sign-in flow.
 - ✅ Phase 2: implemented `OnboardingService` with updated architecture (users created at sign-in, not onboarding).
-- ☐ Phase 2 completion: Add onboarding HTTP endpoint to AuthController.
+- ✅ Phase 2 completion: Added onboarding HTTP endpoint `POST /auth/onboard` to AuthController with proper OIDC authentication.
 - ☐ Phase 3: Implement seeding and event emission.
 - ☐ Phase 4: Frontend onboarding UI implementation.
 

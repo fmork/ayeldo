@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { tenantCreateSchema } from '@ayeldo/types/src/schemas';
 import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
 import { requireCsrfForController } from '../middleware/csrfGuard';
@@ -108,9 +109,9 @@ export class AuthController extends PublicController {
       );
     });
 
-    // POST /auth/signup - public signup creating tenant (and optionally admin user)
+    // POST /auth/onboard - OIDC-authenticated tenant onboarding
     this.addPost(
-      '/auth/signup',
+      '/auth/onboard',
       requireCsrfForController(async (req, res) => {
         const response = res as unknown as Parameters<typeof this.performRequest>[1];
 
@@ -120,13 +121,39 @@ export class AuthController extends PublicController {
           return;
         }
 
-        const svc = this.onboardingService;
-
         await this.performRequest(
           async () => {
-            const result = await svc.createTenantAndMaybeSignIn((req as any).body);
+            // Service existence already checked above
+            const onboardingService = this.onboardingService as OnboardingService;
 
-            // If onboarding returned session info, set cookies (not implemented)
+            // 1. Validate input with zod
+            const validatedBody = tenantCreateSchema.parse((req as any).body);
+
+            // 2. Extract OIDC identity from session
+            const sid = (req as any).cookies?.['__Host-sid'] as string | undefined;
+            const sessionInfo = await this.authFlow.sessionInfo(sid);
+
+            if (!sessionInfo.loggedIn) {
+              throw new Error('Authentication required for onboarding');
+            }
+
+            if (!sessionInfo.email) {
+              throw new Error('User email required for onboarding');
+            }
+
+            const oidcIdentity = {
+              sub: sessionInfo.sub,
+              email: sessionInfo.email,
+              ...(sessionInfo.name && { name: sessionInfo.name }),
+            };
+
+            // 3. Call OnboardingService with validated body and OIDC identity
+            const result = await onboardingService.createTenantAndMaybeSignIn(
+              validatedBody,
+              oidcIdentity,
+            );
+
+            // 4. On success, set session cookie and CSRF cookie if returned
             if (result.session) {
               response.cookie?.('__Host-sid', result.session.sid, {
                 httpOnly: true,
@@ -142,7 +169,10 @@ export class AuthController extends PublicController {
               });
             }
 
-            return result.tenant;
+            return {
+              tenant: result.tenant,
+              adminUser: result.adminUser,
+            };
           },
           response,
           () => 201,
