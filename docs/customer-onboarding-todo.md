@@ -5,15 +5,15 @@
 Convention: ✅ = done, ☐ = todo.  
 Work top-down; each phase is small and independently testable.
 
-This document implements the onboarding flow sketched in `docs/architecture.c4.dsl` (flow-1-signup-and-customer-association). The objective: allow a new tenant to sign up from the SPA, create tenant metadata in the API, create an initial admin user, and return the user to the app with a valid session.
+This document implements the onboarding flow sketched in `docs/architecture.c4.dsl` (flow-1-signup-and-customer-association). The objective: allow a new tenant to sign up from the SPA, create tenant metadata in the API, create an initial admin user (linked to the OIDC identity), and return the user to the app with a valid session.
 
 Summary:
 
-- Customer onboarding requires an authenticated user (done through OIDC).
-- When a user has authenticated, the client should make a request to an endpoint in the API to check the user's status.
-- If the user is not associated with a Customer, customer onboarding should be initiated.
-- The Customer onboarding process should create a Customer object (which will be the billing partner), and when finished, there should also be a Tenant created for the customer. The Tenant represents the domain data (albums, images, ...) for the Customer.
-- In a future, we might allow for one Customer to have more than on Tenant.
+- Customer onboarding is always initiated by an authenticated user (OIDC principal).
+- After OIDC login, the SPA calls an API endpoint to check the user's onboarding status.
+- If the user is not associated with a Customer, onboarding is triggered.
+- The onboarding process creates a Customer object (billing partner), then a Tenant for domain data (albums, images, ...), and links the current OIDC user as the initial admin.
+- No public signup or password-based flows are supported; all onboarding is OIDC-based.
 
 Phases
 
@@ -37,12 +37,13 @@ Phase 1 — API: Tenant creation (domain API)
 
 Status note: After adding `TenantController` and the unit tests for `TenantService` and `TenantRepoDdb`, I ran the repository build (lint + tsc -b) and unit tests. All checks completed successfully in this session: Test Suites: 1 skipped, 16 passed; Tests: 3 skipped, 73 passed. Controller-level tests remain to be implemented (see note above).
 
-Phase 2 — HTTP API onboarding flow (user-facing orchestration)
+Phase 2 — HTTP API onboarding flow (OIDC user orchestration)
 
-- ☐ Add `OnboardingService` in `packages/api/src/services/onboardingService.ts` that composes tenant creation, seeding, and admin user creation.
-- ☐ Add `signup` handler to `AuthController` (or `OnboardingController`) at `POST /auth/signup`:
-  - Validate body via zod DTO.
-  - Call `OnboardingService.createTenantAndAdmin(...)` which uses `ITenantRepo`, `IUserRepo` (or existing user repo), and `IEventPublisher`.
+- ☐ Add `OnboardingService` in `packages/api/src/services/onboardingService.ts` that composes tenant creation, seeding, and admin user creation (OIDC-linked).
+- ☐ Add onboarding handler to `AuthController` (or `OnboardingController`) at `POST /auth/onboard`:
+  - Validate body via zod DTO (e.g., { companyName, adminName, plan? }).
+  - Use OIDC session to get current user identity (sub/email).
+  - Call `OnboardingService.createTenantAndAdmin(...)` which uses `ITenantRepo`, `IUserRepo` (OIDC-linked), and `IEventPublisher`.
   - On success, set session cookie and CSRF cookie using existing `SessionService` behavior and return redirect target.
 - ☐ Unit tests for `OnboardingService` and controller wiring.
 
@@ -52,11 +53,11 @@ Phase 3 — Initial data & events
 - ☐ Emit `TenantCreated` event with tenant id + admin email; add event contract to `packages/types`.
 - ☐ Validate idempotency for event consumers.
 
-Phase 4 — Frontend signup UI
+Phase 4 — Frontend onboarding UI
 
-- ☐ Add `/signup` page in `apps/web/src/features/auth` with the form and client-side validation (mirror zod schema).
-- ☐ Add RTK Query mutation that calls the HTTP API `POST /auth/signup` using `credentials: 'include'` and `X-CSRF-Token` header.
-- ☐ On success, navigate to `/onboarding` or `/albums` per flow.
+- ☐ Add `/onboard` page in `apps/web/src/features/auth` with the onboarding form and client-side validation (mirror zod schema).
+- ☐ Add RTK Query mutation that calls the HTTP API `POST /auth/onboard` using `credentials: 'include'` and `X-CSRF-Token` header.
+- ☐ On success, navigate to `/albums` or onboarding completion page.
 - ☐ Add visual feedback and error handling for common failures (email already exists, validation errors).
 
 Phase 5 — Tests & QA
@@ -97,15 +98,16 @@ Suggested files to create (small increments)
 
 Implementation notes & small contracts
 
-- Contract for `POST /auth/signup` request: { companyName: string, adminEmail: string, adminName?: string }
+- Contract for `POST /auth/onboard` request: { companyName: string, adminName?: string, plan?: string }
+  - OIDC identity (sub/email) is taken from the session, not the request body.
 - Contract for `POST /tenants` request (domain API): TenantCreate DTO (id optional; server generates ULID)
 - Error modes: validation error (400), email exists (409), internal error (500).
 
 Edge cases
 
-- Email already registered — return 409 with helpful message.
+- OIDC email already registered — return 409 with helpful message.
 - Partial failure during seeding (tenant created but seeding failed) — ensure system remains usable and provide operator remediation steps (re-run seeding job or idempotent retry).
-- Race: two signups for same email — repo should enforce uniqueness (conditional write) and onboarding service should handle conditional-failure gracefully.
+- Race: two onboardings for same OIDC user — repo should enforce uniqueness (conditional write) and onboarding service should handle conditional-failure gracefully.
 
 Next actions (short-term)
 
