@@ -227,7 +227,7 @@ if (siteConfig.isOidcConfigured) {
 
     sessions = new SessionService({
       store: new DdbSessionStore({ tableName, client: ddb }),
-      states: new DdbStateStore({ tableName, client: ddb }),
+      states: new DdbStateStore({ tableName, client: ddb, logger: logWriter }),
       encKeyB64: siteConfig.sessionEncKey ?? 'c2Vzc2lvbl9lbmNfMzJieXRlc19iYXNlNjQ=',
       encKid: 'v1',
       bffJwtSecretB64: siteConfig.bffJwtSecret ?? 'YnZmX2p3dF9zZWNyZXRfYmFzZTY0',
