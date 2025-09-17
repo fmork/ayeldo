@@ -3,7 +3,6 @@ import type { StackProps } from 'aws-cdk-lib';
 import { CfnOutput, Duration, Stack } from 'aws-cdk-lib';
 import {
   AccessLogFormat,
-  Cors,
   EndpointType,
   LambdaRestApi,
   LogGroupLogDestination,
@@ -148,13 +147,6 @@ export class ApiStack extends Stack {
     const api = new LambdaRestApi(this, 'RestApi', {
       handler,
       proxy: true,
-      defaultCorsPreflightOptions: {
-        allowOrigins: Cors.ALL_ORIGINS,
-        allowMethods: Cors.ALL_METHODS,
-        allowHeaders: ['*'],
-        allowCredentials: true,
-        maxAge: Duration.seconds(86400), // 24 hours
-      },
       deployOptions: {
         stageName: 'prod',
         accessLogDestination: new LogGroupLogDestination(accessLogGroup),
