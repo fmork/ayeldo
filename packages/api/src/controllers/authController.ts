@@ -28,16 +28,16 @@ export class AuthController extends PublicController {
   }
 
   public initialize(): HttpRouter {
-    // GET /auth/authorize-url — returns the OIDC authorize URL for SPA-driven redirects
-    this.addGet('/auth/authorize-url', async (req, res) => {
+    // GET /authorize-url — returns the OIDC authorize URL for SPA-driven redirects
+    this.addGet('/authorize-url', async (req, res) => {
       await this.performRequest(
         () => this.authFlow.buildAuthorizeUrl((req as any).query?.redirect as string | undefined),
         res,
       );
     });
 
-    // GET /auth/login?redirect=...
-    this.addGet('/auth/login', async (_req, res) => {
+    // GET /login?redirect=...
+    this.addGet('/login', async (_req, res) => {
       await this.performRequest(
         async () => {
           const url = this.authFlow.buildLoginRedirectUrl();
@@ -50,8 +50,8 @@ export class AuthController extends PublicController {
       );
     });
 
-    // GET /auth/callback?code&state[&redirect]
-    this.addGet('/auth/callback', async (req, res) => {
+    // GET /callback?code&state[&redirect]
+    this.addGet('/callback', async (req, res) => {
       await this.performRequest(
         async () => {
           const result = await this.authFlow.handleCallback((req as any).query);
@@ -82,9 +82,9 @@ export class AuthController extends PublicController {
       );
     });
 
-    // POST /auth/logout
+    // POST /logout
     this.addPost(
-      '/auth/logout',
+      '/logout',
       requireCsrfForController(async (req, res) => {
         await this.performRequest(
           async () => {
@@ -101,22 +101,9 @@ export class AuthController extends PublicController {
       }),
     );
 
-    // GET /session — minimal profile state
-    this.addGet('/session', async (req, res) => {
-      await this.performRequest(
-        () => {
-          return this.authFlow.sessionInfo(
-            (req as any).cookies?.['__Host-sid'] as string | undefined,
-          );
-        },
-        res,
-        (r) => (r.loggedIn ? 200 : 401),
-      );
-    });
-
-    // POST /auth/onboard - OIDC-authenticated tenant onboarding
+    // POST /onboard - OIDC-authenticated tenant onboarding
     this.addPost(
-      '/auth/onboard',
+      '/onboard',
       requireCsrfForController(async (req, res) => {
         const response = res as unknown as Parameters<typeof this.performRequest>[1];
 

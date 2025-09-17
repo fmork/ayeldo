@@ -36,6 +36,7 @@ import { DdbSessionStore, DdbStateStore } from '@ayeldo/infra-aws';
 import { AuthController } from '../controllers/authController';
 import { CartFrontendController } from '../controllers/cartController';
 import { RootController } from '../controllers/rootController';
+import { SessionController } from '../controllers/sessionController';
 import { AuthFlowService } from '../services/authFlowService';
 import { OidcClientOpenId, type OidcOpenIdConfig } from '../services/oidcOpenIdClient';
 import OnboardingService from '../services/onboardingService';
@@ -252,11 +253,20 @@ export const rootController = new RootController({ baseUrl: '', logWriter });
 export const authController =
   oidc && sessions && authFlowService
     ? new AuthController({
-        baseUrl: '',
+        baseUrl: '/auth',
         logWriter,
         authFlow: authFlowService,
         siteConfig,
         onboardingService,
+      })
+    : undefined;
+
+export const sessionController =
+  sessions && authFlowService
+    ? new SessionController({
+        baseUrl: '/session',
+        logWriter,
+        authFlow: authFlowService,
       })
     : undefined;
 
@@ -347,6 +357,7 @@ export const server = new Server({
     mediaController,
     // API - only include if configured
     rootController,
+    ...(sessionController ? [sessionController] : []),
     ...(authController ? [authController] : []),
     ...(cartFrontendController ? [cartFrontendController] : []),
     // Authenticated controllers
