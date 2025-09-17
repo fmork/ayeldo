@@ -14,6 +14,7 @@ describe('DdbStateStore', () => {
     store = new DdbStateStore({
       tableName: 'test-table',
       client: mockClient,
+      logger: { info: () => {}, warn: () => {}, error: () => {} } as any,
     });
   });
 
