@@ -1,7 +1,11 @@
 // Main API initialization file - orchestrates all initialization modules
 
+import { logWriter } from './config';
+
 // Configuration and environment setup
 export { claimBasedAuthorizer, env, jsonUtil, logWriter, siteConfig } from './config';
+
+logWriter.info('API initialization started');
 
 // Infrastructure (DynamoDB, repositories, event publisher)
 export {
