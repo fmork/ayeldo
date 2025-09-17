@@ -44,6 +44,9 @@ export class DdbStateStore implements IStateStore {
         SK: skState(state),
       },
     });
+    this.logger.info(
+      `Get state result: ${result ? `found ${JSON.stringify(result.item)}` : 'not found'}`,
+    );
     return result.item;
   }
 
