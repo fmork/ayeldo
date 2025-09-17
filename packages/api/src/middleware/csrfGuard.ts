@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { HttpResponse } from '@fmork/backend-core';
 import type { NextFunction, Request, Response } from 'express';
+import { COOKIE_NAMES } from '../constants';
 import { logWriter } from '../init/ApiInit';
 
 // Double-submit cookie CSRF guard.
@@ -9,9 +10,9 @@ export function csrfGuard(req: Request, res: Response, next: NextFunction): void
   try {
     const header = (req.headers['x-csrf-token'] ??
       (req.headers as Record<string, unknown>)['X-CSRF-Token']) as string | undefined;
-    const cookie = (req as unknown as { cookies?: Record<string, string> }).cookies?.['csrf'] as
-      | string
-      | undefined;
+    const cookie = (req as unknown as { cookies?: Record<string, string> }).cookies?.[
+      COOKIE_NAMES.CSRF
+    ] as string | undefined;
     if (!header || !cookie || header !== cookie) {
       res.status(403).json({ error: 'Forbidden - invalid CSRF token' });
       return;
@@ -28,9 +29,9 @@ export function requireCsrfWrapper(
   return async (req: Request, res: Response, sid?: string): Promise<void> => {
     const header = (req.headers['x-csrf-token'] ??
       (req.headers as Record<string, unknown>)['X-CSRF-Token']) as string | undefined;
-    const cookie = (req as unknown as { cookies?: Record<string, string> }).cookies?.['csrf'] as
-      | string
-      | undefined;
+    const cookie = (req as unknown as { cookies?: Record<string, string> }).cookies?.[
+      COOKIE_NAMES.CSRF
+    ] as string | undefined;
     if (!header || !cookie || header !== cookie) {
       res.status(403).json({ error: 'Forbidden - invalid CSRF token' });
       return;
@@ -56,7 +57,7 @@ export function requireCsrfForController(
       logWriter.info('Running CSRF guard for controller');
       const headers = req.headers ?? {};
       const header = (headers['x-csrf-token'] ?? headers['X-CSRF-Token']) as string | undefined;
-      const cookie = req.cookies?.['csrf'] as string | undefined;
+      const cookie = req.cookies?.[COOKIE_NAMES.CSRF] as string | undefined;
 
       logWriter.info(`CSRF token check: header=${header}, cookie=${cookie}`);
       if (!header || !cookie || header !== cookie) {

@@ -3,6 +3,7 @@ import type { SiteConfiguration } from '@ayeldo/core';
 import { tenantCreateSchema } from '@ayeldo/types/src/schemas';
 import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
+import { COOKIE_NAMES } from '../constants';
 import { requireCsrfForController } from '../middleware/csrfGuard';
 import type { AuthFlowService } from '../services/authFlowService';
 import type { OnboardingService } from '../services/onboardingService';
@@ -60,13 +61,13 @@ export class AuthController extends PublicController {
           // never runs locally, so session cookies must be Secure and use
           // SameSite=None to allow cross-origin XHR when used with
           // credentials: 'include'. We also use the __Host- prefix.
-          (res as any).cookie?.('__Host-sid', result.sid, {
+          (res as any).cookie?.(COOKIE_NAMES.SESSION_ID, result.sid, {
             httpOnly: true,
             secure: true,
             sameSite: 'none',
             path: '/',
           });
-          (res as any).cookie?.('csrf', result.csrf, {
+          (res as any).cookie?.(COOKIE_NAMES.CSRF, result.csrf, {
             httpOnly: false,
             secure: true,
             sameSite: 'none',
@@ -88,10 +89,10 @@ export class AuthController extends PublicController {
       requireCsrfForController(async (req, res) => {
         await this.performRequest(
           async () => {
-            const sid = (req as any).cookies?.['__Host-sid'] as string | undefined;
+            const sid = (req as any).cookies?.[COOKIE_NAMES.SESSION_ID] as string | undefined;
             await this.authFlow.logout(sid);
-            (res as any).clearCookie?.('__Host-sid');
-            (res as any).clearCookie?.('csrf');
+            (res as any).clearCookie?.(COOKIE_NAMES.SESSION_ID);
+            (res as any).clearCookie?.(COOKIE_NAMES.CSRF);
             (res as any).status(204).end();
             return { loggedOut: true } as const;
           },
@@ -122,7 +123,7 @@ export class AuthController extends PublicController {
             const validatedBody = tenantCreateSchema.parse((req as any).body);
 
             // 2. Extract OIDC identity from session
-            const sid = (req as any).cookies?.['__Host-sid'] as string | undefined;
+            const sid = (req as any).cookies?.[COOKIE_NAMES.SESSION_ID] as string | undefined;
             const sessionInfo = await this.authFlow.sessionInfo(sid);
 
             if (!sessionInfo.loggedIn) {
@@ -144,13 +145,13 @@ export class AuthController extends PublicController {
 
             // 4. On success, set session cookie and CSRF cookie if returned
             if (result.session) {
-              response.cookie?.('__Host-sid', result.session.sid, {
+              response.cookie?.(COOKIE_NAMES.SESSION_ID, result.session.sid, {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
                 path: '/',
               });
-              response.cookie?.('csrf', result.session.csrf, {
+              response.cookie?.(COOKIE_NAMES.CSRF, result.session.csrf, {
                 httpOnly: false,
                 secure: true,
                 sameSite: 'none',

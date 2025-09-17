@@ -1,5 +1,6 @@
 import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
+import { COOKIE_NAMES } from '../constants';
 import type { AuthFlowService } from '../services/authFlowService';
 
 export interface SessionControllerProps {
@@ -22,7 +23,7 @@ export class SessionController extends PublicController {
       await this.performRequest(
         () => {
           return this.authFlow.sessionInfo(
-            (req as { cookies?: Record<string, string> }).cookies?.['__Host-sid'],
+            (req as { cookies?: Record<string, string> }).cookies?.[COOKIE_NAMES.SESSION_ID],
           );
         },
         res,

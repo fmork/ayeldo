@@ -4,6 +4,7 @@ import { TieredPricingEngine } from '@ayeldo/core';
 import type { AxiosHttpClient, HttpRouter, ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
 import { z } from 'zod';
+import { COOKIE_NAMES } from '../constants';
 import { priceCart } from '../handlers/carts';
 import { requireCsrfWrapper } from '../middleware/csrfGuard';
 import { CartFlowService } from '../services/cartFlowService';
@@ -47,7 +48,7 @@ export class CartController extends PublicController {
     const requireSession =
       (handler: (req: any, res: any, sid?: string) => Promise<void>) =>
       async (req: any, res: any) => {
-        const sid = req.cookies?.['__Host-sid'] as string | undefined;
+        const sid = req.cookies?.[COOKIE_NAMES.SESSION_ID] as string | undefined;
         if (!sid) return res.status(401).json({ error: 'Not authenticated' });
         return handler(req, res, sid);
       };

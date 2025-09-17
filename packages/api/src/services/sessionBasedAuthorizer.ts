@@ -4,6 +4,7 @@ import type {
   HttpMiddleware,
   ILogWriter,
 } from '@fmork/backend-core';
+import { COOKIE_NAMES } from '../constants';
 import type { SessionService } from '../services/sessionService';
 
 interface SessionBasedAuthorizerProps {
@@ -37,7 +38,8 @@ export class SessionBasedAuthorizer {
         const nextFn = next as () => void;
 
         // Extract session ID from cookies
-        const sessionId = request.cookies?.['session-id'] || request.cookies?.['sid'];
+        const sessionId =
+          request.cookies?.[COOKIE_NAMES.SESSION_ID_ALT] || request.cookies?.[COOKIE_NAMES.SID_ALT];
 
         if (!sessionId) {
           this.logWriter.warn('No session ID found in request');
