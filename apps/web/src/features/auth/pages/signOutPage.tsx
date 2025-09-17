@@ -7,7 +7,7 @@ import type { FC } from 'react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession, useSessionActions } from '../../../app/contexts/SessionContext';
-import { useLogoutMutation } from '../../../services/api/bffApi';
+import { useLogoutMutation } from '../../../services/api/backendApi';
 
 const SignOutPage: FC = () => {
   const { t } = useTranslation();

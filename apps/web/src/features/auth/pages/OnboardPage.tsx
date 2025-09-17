@@ -15,7 +15,7 @@ import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSession } from '../../../app/contexts/SessionContext';
-import { bffApi } from '../../../services/api/bffApi';
+import { backendApi } from '../../../services/api/backendApi';
 
 // Local types for form validation
 interface OnboardFormData {
@@ -33,7 +33,7 @@ interface FormErrors {
 const OnboardPage: FC = () => {
   const navigate = useNavigate();
   const session = useSession();
-  const [onboard, { isLoading, error }] = bffApi.useOnboardMutation();
+  const [onboard, { isLoading, error }] = backendApi.useOnboardMutation();
 
   const [formData, setFormData] = useState<OnboardFormData>({
     name: '',

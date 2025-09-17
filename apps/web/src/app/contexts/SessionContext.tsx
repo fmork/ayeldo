@@ -1,6 +1,6 @@
 import type { FC, ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { useLazyGetSessionQuery } from '../../services/api/bffApi';
+import { useLazyGetSessionQuery } from '../../services/api/backendApi';
 
 export interface SessionInfo {
   readonly loggedIn: boolean;

@@ -2,8 +2,8 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { siteConfig } from '../../app/SiteConfigurationContext';
 import { getCsrfToken } from '../csrf/getCsrfToken';
 
-export const bffApi = createApi({
-  reducerPath: 'bffApi',
+export const backendApi = createApi({
+  reducerPath: 'backendApi',
   baseQuery: fetchBaseQuery({
     // In dev, when the BFF origin differs from the web origin we rely on the
     // Vite dev server proxy. Using a relative baseUrl ensures requests are
@@ -61,4 +61,5 @@ export const {
   useGetSessionQuery,
   useLazyGetSessionQuery,
   useLogoutMutation,
-} = bffApi;
+  useOnboardMutation,
+} = backendApi;

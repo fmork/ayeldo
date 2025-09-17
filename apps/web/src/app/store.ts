@@ -1,13 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { bffApi } from '../services/api/bffApi';
+import { backendApi } from '../services/api/backendApi';
 
 export const store = configureStore({
   reducer: {
-    [bffApi.reducerPath]: bffApi.reducer,
+    [backendApi.reducerPath]: backendApi.reducer,
   },
-  middleware: (getDefault) => getDefault().concat(bffApi.middleware),
+  middleware: (getDefault) => getDefault().concat(backendApi.middleware),
 });
 
 export type AppDispatch = typeof store.dispatch;
 export type RootState = ReturnType<typeof store.getState>;
-

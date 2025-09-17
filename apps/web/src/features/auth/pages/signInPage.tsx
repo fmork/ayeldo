@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSession } from '../../../app/contexts/SessionContext';
 import { useSiteConfiguration } from '../../../app/SiteConfigurationContext';
-import { useLazyGetAuthorizeUrlQuery } from '../../../services/api/bffApi';
+import { useLazyGetAuthorizeUrlQuery } from '../../../services/api/backendApi';
 
 const SignInPage: FC = () => {
   const [trigger, { isFetching, isLoading }] = useLazyGetAuthorizeUrlQuery();
