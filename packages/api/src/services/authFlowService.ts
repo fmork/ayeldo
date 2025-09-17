@@ -16,6 +16,11 @@ export interface AuthorizeUrlResult {
   readonly url: string;
 }
 
+interface CallbackState {
+  readonly stateId: string;
+  readonly redirectTarget: string;
+}
+
 export interface CallbackResult {
   readonly sid: string;
   readonly csrf: string;
@@ -71,23 +76,9 @@ export class AuthFlowService {
       .object({ code: z.string().min(1), state: z.string().min(1) })
       .parse((query as Record<string, unknown>) ?? {});
 
-    let redirectTarget = (query as Record<string, unknown>)['redirect'] as string | undefined;
-    let stateId = params.state;
-    const dotIdx = params.state.indexOf('.');
-    if (dotIdx > 0) {
-      stateId = params.state.substring(0, dotIdx);
-      const enc = params.state.substring(dotIdx + 1);
-      try {
-        const decoded = Buffer.from(enc, 'base64url').toString('utf8');
-        if (decoded.length > 0) redirectTarget = decoded;
-      } catch {
-        // ignore malformed state suffix
-      }
-    }
-    const paramsForValidation = { code: params.code, state: stateId };
-    this.logger.info(
-      `Handling OIDC callback, state=${params.state}, parsedStateId=${stateId}, redirect=${redirectTarget ?? '/'} `,
-    );
+    const callbackState = this.getCallbackState(query, params);
+
+    const paramsForValidation = { code: params.code, state: callbackState.stateId };
     const { sid, csrf, profile } = await this.sessions.completeLogin(
       this.oidc,
       paramsForValidation,
@@ -119,8 +110,31 @@ export class AuthFlowService {
       this.logger.debug(`User already exists for OIDC sub=${profile.sub}`);
     }
 
-    const target = this.sanitizeRedirect(redirectTarget);
+    const target = this.sanitizeRedirect(callbackState.redirectTarget);
     return { sid, csrf, redirectTarget: target, profile } as const;
+  }
+
+  private getCallbackState(query: unknown, params: { code: string; state: string }): CallbackState {
+    let redirectTarget = (query as Record<string, unknown>)['redirect'] as string | undefined;
+    let stateId = params.state;
+    const dotIdx = params.state.indexOf('.');
+    if (dotIdx > 0) {
+      stateId = params.state.substring(0, dotIdx);
+      const enc = params.state.substring(dotIdx + 1);
+      try {
+        const decoded = Buffer.from(enc, 'base64url').toString('utf8');
+        if (decoded.length > 0) redirectTarget = decoded;
+      } catch {
+        // ignore malformed state suffix
+      }
+    }
+    const result = { stateId, redirectTarget } as CallbackState;
+
+    this.logger.info(
+      `Getting callback state, state=${params.state}, parsedStateId=${result.stateId}, redirect=${result.redirectTarget ?? '/'} `,
+    );
+
+    return result;
   }
 
   public async logout(sid: string | undefined): Promise<void> {
