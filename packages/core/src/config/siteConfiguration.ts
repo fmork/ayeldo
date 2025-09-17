@@ -117,11 +117,6 @@ export class SiteConfiguration {
     return `${cleanAuthority}/.well-known/jwks.json`;
   }
 
-  // Check if OIDC is configured
-  public get isOidcConfigured(): boolean {
-    return !!(this._oidcAuthority && this._oidcClientId && this._oidcClientSecret);
-  }
-
   // Utility for fetch wrappers
   public defaultFetchOptions(csrfToken?: string): {
     readonly credentials: 'include';
@@ -176,21 +171,18 @@ export class SiteConfiguration {
       WEB_ORIGIN: this.webOrigin,
     };
 
-    if (this.isOidcConfigured) {
-      // These are guaranteed to be defined when isOidcConfigured is true
-      if (this._oidcAuthority && this._oidcClientId && this._oidcClientSecret) {
-        env['OIDC_ISSUER_URL'] = this._oidcAuthority;
-        const authUrl = this.oidcAuthUrl;
-        const tokenUrl = this.oidcTokenUrl;
-        const jwksUrl = this.oidcJwksUrl;
-        if (authUrl) env['OIDC_AUTH_URL'] = authUrl;
-        if (tokenUrl) env['OIDC_TOKEN_URL'] = tokenUrl;
-        if (jwksUrl) env['OIDC_JWKS_URL'] = jwksUrl;
-        env['OIDC_CLIENT_ID'] = this._oidcClientId;
-        env['OIDC_CLIENT_SECRET'] = this._oidcClientSecret;
-        env['OIDC_SCOPES'] = this._oidcScopes;
-        env['OIDC_REDIRECT_URI'] = this.oidcRedirectUri;
-      }
+    if (this._oidcAuthority && this._oidcClientId && this._oidcClientSecret) {
+      env['OIDC_ISSUER_URL'] = this._oidcAuthority;
+      const authUrl = this.oidcAuthUrl;
+      const tokenUrl = this.oidcTokenUrl;
+      const jwksUrl = this.oidcJwksUrl;
+      if (authUrl) env['OIDC_AUTH_URL'] = authUrl;
+      if (tokenUrl) env['OIDC_TOKEN_URL'] = tokenUrl;
+      if (jwksUrl) env['OIDC_JWKS_URL'] = jwksUrl;
+      env['OIDC_CLIENT_ID'] = this._oidcClientId;
+      env['OIDC_CLIENT_SECRET'] = this._oidcClientSecret;
+      env['OIDC_SCOPES'] = this._oidcScopes;
+      env['OIDC_REDIRECT_URI'] = this.oidcRedirectUri;
     }
 
     if (this._sessionEncKey) {

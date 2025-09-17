@@ -1,5 +1,45 @@
+import type { HttpResponse } from '@fmork/backend-core';
 import type { NextFunction, Request, Response } from 'express';
+
+// Mock the logWriter import to prevent ApiInit from running
+jest.mock('../../init/ApiInit', () => ({
+  logWriter: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 import { csrfGuard, requireCsrfForController, requireCsrfWrapper } from '../csrfGuard';
+
+// Mock the initialization modules to avoid OIDC configuration requirements
+jest.mock('../../init/authServices', () => ({
+  authFlowService: {},
+  sessions: {},
+}));
+
+jest.mock('../../init/config', () => ({
+  logWriter: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
+  siteConfig: {},
+  claimBasedAuthorizer: {},
+}));
+
+jest.mock('../../init/tenantServices', () => ({
+  onboardingService: {},
+}));
+
+jest.mock('../../init/infrastructure', () => ({
+  httpClient: {},
+}));
+
+jest.mock('../../init/authControllers', () => ({
+  sessionBasedAuthorizer: {},
+}));
 
 describe('csrfGuard', () => {
   test('allows when header and cookie match', () => {
@@ -55,7 +95,7 @@ describe('requireCsrfForController', () => {
     const req = { headers: { 'x-csrf-token': 'x' }, cookies: { csrf: 'x' } } as unknown;
     const json = jest.fn();
     const status = jest.fn().mockReturnValue({ json });
-    const res = { status } as unknown;
+    const res = { status, json } as unknown as HttpResponse;
     const called = { v: false };
     const handler = async (_r: unknown, _s: unknown) => {
       called.v = true;
@@ -69,7 +109,7 @@ describe('requireCsrfForController', () => {
     const req = { headers: {}, cookies: {} } as unknown;
     const json = jest.fn();
     const status = jest.fn().mockReturnValue({ json });
-    const res = { status } as unknown;
+    const res = { status, json } as unknown as HttpResponse;
     const handler = jest.fn(async () => {});
     const wrapped = requireCsrfForController(handler);
     await wrapped(req, res);
