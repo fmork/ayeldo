@@ -71,12 +71,12 @@ const claimBasedAuthorizer = new ClaimBasedAuthorizer({
 function createSiteConfigurationFromEnv(): SiteConfiguration {
   const apiBaseUrl = process.env['API_BASE_URL'] ?? 'http://localhost:3000';
   const url = new URL(apiBaseUrl);
-  const bffOrigin = `${url.protocol}//${url.host}`;
+  const apiOrigin = `${url.protocol}//${url.host}`;
   const webOrigin = process.env['WEB_ORIGIN'] ?? 'http://localhost:3001';
 
   return new SiteConfiguration({
     webOrigin,
-    bffOrigin,
+    bffOrigin: apiOrigin,
     ...(process.env['OIDC_ISSUER_URL'] && { oidcAuthority: process.env['OIDC_ISSUER_URL'] }),
     ...(process.env['OIDC_CLIENT_ID'] && { oidcClientId: process.env['OIDC_CLIENT_ID'] }),
     ...(process.env['OIDC_CLIENT_SECRET'] && {
@@ -94,7 +94,7 @@ const siteConfig = createSiteConfigurationFromEnv();
 // Log configuration status
 // Note: `bffOrigin` currently represents the HTTP API origin (formerly called BFF).
 logWriter.info(
-  `Site configuration: webOrigin=${siteConfig.webOrigin}, bffOrigin=${siteConfig.bffOrigin}`,
+  `Site configuration: webOrigin=${siteConfig.webOrigin}, apiOrigin=${siteConfig.apiOrigin}`,
 );
 logWriter.info(
   `OIDC configuration status: ${siteConfig.isOidcConfigured ? 'ENABLED' : 'DISABLED'}`,
@@ -188,7 +188,7 @@ const onboardingService = new OnboardingService({
   logger: logWriter,
 });
 
-// BFF wiring
+// API wiring
 const httpClient = new AxiosHttpClient({ logWriter });
 
 // Create OIDC config from SiteConfiguration if OIDC is configured
@@ -246,10 +246,10 @@ if (siteConfig.isOidcConfigured) {
   }
 }
 
-export const rootBffController = new RootController({ baseUrl: '', logWriter });
+export const rootController = new RootController({ baseUrl: '', logWriter });
 
-// Only create BFF controllers if OIDC is configured
-export const authBffController =
+// Only create API controllers if OIDC is configured
+export const authController =
   oidc && sessions && authFlowService
     ? new AuthController({
         baseUrl: '',
@@ -260,7 +260,7 @@ export const authBffController =
       })
     : undefined;
 
-export const cartBffController = sessions
+export const cartFrontendController = sessions
   ? new CartFrontendController({
       baseUrl: '',
       logWriter,
@@ -345,10 +345,10 @@ export const server = new Server({
     orderController,
     paymentController,
     mediaController,
-    // BFF - only include if configured
-    rootBffController,
-    ...(authBffController ? [authBffController] : []),
-    ...(cartBffController ? [cartBffController] : []),
+    // API - only include if configured
+    rootController,
+    ...(authController ? [authController] : []),
+    ...(cartFrontendController ? [cartFrontendController] : []),
     // Authenticated controllers
     ...(tenantAdminController ? [tenantAdminController] : []),
   ],
@@ -362,7 +362,7 @@ export const server = new Server({
   corsOptions: {
     origin: [
       siteConfig.webOrigin,
-      siteConfig.bffOrigin,
+      siteConfig.apiOrigin,
       // Development origins
       /^http:\/\/localhost:\d+$/,
       /^https:\/\/localhost:\d+$/,
