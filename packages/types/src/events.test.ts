@@ -4,7 +4,7 @@ import {
   makeEventEnvelopeSchema,
   tenantCreatedEventSchema,
   tenantCreatedPayloadSchema,
-  ulidSchema,
+  uuidSchema,
 } from './events';
 
 const payloadSchema = z.object({ foo: z.string() });
@@ -13,7 +13,7 @@ const evtSchema = makeEventEnvelopeSchema('TestEvent', payloadSchema);
 describe('EventEnvelope schema', () => {
   test('parses valid envelope', () => {
     const data = {
-      id: '01H7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7',
+      id: '550e8400-e29b-41d4-a716-446655440000',
       type: 'TestEvent',
       occurredAt: '2024-01-01T00:00:00.000Z',
       tenantId: 'tenant-123',
@@ -25,7 +25,7 @@ describe('EventEnvelope schema', () => {
 
   test('rejects wrong type', () => {
     const data = {
-      id: '01H7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7',
+      id: '550e8400-e29b-41d4-a716-446655440000',
       type: 'Other',
       occurredAt: '2024-01-01T00:00:00.000Z',
       tenantId: 'tenant-123',
@@ -34,16 +34,16 @@ describe('EventEnvelope schema', () => {
     expect(() => evtSchema.parse(data)).toThrow();
   });
 
-  test('ulid schema validates length and charset', () => {
-    expect(ulidSchema.safeParse('short').success).toBe(false);
-    expect(ulidSchema.safeParse('01H7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7').success).toBe(true);
+  test('uuid schema validates format', () => {
+    expect(uuidSchema.safeParse('not-a-uuid').success).toBe(false);
+    expect(uuidSchema.safeParse('550e8400-e29b-41d4-a716-446655440000').success).toBe(true);
   });
 });
 
 describe('TenantCreated event', () => {
   test('parses valid TenantCreated event', () => {
     const data = {
-      id: '01H7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7',
+      id: '550e8400-e29b-41d4-a716-446655440000',
       type: 'TenantCreated',
       occurredAt: '2024-01-01T00:00:00.000Z',
       tenantId: 'tenant-123',
@@ -61,7 +61,7 @@ describe('TenantCreated event', () => {
 
   test('rejects invalid email in payload', () => {
     const data = {
-      id: '01H7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7',
+      id: '550e8400-e29b-41d4-a716-446655440000',
       type: 'TenantCreated',
       occurredAt: '2024-01-01T00:00:00.000Z',
       tenantId: 'tenant-123',

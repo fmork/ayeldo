@@ -10,7 +10,7 @@ import type {
   PriceItemDto,
   PriceListDto,
 } from './dtos';
-import { isoTimestampSchema, ulidSchema } from './events';
+import { isoTimestampSchema, uuidSchema } from './events';
 import { CartState, OrderState } from './state';
 
 export const userCreateSchema = z.object({
@@ -104,7 +104,7 @@ export const orderSchema = z.object({
   updatedAt: isoTimestampSchema,
 }) satisfies z.ZodType<OrderDto>;
 
-export const ulidStringSchema = ulidSchema;
+export const uuidStringSchema = uuidSchema;
 
 export const tenantCreateSchema = z.object({
   name: z.string().min(1),
@@ -114,7 +114,7 @@ export const tenantCreateSchema = z.object({
 });
 
 export const tenantSchema = z.object({
-  id: ulidSchema,
+  id: uuidSchema,
   name: z.string().min(1),
   ownerEmail: z.string().email(),
   plan: z.string().min(1),

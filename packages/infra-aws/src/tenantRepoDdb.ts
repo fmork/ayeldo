@@ -1,5 +1,5 @@
 import type { ITenantRepo } from '@ayeldo/core';
-import type { TenantCreateDto, TenantDto, Ulid } from '@ayeldo/types';
+import type { TenantCreateDto, TenantDto, Uuid } from '@ayeldo/types';
 import type { DdbClient } from './ddbClient';
 import { pkTenant } from './keys';
 
@@ -17,8 +17,8 @@ export class TenantRepoDdb implements ITenantRepo {
     this.client = props.client;
   }
 
-  public async createTenant(input: TenantCreateDto, id?: Ulid): Promise<TenantDto> {
-    const tenantId = id ?? makeLocalUlid();
+  public async createTenant(input: TenantCreateDto, id?: Uuid): Promise<TenantDto> {
+    const tenantId = id ?? makeLocalUuid();
     const now = new Date().toISOString();
     const item: TenantDto = {
       id: tenantId,
@@ -41,7 +41,7 @@ export class TenantRepoDdb implements ITenantRepo {
     return item;
   }
 
-  public async getTenantById(id: Ulid): Promise<TenantDto | undefined> {
+  public async getTenantById(id: Uuid): Promise<TenantDto | undefined> {
     const { item } = await this.client.get<Record<string, unknown>>({
       tableName: this.tableName,
       key: { PK: pkTenant(id), SK: `METADATA#${id}` },
@@ -87,11 +87,47 @@ export class TenantRepoDdb implements ITenantRepo {
 
 export default TenantRepoDdb;
 
-// Minimal local ULID-like generator (keeps id uniqueness; not monotonic). Using an internal helper
-// here avoids importing package source files during the infra package typecheck.
-function makeLocalUlid(): string {
-  // timestamp(10 chars base36) + random(16 chars base36) => ~26 chars
-  const t = Date.now().toString(36);
-  const r = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
-  return (t + r).slice(0, 26);
+// Local UUID generator to avoid depending on the utils package inside infra types.
+function makeLocalUuid(): string {
+  const g = globalThis as unknown as {
+    crypto?: { randomUUID?: () => string; getRandomValues?: (out: Uint8Array) => void };
+  };
+  const cryptoApi = g.crypto;
+  if (cryptoApi && typeof cryptoApi.randomUUID === 'function') {
+    return cryptoApi.randomUUID();
+  }
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const nodeCrypto = require('node:crypto') as { randomUUID?: () => string };
+    if (typeof nodeCrypto.randomUUID === 'function') {
+      return nodeCrypto.randomUUID();
+    }
+  } catch {
+    // ignore and fall back to manual generation
+  }
+
+  const bytes = new Uint8Array(16);
+  if (cryptoApi && typeof cryptoApi.getRandomValues === 'function') {
+    cryptoApi.getRandomValues(bytes);
+  } else {
+    for (const index of bytes.keys()) {
+      bytes[index] = Math.floor(Math.random() * 256);
+    }
+  }
+
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+  bytes[8] = (bytes[8] & 0x3f) | 0x80; // RFC 4122 variant
+
+  const hex: string[] = [];
+  for (const byte of bytes) {
+    hex.push(byte.toString(16).padStart(2, '0'));
+  }
+  return (
+    `${hex[0]}${hex[1]}${hex[2]}${hex[3]}-` +
+    `${hex[4]}${hex[5]}-` +
+    `${hex[6]}${hex[7]}-` +
+    `${hex[8]}${hex[9]}-` +
+    `${hex[10]}${hex[11]}${hex[12]}${hex[13]}${hex[14]}${hex[15]}`
+  );
 }

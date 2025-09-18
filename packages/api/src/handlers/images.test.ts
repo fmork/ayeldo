@@ -56,8 +56,8 @@ describe('image upload handlers', () => {
   });
 
   test('completeUpload publishes ImageUploaded event', async () => {
-    const ulid = '01H7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7';
-    const input = { tenantId: 't1', albumId: 'alb1', imageId: ulid };
+    const imageId = '550e8400-e29b-41d4-a716-446655440000';
+    const input = { tenantId: 't1', albumId: 'alb1', imageId };
     const published: any[] = [];
     const publisher = {
       publish: jest.fn(async (evt: any) => {
@@ -77,8 +77,8 @@ describe('image upload handlers', () => {
     const evt = published[0];
     expect(evt.type).toBe('ImageUploaded');
     expect(evt.tenantId).toBe('t1');
-    expect(evt.payload).toEqual({ albumId: 'alb1', imageId: ulid });
-    expect(evt.id).toBe(ulid);
+    expect(evt.payload).toEqual({ albumId: 'alb1', imageId });
+    expect(evt.id).toBe(imageId);
     expect(typeof evt.occurredAt).toBe('string');
     expect(evt.occurredAt).toMatch(/T.*Z$/);
   });

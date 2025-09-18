@@ -1,4 +1,4 @@
-import type { TenantCreateDto, TenantDto, Ulid } from '@ayeldo/types';
+import type { TenantCreateDto, TenantDto, Uuid } from '@ayeldo/types';
 import type { Album, Cart, Image, Order, PriceList } from '../index';
 import type { TenantId } from '../types';
 
@@ -32,7 +32,7 @@ export interface IOrderRepo {
 }
 
 export interface ITenantRepo {
-  createTenant(input: TenantCreateDto, id?: Ulid): Promise<TenantDto>;
-  getTenantById(id: Ulid): Promise<TenantDto | undefined>;
+  createTenant(input: TenantCreateDto, id?: Uuid): Promise<TenantDto>;
+  getTenantById(id: Uuid): Promise<TenantDto | undefined>;
   getTenantByOwnerEmail(email: string): Promise<TenantDto | undefined>;
 }

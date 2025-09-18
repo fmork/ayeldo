@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { ICartRepo, IDownloadUrlProvider, IOrderRepo, IPriceListRepo } from '@ayeldo/core';
 import { Order, type TieredPricingEngine, nextOrderState, OrderAction } from '@ayeldo/core';
 import type { OrderDto } from '@ayeldo/types';
-import { makeUlid } from '@ayeldo/utils';
+import { makeUuid } from '@ayeldo/utils';
 
 export const createOrderFromCartSchema = z.object({
   tenantId: z.string().min(1),
@@ -27,7 +27,7 @@ export async function createOrderFromCart(
   const nowIso = new Date().toISOString();
 
   const order = new Order({
-    id: makeUlid(),
+    id: makeUuid(),
     tenantId,
     cartId,
     state: 'created',

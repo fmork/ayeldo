@@ -1,17 +1,15 @@
 import { z } from 'zod';
-import type { TenantId, Ulid } from './dtos';
+import type { TenantId, Uuid } from './dtos';
 
 export interface EventEnvelope<TType extends string, TPayload> {
-  readonly id: Ulid;
+  readonly id: Uuid;
   readonly type: TType;
   readonly occurredAt: string; // ISO timestamp
   readonly tenantId: TenantId;
   readonly payload: TPayload;
 }
 
-const ULID_REGEX = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
-
-export const ulidSchema = z.string().length(26).regex(ULID_REGEX, 'Invalid ULID');
+export const uuidSchema = z.string().uuid();
 
 export const isoTimestampSchema = z.string().datetime({ offset: true });
 
@@ -22,7 +20,7 @@ export function makeEventEnvelopeSchema<TPayload extends z.ZodTypeAny, TType ext
   payloadSchema: TPayload,
 ): z.ZodType<EventEnvelope<TType, z.infer<TPayload>>> {
   return z.object({
-    id: ulidSchema,
+    id: uuidSchema,
     type: z.literal(typeLiteral),
     occurredAt: isoTimestampSchema,
     tenantId: tenantIdSchema,

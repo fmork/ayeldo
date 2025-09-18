@@ -1,7 +1,7 @@
 import type { IUserRepo } from '@ayeldo/core/src/ports/userRepo';
 import type { UserCreateDto, UserDto } from '@ayeldo/types';
 import { userCreateSchema, userSchema } from '@ayeldo/types';
-import { makeUlid } from '@ayeldo/utils';
+import { makeUuid } from '@ayeldo/utils';
 import type { DdbClient } from './ddbClient';
 import { GSI2_NAME, GSI3_NAME, gsi2UserByOidcSub, gsi3UserByEmail } from './keys';
 
@@ -23,7 +23,7 @@ export class UserRepoDdb implements IUserRepo {
     const parsed = userCreateSchema.parse(input);
     const user: UserDto = {
       ...parsed,
-      id: id ?? makeUlid(),
+      id: id ?? makeUuid(),
       createdAt: new Date().toISOString(),
     };
 

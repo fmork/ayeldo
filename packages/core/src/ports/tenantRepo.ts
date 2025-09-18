@@ -1,8 +1,8 @@
-import type { TenantCreateDto, TenantDto, Ulid } from '@ayeldo/types';
+import type { TenantCreateDto, TenantDto, Uuid } from '@ayeldo/types';
 
 export interface ITenantRepo {
-  createTenant(input: TenantCreateDto, id?: Ulid): Promise<TenantDto>;
-  getTenantById(id: Ulid): Promise<TenantDto | undefined>;
+  createTenant(input: TenantCreateDto, id?: Uuid): Promise<TenantDto>;
+  getTenantById(id: Uuid): Promise<TenantDto | undefined>;
   getTenantByOwnerEmail(email: string): Promise<TenantDto | undefined>;
 }
 

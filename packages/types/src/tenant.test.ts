@@ -15,7 +15,7 @@ describe('Tenant schemas', () => {
 
   test('tenant: happy path', () => {
     const data = {
-      id: '01H7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7',
+      id: '550e8400-e29b-41d4-a716-446655440000',
       name: 'My Company',
       ownerEmail: 'owner@example.com',
       plan: 'free',

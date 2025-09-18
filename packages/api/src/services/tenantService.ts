@@ -1,7 +1,7 @@
 import type { IEventPublisher, ITenantRepo } from '@ayeldo/core';
 import type { TenantCreateDto, TenantDto } from '@ayeldo/types';
 import { makeEventEnvelopeSchema, tenantCreateSchema } from '@ayeldo/types';
-import { makeUlid } from '@ayeldo/utils';
+import { makeUuid } from '@ayeldo/utils';
 import type { ILogWriter, JsonUtil } from '@fmork/backend-core';
 import { z } from 'zod';
 
@@ -31,10 +31,10 @@ export class TenantService {
       ...(input.plan !== undefined ? { plan: input.plan } : {}),
     } as unknown as TenantCreateDto;
 
-    const tenant = await this.deps.tenantRepo.createTenant(createDto, makeUlid());
+    const tenant = await this.deps.tenantRepo.createTenant(createDto, makeUuid());
 
     const evt = {
-      id: makeUlid(),
+      id: makeUuid(),
       type: 'TenantCreated' as const,
       occurredAt: new Date().toISOString(),
       tenantId: tenant.id,

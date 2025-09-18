@@ -1,5 +1,5 @@
 import type { IStatsRepo } from '@ayeldo/core';
-import type { TenantId, Ulid } from '@ayeldo/types';
+import type { TenantId, Uuid } from '@ayeldo/types';
 import type { DdbClient } from '../ddbClient';
 
 export interface StatsRepoDdbProps {
@@ -18,7 +18,7 @@ export class StatsRepoDdb implements IStatsRepo {
     this.client = props.client;
   }
 
-  public async ensureIdempotent(eventId: Ulid, ttlSeconds?: number): Promise<boolean> {
+  public async ensureIdempotent(eventId: Uuid, ttlSeconds?: number): Promise<boolean> {
     const key = { PK: `EVENT#${eventId}`, SK: `EVENT#${eventId}` } as const;
     const { item } = await this.client.get<{ PK: string; SK: string }>({ tableName: this.tableName, key });
     if (item) return false;

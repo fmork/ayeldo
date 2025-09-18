@@ -4,7 +4,7 @@ import { nextOrderState, OrderAction } from '@ayeldo/core';
 import type { CheckoutSession } from '@ayeldo/core';
 import { createHmac } from 'crypto';
 import { makeEventEnvelopeSchema } from '@ayeldo/types';
-import { makeUlid } from '@ayeldo/utils';
+import { makeUuid } from '@ayeldo/utils';
 
 export const createCheckoutSessionSchema = z.object({
   tenantId: z.string().min(1),
@@ -82,7 +82,7 @@ export async function handleStripeWebhook(
   await deps.orderRepo.put(updated);
 
   const evt = {
-    id: makeUlid(),
+    id: makeUuid(),
     type: action === OrderAction.PaymentSucceeded ? ('OrderPaid' as const) : ('OrderFailed' as const),
     occurredAt: new Date().toISOString(),
     tenantId: parsed.tenantId,

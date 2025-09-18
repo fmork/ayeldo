@@ -3,7 +3,7 @@ import type { ICartRepo, IPriceListRepo, IEventPublisher } from '@ayeldo/core';
 import { Cart, type TieredPricingEngine, type PriceCartResult } from '@ayeldo/core';
 import type { CartDto } from '@ayeldo/types';
 import { makeEventEnvelopeSchema } from '@ayeldo/types';
-import { makeUlid } from '@ayeldo/utils';
+import { makeUuid } from '@ayeldo/utils';
 
 export const priceCartInputSchema = z.object({
   tenantId: z.string().min(1),
@@ -65,7 +65,7 @@ export async function addCartItem(
   await deps.cartRepo.put(updatedCart);
   // Emit CartUpdated event
   const evt = {
-    id: makeUlid(),
+    id: makeUuid(),
     type: 'CartUpdated' as const,
     occurredAt: new Date().toISOString(),
     tenantId,
@@ -113,7 +113,7 @@ export async function removeCartItem(
   await deps.cartRepo.put(updatedCart);
   // Emit CartUpdated event
   const evt = {
-    id: makeUlid(),
+    id: makeUuid(),
     type: 'CartUpdated' as const,
     occurredAt: new Date().toISOString(),
     tenantId,

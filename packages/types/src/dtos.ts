@@ -16,7 +16,7 @@ export interface UserCreateDto {
 }
 import type { CartState, OrderState } from './state';
 
-export type Ulid = string;
+export type Uuid = string;
 
 export type TenantId = string;
 
@@ -107,7 +107,7 @@ export interface TenantCreateDto {
 }
 
 export interface TenantDto {
-  readonly id: Ulid;
+  readonly id: Uuid;
   readonly name: string;
   readonly ownerEmail: string;
   readonly plan: string;
