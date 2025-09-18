@@ -42,8 +42,7 @@ export class AuthController extends PublicController {
       await this.performRequest(
         async () => {
           const url = this.authFlow.buildLoginRedirectUrl();
-          (res as any).redirect?.(url) ??
-            (res as any).status(302)?.setHeader?.('Location', url)?.end?.();
+          (res as any).setHeader?.('Location', url)?.end?.();
           return { redirected: true } as const;
         },
         res,
@@ -74,8 +73,8 @@ export class AuthController extends PublicController {
             path: '/',
             ...(this.siteConfig.cookieDomain && { domain: this.siteConfig.cookieDomain }),
           });
-          (res as any).redirect?.(result.redirectTarget) ??
-            (res as any).status(302)?.setHeader?.('Location', result.redirectTarget)?.end?.();
+
+          (res as any).setHeader?.('Location', result.redirectTarget);
           return { redirected: true } as const;
         },
         res,
@@ -90,10 +89,11 @@ export class AuthController extends PublicController {
         await this.performRequest(
           async () => {
             const sid = (req as any).cookies?.[COOKIE_NAMES.SESSION_ID] as string | undefined;
-            await this.authFlow.logout(sid);
             (res as any).clearCookie?.(COOKIE_NAMES.SESSION_ID);
             (res as any).clearCookie?.(COOKIE_NAMES.CSRF);
-            (res as any).status(204).end();
+
+            await this.authFlow.logout(sid);
+
             return { loggedOut: true } as const;
           },
           res as unknown as Parameters<typeof this.performRequest>[1],
