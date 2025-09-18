@@ -122,7 +122,18 @@ export class SessionService {
   }
 
   public async getSession(sid: string): Promise<SessionRecord | undefined> {
-    return this.store.getSession(sid);
+    const session: SessionRecord | undefined = await this.store.getSession(sid);
+    if (!session) {
+      return undefined;
+    }
+
+    const nowSec: number = Math.floor(Date.now() / 1000);
+    if (session.ttl <= nowSec) {
+      this.logger.warn(`Session expired for sid=${sid}`);
+      return undefined;
+    }
+
+    return session;
   }
 
   public async logout(sid: string): Promise<void> {

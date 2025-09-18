@@ -58,6 +58,12 @@ export const SessionProvider: FC<{ children: ReactNode }> = ({ children }) => {
     void fetchSession();
   }, [fetchSession]);
 
+  useEffect(() => {
+
+    console.info('Session updated:', session);
+
+  }, [session]);
+
   // Refresh session when the window gains focus (useful after OIDC redirect)
   useEffect(() => {
     const handleFocus = (): void => {
