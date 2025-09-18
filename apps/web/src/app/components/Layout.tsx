@@ -5,8 +5,8 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useFrontendConfiguration } from '../FrontendConfigurationContext';
-import AppBarComponent from './AppBarComponent';
-import MobileDrawer from './MobileDrawer';
+import AppBarComponent from './app-navigation/appBarComponent';
+import MobileDrawer from './app-navigation/mobileDrawer';
 
 const Layout: FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);

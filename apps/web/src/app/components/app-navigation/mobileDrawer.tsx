@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
-import { useSession } from '../../app/contexts/SessionContext';
+import { useSession } from '../../contexts/SessionContext';
 
 const drawerWidth = 240;
 
