@@ -68,8 +68,8 @@ Use the `ILogWriter` interface from `@fmork/backend-core` for all logging. Insta
 
 Code that needs to make HTTP requests should take a dependency on `HttpClient` from `@fmork/backend-core`. The type is described in `docs/type-snapshots/HttpClient.d.ts`.
 
-- Backend (BFF/API/Services): inject an `HttpClient` implementation (Axios or fetch/undici-based) via manual DI.
-- Frontend (Web/Vite): use a small typed fetch wrapper that calls only the BFF with `credentials: 'include'` and an `X-CSRF-Token` header.
+- Backend (API/Services): inject an `HttpClient` implementation (Axios or fetch/undici-based) via manual DI.
+- Frontend (Web/Vite): use a small typed fetch wrapper that calls the API with `credentials: 'include'` and an `X-CSRF-Token` header.
 
 ### TypeScript Best Practices
 
@@ -110,10 +110,10 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
 
 ## 🏗 Architecture Rules
 
-- **BFF pattern**
+- **API pattern**
   - Browser never sees OIDC tokens.
-  - BFF performs token exchange and issues HttpOnly session cookies.
-  - BFF calls Domain API using internal auth (signed JWT or API key).
+  - API performs token exchange and issues HttpOnly session cookies.
+  - API calls services using internal auth (signed JWT or API key).
 
 - **Layered separation**
   - **Domain (`core`)** is **pure** (no AWS imports).
@@ -154,17 +154,15 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
 - **Resource names**: Do not assign explicit names to resources (such as the `BucketName` property of S3 buckets) unless required.
 - **Base domains**: The deployment environment should have an environment variable FMORK_SITE_DOMAIN_NAME containing the base domain name. This domain is expected to be maintained in AWS Route 53 in the AWS account where the CDK deployment is performed.
 - **Hostnames**: Standardize patterns:
-  - BFF: `{env}-api.{base}`
-  - API: `{env}-backend.{base}`
+  - API: `{env}-api.{base}`
   - Web app: `{env}-www.{base}`
   - Static assets: `{env}-cdn.{base}`
     **NOTE**: the `{env}-` prefix should be omitted for the `prod` environment.
-- **Routing/Ingress**: CloudFront/APIGW/ALB terminate TLS and route to Lambdas (BFF/API). Use host-based routing (`api.*`, `backend.*`) and health checks (`/-/healthz`, `/-/readyz`).
+- **Routing/Ingress**: CloudFront/APIGW/ALB terminate TLS and route to Lambdas (API). Use host-based routing (`api.*`, `backend.*`) and health checks (`/-/healthz`, `/-/readyz`).
 - **TLS**: ACM certificates per zone; TLS 1.2+; HSTS for public hosts. Track certificate ownership and renewal windows.
-- **Service access**: Keep API private when possible; BFF calls API via VPC/private link or service integration. Public entrypoint should be BFF only.
 - **Custom domains (tenants)**: Support optional CNAME to tenant host (`{tenant}.bff.{base}`). Require DNS validation flow and ownership checks.
 - **Caching**: Define TTL defaults per path. No-cache for auth/session endpoints; short TTL for personalized responses; long TTL for static assets with immutable hashes.
-- **Deployment strategy**: IaC-managed (e.g., CDK/Terraform). Prefer blue/green or canary for BFF/API. Record DNS TTLs to enable fast cutover/rollback.
+- **Deployment strategy**: IaC-managed (e.g., CDK/Terraform). Prefer blue/green or canary for API. Record DNS TTLs to enable fast cutover/rollback.
 - **Config & secrets**: Store env-scoped config in SSM Parameter Store; rotate secrets (see Security Practices). Never bake secrets into images/artifacts.
 - **Observability**: Standardize logs/metrics/traces per env. Alert on DNS/SSL expiry, 5xx/error rates, latency SLOs.
 
@@ -198,18 +196,17 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
   - Use MUI (Material‑UI) theming for styling.
   - Prepare theming enabling tenants to have custom themes.
   - Routing with `react-router-dom` for: `/auth/signin` (formerly `/login`), `/albums/:id`, `/cart`, `/checkout/result`.
-  - API access via a typed fetch wrapper that talks only to the BFF. Always send `credentials: 'include'` and an `X-CSRF-Token` header.
-  - Configuration via Vite env (`VITE_BFF_BASE_URL`); in dev, set a Vite proxy to the BFF origin to simplify CORS and cookie forwarding.
+  - API access via a typed fetch wrapper. Always send `credentials: 'include'` and an `X-CSRF-Token` header.
+  - Configuration via Vite env (`VITE_BFF_BASE_URL`); in dev, set a Vite proxy to the API origin to simplify CORS and cookie forwarding.
   - Do not expose OIDC tokens in the browser. BFF issues and manages HttpOnly session cookies.
 
 - **Handler philosophy**
-  - BFF and API handlers should be **thin**.
+  - API handlers should be **thin**.
   - Validate input with `zod`.
   - Delegate to domain services via ports.
 
 - **Service responsibilities**
-  - **BFF**: auth/session management, orchestration, aggregation.
-  - **API**: domain orchestration, event emission.
+  - **API**: auth/session management, orchestration, aggregation, domain orchestration, event emission.
   - **Services**: vertical concerns (images, pricing, orders, analytics).
 
 ### Payment integrations
@@ -251,7 +248,7 @@ When an AI agent generates code, it should:
 1. **Check references** (`C4 DSL`, `todo.md`, `dynamo.md`, `events.md`).
 2. **Update itself on** manual code changes, so that it does not overwrite and corrupt files.
 3. **Follow coding rules** (strict TS, zod validation, async/await, no any).
-4. **Respect architecture** (BFF → API → Services, ports, events).
+4. **Respect architecture** (API → Services, ports, events).
 5. **Produce tests** for new domain logic.
 6. **Verify correctness** so that generated code does not contain errors. **ALWAYS** `scripts/build.sh` before a task is handed off in order to verify that nothing is broken. **Verify your working directory** before running the script.
 7. **Document** new features in `docs/` as needed.
