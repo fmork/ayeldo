@@ -61,6 +61,7 @@ const api = new ApiStack(app, `AyeldoApiStack-${envName}`, {
   ...(env as { env?: { account?: string; region?: string } }),
   table: core.table,
   eventBus: events.bus,
+  mediaBucket: core.mediaBucket,
   ...(domainConfig ? { domainConfig } : {}),
 });
 Tags.of(api).add('Environment', envName);

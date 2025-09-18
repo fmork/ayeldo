@@ -21,6 +21,14 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level" {
                 tags "UI"
             }
 
+            webStatic = container "Web Static Bucket" "Amazon S3 bucket that stores the built SPA assets (infra-managed)." "Amazon S3" {
+                tags "Storage"
+            }
+
+            webCdn = container "Web CDN" "CloudFront distribution ({env}-www.{base}) serving the SPA with the shared ACM certificate." "Amazon CloudFront" {
+                tags "Edge"
+            }
+
             api = container "HTTP API / Controllers" "Thin HTTP layer (routing, auth context, delegates to Flow/Query Services)." "TypeScript (Node.js)" {
                 tags "API"
             }
@@ -62,8 +70,12 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level" {
             metadata = container "Metadata Store" "Albums, images, carts, orders, price lists." "Data store" {
                 tags "Data Store"
             }
-            assets = container "Asset Storage" "Binary image assets & derivatives (thumbnails, web sizes)." "Object storage" {
+            mediaStorage = container "Media Bucket" "Amazon S3 bucket for creator uploads, derived assets, and short-lived download archives with lifecycle policies." "Amazon S3" {
                 tags "Storage"
+            }
+
+            mediaCdn = container "Media CDN" "CloudFront distribution ({env}-cdn.{base}) delivering media; reuses the Web CDN ACM certificate." "Amazon CloudFront" {
+                tags "Edge"
             }
 
             // Core call graph
@@ -71,6 +83,10 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level" {
             visitor -> web "Uses"
             admin -> web "Uses"
             web -> api "All UI calls; no tokens in browser"
+            user -> webCdn "Loads SPA assets"
+            visitor -> webCdn "Loads SPA assets"
+            admin -> webCdn "Loads SPA assets"
+            webCdn -> webStatic "Serves built SPA files"
             api -> web "Redirects/callbacks; sets httpOnly session cookie"
 
             // Authentication through API
@@ -107,7 +123,10 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level" {
             pricelists -> metadata "Persist price lists"
             pricing -> pricelists "Read price list rules"
             policy -> metadata "Lookup ACLs/visibility"
-            images -> assets "Coordinate uploads / read sizes"
+            images -> mediaStorage "Coordinate uploads / read sizes"
+            mediaCdn -> mediaStorage "Serves media objects"
+            visitor -> mediaCdn "Downloads media via signed URLs"
+            user -> mediaCdn "Previews uploaded media"
             eventbus -> analytics "Deliver events"
             analytics -> stats "Persist counters/rollups"
 
@@ -165,7 +184,7 @@ workspace "Image Sharing & Selling Platform" "Vision/Feature Level" {
             platform.web -> platform.api "Register metadata, request upload URLs"
             platform.api -> platform.flow "Register image (delegate)"
             platform.flow -> platform.images "Register/prepare"
-            platform.images -> platform.assets "Coordinate upload"
+            platform.images -> platform.mediaStorage "Coordinate upload"
             platform.web -> platform.api "Confirm upload completed, mark uploaded"
             platform.api -> platform.flow "Mark uploaded (delegate)"
             platform.flow -> platform.images "Mark uploaded"

@@ -29,6 +29,8 @@ export class CoreStack extends Stack {
   public readonly table: Table;
   public readonly webBucket: Bucket;
   public readonly webDistribution: Distribution;
+  public readonly mediaBucket: Bucket;
+  public readonly mediaDistribution: Distribution;
 
   constructor(scope: Construct, id: string, props?: CoreStackProps) {
     super(scope, id, props);
@@ -82,6 +84,45 @@ export class CoreStack extends Stack {
       description: `OAC for ${props?.domainConfig?.webHost ?? 'website'}`,
     });
 
+    const uploadAllowedOrigins = new Set<string>();
+    if (props?.domainConfig) {
+      uploadAllowedOrigins.add(`https://${props.domainConfig.webHost}`);
+      uploadAllowedOrigins.add(`https://${props.domainConfig.cdnHost}`);
+    }
+    uploadAllowedOrigins.add('http://localhost:5173');
+    uploadAllowedOrigins.add('https://localhost:5173');
+
+    this.mediaBucket = new Bucket(this, 'MediaBucket', {
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      encryption: BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      lifecycleRules: [
+        {
+          id: 'AbortIncompleteMultipartUploads',
+          abortIncompleteMultipartUploadAfter: Duration.days(1),
+        },
+        {
+          id: 'ExpireTemporaryDownloads',
+          prefix: 'downloads/',
+          expiration: Duration.days(7),
+        },
+      ],
+      cors: [
+        {
+          allowedHeaders: ['*'],
+          allowedMethods: [HttpMethods.POST, HttpMethods.PUT, HttpMethods.GET, HttpMethods.HEAD, HttpMethods.OPTIONS],
+          allowedOrigins: Array.from(uploadAllowedOrigins),
+          maxAge: 3600,
+        },
+      ],
+    });
+
+    const mediaOriginAccessControl = new S3OriginAccessControl(this, 'MediaDistributionAccessControl', {
+      description: `OAC for ${props?.domainConfig?.cdnHost ?? 'media'}`,
+    });
+
     // Optionally attach custom domain + ACM cert (created in us-east-1 via CertStack)
     const distributionExtraProps =
       props?.domainConfig && props?.certificateArn
@@ -122,6 +163,32 @@ export class CoreStack extends Stack {
       ],
     });
 
+    const mediaDistributionExtraProps =
+      props?.domainConfig && props?.certificateArn
+        ? {
+            certificate: Certificate.fromCertificateArn(
+              this,
+              'MediaCertFromArn',
+              props.certificateArn,
+            ),
+            domainNames: [props.domainConfig.cdnHost],
+          }
+        : {};
+
+    this.mediaDistribution = new Distribution(this, 'MediaDistribution', {
+      defaultBehavior: {
+        origin: S3BucketOrigin.withOriginAccessControl(this.mediaBucket, {
+          originAccessControl: mediaOriginAccessControl,
+        }),
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
+        cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+      },
+      enableLogging: false,
+      comment: 'Media distribution for uploaded assets and downloads',
+      ...mediaDistributionExtraProps,
+    });
+
     // Route53 records for custom domain (A/AAAA alias to CloudFront)
     if (props?.domainConfig) {
       const zone = HostedZone.fromLookup(this, 'WebHostedZone', {
@@ -141,6 +208,21 @@ export class CoreStack extends Stack {
         recordName,
         target: RecordTarget.fromAlias(new CloudFrontTarget(this.webDistribution)),
       });
+
+      const mediaRecordName = props.domainConfig.cdnHost.replace(
+        `.${props.domainConfig.baseDomain}`,
+        '',
+      );
+      new ARecord(this, 'MediaAliasA', {
+        zone,
+        recordName: mediaRecordName,
+        target: RecordTarget.fromAlias(new CloudFrontTarget(this.mediaDistribution)),
+      });
+      new AaaaRecord(this, 'MediaAliasAAAA', {
+        zone,
+        recordName: mediaRecordName,
+        target: RecordTarget.fromAlias(new CloudFrontTarget(this.mediaDistribution)),
+      });
     }
 
     // Grant CloudFront access to S3 bucket using OAC
@@ -153,6 +235,20 @@ export class CoreStack extends Stack {
         conditions: {
           StringEquals: {
             'AWS:SourceArn': `arn:aws:cloudfront::${Stack.of(this).account}:distribution/${this.webDistribution.distributionId}`,
+          },
+        },
+      }),
+    );
+
+    this.mediaBucket.addToResourcePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        principals: [new ServicePrincipal('cloudfront.amazonaws.com')],
+        actions: ['s3:GetObject', 's3:GetBucketLocation', 's3:ListBucket'],
+        resources: [this.mediaBucket.bucketArn, `${this.mediaBucket.bucketArn}/*`],
+        conditions: {
+          StringEquals: {
+            'AWS:SourceArn': `arn:aws:cloudfront::${Stack.of(this).account}:distribution/${this.mediaDistribution.distributionId}`,
           },
         },
       }),
@@ -197,6 +293,11 @@ export class CoreStack extends Stack {
       value: this.webDistribution.distributionDomainName,
     });
     new CfnOutput(this, 'WebDistributionId', { value: this.webDistribution.distributionId });
+    new CfnOutput(this, 'MediaBucketName', { value: this.mediaBucket.bucketName });
+    new CfnOutput(this, 'MediaDistributionDomainName', {
+      value: this.mediaDistribution.distributionDomainName,
+    });
+    new CfnOutput(this, 'MediaDistributionId', { value: this.mediaDistribution.distributionId });
 
     // Helpful outputs for computed hostnames when a domain is configured
     if (props?.domainConfig) {

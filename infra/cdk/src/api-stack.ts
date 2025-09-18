@@ -12,6 +12,7 @@ import {
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import type { Table } from 'aws-cdk-lib/aws-dynamodb';
 import type { EventBus } from 'aws-cdk-lib/aws-events';
+import type { Bucket } from 'aws-cdk-lib/aws-s3';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
@@ -25,6 +26,7 @@ import type { DomainConfig } from './domain';
 export interface ApiStackProps extends StackProps {
   readonly table: Table;
   readonly eventBus: EventBus;
+  readonly mediaBucket: Bucket;
   readonly domainConfig?: DomainConfig;
 }
 
@@ -102,6 +104,7 @@ export class ApiStack extends Stack {
         NODE_OPTIONS: '--enable-source-maps',
         TABLE_NAME: props.table.tableName,
         EVENTS_BUS_NAME: props.eventBus.eventBusName,
+        UPLOAD_BUCKET: props.mediaBucket.bucketName,
         ...lambdaEnv,
         // Allow explicit overrides for provider-specific endpoints and redirect URI
         ...(maybe('FMORK_SITE_OIDC_AUTH_URL') && {
@@ -122,6 +125,7 @@ export class ApiStack extends Stack {
     // Permissions: API lambda can read/write table and put events
     props.table.grantReadWriteData(handler);
     props.eventBus.grantPutEventsTo(handler);
+    props.mediaBucket.grantReadWrite(handler);
 
     // Store reference to handler for observability
     this.httpHandlerFunction = handler;
