@@ -66,11 +66,28 @@ describe('AuthFlowService', () => {
     } as any;
   }
 
+  function mkTenantAccess(overrides?: Partial<any>) {
+    return {
+      listMembershipsForUser: jest.fn().mockResolvedValue([]),
+      grantMembership: jest.fn(),
+      changeRole: jest.fn(),
+      revokeMembership: jest.fn(),
+      ...overrides,
+    } as any;
+  }
+
   test('buildAuthorizeUrl without redirect uses plain state', () => {
     const sessions = mkSessionService();
     const oidc = mkOidc();
     const userRepo = mkUserRepo();
-    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const tenantAccess = mkTenantAccess();
+    const svc = new AuthFlowService({
+      oidc,
+      sessions,
+      userRepo,
+      tenantAccess,
+      logger: mkLogger() as any,
+    });
     const { url } = svc.buildAuthorizeUrl();
     const created = (sessions as any)._createdStates[0];
     expect(url).toContain(`state=${created.state}`);
@@ -80,7 +97,14 @@ describe('AuthFlowService', () => {
     const sessions = mkSessionService();
     const oidc = mkOidc(({ state }) => `auth?state=${state}`);
     const userRepo = mkUserRepo();
-    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const tenantAccess = mkTenantAccess();
+    const svc = new AuthFlowService({
+      oidc,
+      sessions,
+      userRepo,
+      tenantAccess,
+      logger: mkLogger() as any,
+    });
     const { url } = svc.buildAuthorizeUrl('/target/path');
     const created = (sessions as any)._createdStates[0];
     // The authorize URL should contain the base state part
@@ -91,7 +115,14 @@ describe('AuthFlowService', () => {
     const sessions = mkSessionService();
     const oidc = mkOidc();
     const userRepo = mkUserRepo();
-    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const tenantAccess = mkTenantAccess();
+    const svc = new AuthFlowService({
+      oidc,
+      sessions,
+      userRepo,
+      tenantAccess,
+      logger: mkLogger() as any,
+    });
     const url1 = svc.buildLoginRedirectUrl();
     const url2 = svc.buildLoginRedirectUrl();
     expect(url1).not.toEqual(url2); // random state differs
@@ -108,7 +139,14 @@ describe('AuthFlowService', () => {
     });
     const oidc = mkOidc();
     const userRepo = mkUserRepo();
-    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const tenantAccess = mkTenantAccess();
+    const svc = new AuthFlowService({
+      oidc,
+      sessions,
+      userRepo,
+      tenantAccess,
+      logger: mkLogger() as any,
+    });
     // simulate recorded state so completeLogin passes
     (sessions.completeLogin as any).mockResolvedValue({
       sid: 'sid1',
@@ -141,7 +179,14 @@ describe('AuthFlowService', () => {
     });
     const oidc = mkOidc();
     const userRepo = mkUserRepo();
-    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const tenantAccess = mkTenantAccess();
+    const svc = new AuthFlowService({
+      oidc,
+      sessions,
+      userRepo,
+      tenantAccess,
+      logger: mkLogger() as any,
+    });
 
     const encoded = Buffer.from('javascript:alert(1)', 'utf8').toString('base64url');
     const result = await svc.handleCallback({ code: 'x', state: `${stateBase}.${encoded}` });
@@ -152,7 +197,14 @@ describe('AuthFlowService', () => {
     const sessions = mkSessionService();
     const oidc = mkOidc();
     const userRepo = mkUserRepo();
-    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const tenantAccess = mkTenantAccess();
+    const svc = new AuthFlowService({
+      oidc,
+      sessions,
+      userRepo,
+      tenantAccess,
+      logger: mkLogger() as any,
+    });
     const info = await svc.sessionInfo(undefined);
     expect(info.loggedIn).toBe(false);
   });
@@ -168,7 +220,14 @@ describe('AuthFlowService', () => {
     });
     const oidc = mkOidc();
     const userRepo = mkUserRepo();
-    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const tenantAccess = mkTenantAccess();
+    const svc = new AuthFlowService({
+      oidc,
+      sessions,
+      userRepo,
+      tenantAccess,
+      logger: mkLogger() as any,
+    });
     const info = await svc.sessionInfo('sidX');
     expect(info.loggedIn).toBe(true);
     if (info.loggedIn) {
@@ -180,7 +239,7 @@ describe('AuthFlowService', () => {
     }
   });
 
-  test('sessionInfo includes tenantIds when user has tenant', async () => {
+  test('sessionInfo returns active tenantIds from membership service', async () => {
     const sessions = mkSessionService({
       getSession: jest.fn().mockResolvedValue({
         sub: 'u1',
@@ -195,10 +254,39 @@ describe('AuthFlowService', () => {
         id: 'user-1',
         email: 'a@b.c',
         oidcSub: 'u1',
-        tenantId: 'tenant-123',
       }),
     });
-    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const tenantAccess = mkTenantAccess({
+      listMembershipsForUser: jest
+        .fn()
+        .mockResolvedValue([
+          {
+            membershipId: '11111111-1111-4111-8111-aaaaaaaaaaaa',
+            tenantId: 'tenant-123',
+            userId: 'user-1',
+            role: 'owner',
+            status: 'active',
+            createdAt: '2024-01-01T00:00:00.000Z',
+            updatedAt: '2024-01-01T00:00:00.000Z',
+          },
+          {
+            membershipId: '22222222-2222-4222-8222-bbbbbbbbbbbb',
+            tenantId: 'tenant-999',
+            userId: 'user-1',
+            role: 'member',
+            status: 'invited',
+            createdAt: '2024-01-01T00:00:00.000Z',
+            updatedAt: '2024-01-02T00:00:00.000Z',
+          },
+        ]),
+    });
+    const svc = new AuthFlowService({
+      oidc,
+      sessions,
+      userRepo,
+      tenantAccess,
+      logger: mkLogger() as any,
+    });
     const info = await svc.sessionInfo('sidX');
     expect(info.loggedIn).toBe(true);
     if (info.loggedIn) {
@@ -208,6 +296,7 @@ describe('AuthFlowService', () => {
       expect(info.user.fullName).toBe('Person A');
       expect(info.tenantIds).toEqual(['tenant-123']);
     }
+    expect(tenantAccess.listMembershipsForUser).toHaveBeenCalledWith('user-1');
   });
 
   test('sessionInfo returns empty tenantIds when user has no tenant', async () => {
@@ -225,10 +314,18 @@ describe('AuthFlowService', () => {
         id: 'user-1',
         email: 'a@b.c',
         oidcSub: 'u1',
-        tenantId: undefined,
       }),
     });
-    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const tenantAccess = mkTenantAccess({
+      listMembershipsForUser: jest.fn().mockResolvedValue([]),
+    });
+    const svc = new AuthFlowService({
+      oidc,
+      sessions,
+      userRepo,
+      tenantAccess,
+      logger: mkLogger() as any,
+    });
     const info = await svc.sessionInfo('sidX');
     expect(info.loggedIn).toBe(true);
     if (info.loggedIn) {
@@ -237,6 +334,7 @@ describe('AuthFlowService', () => {
       expect(info.user.fullName).toBe('Person A');
       expect(info.tenantIds).toEqual([]);
     }
+    expect(tenantAccess.listMembershipsForUser).toHaveBeenCalledWith('user-1');
   });
 
   test('sessionInfo handles user lookup failure gracefully', async () => {
@@ -252,7 +350,14 @@ describe('AuthFlowService', () => {
     const userRepo = mkUserRepo({
       getUserByOidcSub: jest.fn().mockRejectedValue(new Error('DB connection failed')),
     });
-    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const tenantAccess = mkTenantAccess();
+    const svc = new AuthFlowService({
+      oidc,
+      sessions,
+      userRepo,
+      tenantAccess,
+      logger: mkLogger() as any,
+    });
     const info = await svc.sessionInfo('sidX');
     expect(info.loggedIn).toBe(true);
     if (info.loggedIn) {
@@ -267,7 +372,14 @@ describe('AuthFlowService', () => {
     const sessions = mkSessionService();
     const oidc = mkOidc();
     const userRepo = mkUserRepo();
-    const svc = new AuthFlowService({ oidc, sessions, userRepo, logger: mkLogger() as any });
+    const tenantAccess = mkTenantAccess();
+    const svc = new AuthFlowService({
+      oidc,
+      sessions,
+      userRepo,
+      tenantAccess,
+      logger: mkLogger() as any,
+    });
     await svc.logout('sid1');
     expect(sessions.logout).toHaveBeenCalledWith('sid1');
   });

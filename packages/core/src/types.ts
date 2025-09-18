@@ -10,6 +10,11 @@ import type {
   PriceItemDto,
   PriceListDto,
   TenantId,
+  TenantMembershipCreateDto,
+  TenantMembershipDto,
+  TenantMembershipId,
+  TenantMembershipRole,
+  TenantMembershipStatus,
 } from '@ayeldo/types';
 
 export type {
@@ -24,4 +29,9 @@ export type {
   PriceItemDto,
   PriceListDto,
   TenantId,
+  TenantMembershipCreateDto,
+  TenantMembershipDto,
+  TenantMembershipId,
+  TenantMembershipRole,
+  TenantMembershipStatus,
 };

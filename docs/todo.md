@@ -81,6 +81,7 @@ Codex prompt: Implement manual DI (no container). Create `src/init.ts` per app t
 - ✅ Marshalling helpers (`keys.ts`, `marshalling.ts`)
 - ✅ Secondary indexes: GSI wiring in CDK and queries
 - ✅ LocalStack integration tests
+- ✅ Tenant membership repo with shared GSI lookups (user & tenant views)
 
 Codex prompt: Implement DynamoDB repositories with strict key prefixes and LocalStack tests; no use of `any`, all fields typed.
 

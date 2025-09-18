@@ -1,6 +1,7 @@
 import type { ILogWriter } from '@fmork/backend-core';
 import type {
   DdbClient,
+  DeleteParams,
   GetParams,
   PutParams,
   QueryParams,
@@ -137,5 +138,11 @@ export class DdbDocumentClientAdapter implements DdbClient {
     return outTyped.LastEvaluatedKey !== undefined
       ? { items, lastEvaluatedKey: outTyped.LastEvaluatedKey }
       : { items };
+  }
+
+  public async delete(params: DeleteParams): Promise<void> {
+    const doc = (await this.getDoc()) as { send: (cmd: unknown) => Promise<unknown> };
+    const { DeleteCommand } = await import('@aws-sdk/lib-dynamodb');
+    await doc.send(new DeleteCommand({ TableName: params.tableName, Key: params.key }));
   }
 }

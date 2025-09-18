@@ -1,5 +1,12 @@
 import { describe, expect, test } from '@jest/globals';
-import { albumSchema, cartSchema, orderSchema, priceListSchema } from './schemas';
+import {
+  albumSchema,
+  cartSchema,
+  orderSchema,
+  priceListSchema,
+  tenantMembershipCreateSchema,
+  tenantMembershipSchema,
+} from './schemas';
 
 describe('DTO schemas', () => {
   test('album: happy path', () => {
@@ -69,5 +76,30 @@ describe('DTO schemas', () => {
     const parsed = orderSchema.parse(order);
     expect(parsed.totalCents).toBe(199);
   });
-});
 
+  test('tenant membership: valid record parses', () => {
+    const membership = {
+      membershipId: '550e8400-e29b-41d4-a716-446655440000',
+      tenantId: 'tenant-1',
+      userId: '550e8400-e29b-41d4-a716-446655440001',
+      role: 'owner',
+      status: 'active',
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    };
+    const parsed = tenantMembershipSchema.parse(membership);
+    expect(parsed.role).toBe('owner');
+  });
+
+  test('tenant membership create: rejects invalid role', () => {
+    const membership = {
+      tenantId: 'tenant-1',
+      userId: '550e8400-e29b-41d4-a716-446655440001',
+      role: 'viewer',
+      status: 'invited',
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    } as unknown;
+    expect(() => tenantMembershipCreateSchema.parse(membership)).toThrow();
+  });
+});

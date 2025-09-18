@@ -1,5 +1,12 @@
+import type { TenantAccessService } from '@ayeldo/core';
 import type { IUserRepo } from '@ayeldo/core/src/ports/userRepo';
-import type { SessionInfo, SessionInfoLoggedIn, Uuid, UserDto } from '@ayeldo/types';
+import type {
+  SessionInfo,
+  SessionInfoLoggedIn,
+  TenantMembershipDto,
+  Uuid,
+  UserDto,
+} from '@ayeldo/types';
 import type { ILogWriter } from '@fmork/backend-core';
 import { z } from 'zod';
 import { base64url } from './crypto';
@@ -10,6 +17,7 @@ export interface AuthFlowServiceProps {
   readonly oidc: OidcClientOpenId;
   readonly sessions: SessionService;
   readonly userRepo: IUserRepo;
+  readonly tenantAccess: TenantAccessService;
   readonly logger: ILogWriter;
 }
 
@@ -38,12 +46,14 @@ export class AuthFlowService {
   private readonly oidc: OidcClientOpenId;
   private readonly sessions: SessionService;
   private readonly userRepo: IUserRepo;
+  private readonly tenantAccess: TenantAccessService;
   private readonly logger: ILogWriter;
 
   public constructor(props: AuthFlowServiceProps) {
     this.oidc = props.oidc;
     this.sessions = props.sessions;
     this.userRepo = props.userRepo;
+    this.tenantAccess = props.tenantAccess;
     this.logger = props.logger;
   }
 
@@ -144,11 +154,11 @@ export class AuthFlowService {
 
     // Fetch user to enrich response with directory data
     let userRecord: UserDto | undefined;
-    let tenantIds: readonly string[] = [];
+    let memberships: readonly TenantMembershipDto[] = [];
     try {
       userRecord = await this.userRepo.getUserByOidcSub(sess.sub);
-      if (userRecord?.tenantId !== undefined) {
-        tenantIds = [userRecord.tenantId];
+      if (userRecord) {
+        memberships = await this.tenantAccess.listMembershipsForUser(userRecord.id);
       }
     } catch (err) {
       this.logger.warn(`Failed to fetch user for session ${sess.sub}: ${err}`);
@@ -158,7 +168,9 @@ export class AuthFlowService {
     const email = userRecord?.email ?? sess.email ?? '';
     const fullName = sess.fullName ?? userRecord?.name ?? sess.name ?? email;
 
-    const normalizedTenantIds: readonly string[] = tenantIds.length > 0 ? [...tenantIds] : [];
+    const normalizedTenantIds = memberships
+      .filter((membership) => membership.status === 'active')
+      .map((membership) => membership.tenantId);
 
     const out: SessionInfoLoggedIn = {
       user: {

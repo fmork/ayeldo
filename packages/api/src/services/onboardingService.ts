@@ -1,4 +1,5 @@
 import { Album, PriceList } from '@ayeldo/core';
+import type { TenantAccessService } from '@ayeldo/core';
 import type { IEventPublisher } from '@ayeldo/core/src/ports/events';
 import type { IAlbumRepo, IPriceListRepo } from '@ayeldo/core/src/ports/repositories';
 import type { IUserRepo } from '@ayeldo/core/src/ports/userRepo';
@@ -12,6 +13,7 @@ export interface OnboardingServiceDeps {
   readonly tenantService: TenantService;
   readonly userRepo: IUserRepo;
   readonly eventPublisher: IEventPublisher;
+  readonly tenantAccess: TenantAccessService;
   readonly albumRepo?: IAlbumRepo; // optional for seeding
   readonly priceListRepo?: IPriceListRepo; // optional for seeding
   readonly sessions?: SessionService; // optional in case BFF sessions are not configured
@@ -57,9 +59,13 @@ export class OnboardingService {
     // 3. Create tenant
     const tenant = await this.deps.tenantService.createTenantFromRequest(body);
 
-    // 4. Associate user with tenant (update user's tenantId)
-    // For now, we'll assume the user is created with the correct tenantId
-    // In a more sophisticated system, we might need to update the user's tenant association
+    // 4. Associate user with tenant via membership service
+    await this.deps.tenantAccess.grantMembership({
+      tenantId: tenant.id,
+      userId: adminUser.id,
+      role: 'owner',
+      status: 'active',
+    });
 
     // 5. Emit TenantCreated event
     await this.deps.eventPublisher.publish({

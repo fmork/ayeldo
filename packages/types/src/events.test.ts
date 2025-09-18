@@ -4,6 +4,10 @@ import {
   makeEventEnvelopeSchema,
   tenantCreatedEventSchema,
   tenantCreatedPayloadSchema,
+  tenantMembershipGrantedEventSchema,
+  tenantMembershipGrantedPayloadSchema,
+  tenantMembershipRevokedEventSchema,
+  tenantMembershipRevokedPayloadSchema,
   uuidSchema,
 } from './events';
 
@@ -84,5 +88,49 @@ describe('TenantCreated event', () => {
     };
     const parsed = tenantCreatedPayloadSchema.parse(payload);
     expect(parsed.tenantName).toBe('Acme Corp');
+  });
+});
+
+describe('TenantMembership events', () => {
+  const baseEnvelope = {
+    id: '550e8400-e29b-41d4-a716-446655440000',
+    occurredAt: '2024-01-01T00:00:00.000Z',
+    tenantId: 'tenant-123',
+  } as const;
+
+  test('TenantMembershipGranted parses valid payload', () => {
+    const payload = {
+      membershipId: '550e8400-e29b-41d4-a716-446655440001',
+      userId: '550e8400-e29b-41d4-a716-446655440002',
+      role: 'admin',
+      status: 'active',
+    };
+    const parsedPayload = tenantMembershipGrantedPayloadSchema.parse(payload);
+    expect(parsedPayload.role).toBe('admin');
+
+    const event = tenantMembershipGrantedEventSchema.parse({
+      ...baseEnvelope,
+      type: 'TenantMembershipGranted',
+      payload,
+    });
+    expect(event.payload.status).toBe('active');
+  });
+
+  test('TenantMembershipRevoked parses valid payload', () => {
+    const payload = {
+      membershipId: '550e8400-e29b-41d4-a716-446655440001',
+      userId: '550e8400-e29b-41d4-a716-446655440002',
+      previousRole: 'member',
+      previousStatus: 'active',
+    };
+    const parsedPayload = tenantMembershipRevokedPayloadSchema.parse(payload);
+    expect(parsedPayload.previousRole).toBe('member');
+
+    const event = tenantMembershipRevokedEventSchema.parse({
+      ...baseEnvelope,
+      type: 'TenantMembershipRevoked',
+      payload,
+    });
+    expect(event.payload.previousStatus).toBe('active');
   });
 });

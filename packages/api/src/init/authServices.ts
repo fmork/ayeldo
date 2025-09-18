@@ -4,7 +4,7 @@ import { OidcClientOpenId, type OidcOpenIdConfig } from '../services/oidcOpenIdC
 import { SessionService } from '../services/sessionService';
 import { logWriter, siteConfig } from './config';
 import { ddb } from './infrastructure';
-import { userRepo } from './tenantServices';
+import { tenantAccessService, userRepo } from './tenantServices';
 
 // DynamoDB table name
 const tableName = process.env['TABLE_NAME'] || 'AppTable';
@@ -58,5 +58,6 @@ export const authFlowService = new AuthFlowService({
   oidc,
   sessions,
   userRepo,
+  tenantAccess: tenantAccessService,
   logger: logWriter,
 });

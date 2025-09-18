@@ -1,20 +1,18 @@
+import type { CartState, OrderState } from './state';
+
 export interface UserDto {
   readonly id: string;
   readonly email: string;
   readonly oidcSub: string;
   readonly name?: string | undefined;
-  readonly tenantId?: string | undefined;
   readonly createdAt: string;
 }
 
 export interface UserCreateDto {
-  // Removed incorrect export; interfaces are already exported
   readonly email: string;
   readonly oidcSub: string;
   readonly name?: string | undefined;
-  readonly tenantId?: string | undefined;
 }
-import type { CartState, OrderState } from './state';
 
 export type Uuid = string;
 
@@ -29,6 +27,12 @@ export type CartId = string;
 export type OrderId = string;
 
 export type PriceListId = string;
+
+export type TenantMembershipId = string;
+
+export type TenantMembershipRole = 'owner' | 'admin' | 'member';
+
+export type TenantMembershipStatus = 'active' | 'invited' | 'revoked';
 
 export interface AlbumDto {
   readonly id: AlbumId;
@@ -113,4 +117,23 @@ export interface TenantDto {
   readonly plan: string;
   readonly status: 'active' | 'pending' | 'suspended';
   readonly createdAt: string; // ISO timestamp
+}
+
+export interface TenantMembershipDto {
+  readonly membershipId: TenantMembershipId;
+  readonly tenantId: TenantId;
+  readonly userId: Uuid;
+  readonly role: TenantMembershipRole;
+  readonly status: TenantMembershipStatus;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface TenantMembershipCreateDto {
+  readonly tenantId: TenantId;
+  readonly userId: Uuid;
+  readonly role: TenantMembershipRole;
+  readonly status: TenantMembershipStatus;
+  readonly createdAt: string;
+  readonly updatedAt: string;
 }

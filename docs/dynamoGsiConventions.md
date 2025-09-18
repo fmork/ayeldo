@@ -7,12 +7,13 @@
 
 ## Current indexes
 - **GSI1** — hierarchical relationships. The partition key is always the parent entity key (e.g., `ALBUM#<parentId>`). Sort keys reuse entity-specific prefixes (`ALBUM#<childId>`, `IMAGE#<imageId>`), allowing albums and images to share the same index while filtering on the base table key for tenancy.
-- **GSI2** — shared lookup index. Partition keys follow `LOOKUP#USER#<scope>#<value>` and sort keys use the referenced entity key (`USER#<userId>`). This supports multiple lookup scopes (OIDC subject, email, future identifiers) without introducing new GSIs.
+- **GSI2** — shared lookup index for identities and memberships. Partition keys follow `LOOKUP#<scope>#...` and sort keys encode the target entity (e.g., `USER#<userId>`). Existing scopes include user identifiers (`LOOKUP#USER#OIDC_SUB#…`, `LOOKUP#USER#EMAIL#…`) and membership views (`LOOKUP#MEMBERSHIP#TENANT#…`, `LOOKUP#MEMBERSHIP#USER#…`).
 
 ## Helper functions
 Key builders live in `packages/infra-aws/src/keys.ts` to ensure a single source of truth:
 - `gsi1AlbumChild` and `gsi1ImageByAlbum` emit `GSI1PK`/`GSI1SK` pairs for album tree and image listings.
 - `gsi2UserByOidcSub` and `gsi2UserByEmail` call shared helpers `userLookupPartition` and `userLookupSort`, enforcing the `LOOKUP#USER#<scope>#<value>` pattern for `GSI2`.
+- `gsi2MembershipByTenant` and `gsi2MembershipByUser` provide tenant/user-centric membership lookups while reusing `GSI2`.
 - Table keys such as `pkTenant`, `pkUser`, and `skUserMetadata` centralize the `PK`/`SK` format so GSI partition and sort keys always align with their base items.
 
 ## Usage guidelines

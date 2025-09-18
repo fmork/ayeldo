@@ -65,6 +65,14 @@ export function skState(state: string): string {
   return `STATE#${state}`;
 }
 
+export function pkMembership(membershipId: string): string {
+  return `MEMBERSHIP#${membershipId}`;
+}
+
+export function skMembership(membershipId: string): string {
+  return `METADATA#${membershipId}`;
+}
+
 export function gsi1AlbumChild(parentAlbumId: string, albumId: string): Gsi1Key {
   return { GSI1PK: skAlbum(parentAlbumId), GSI1SK: skAlbum(albumId) };
 }
@@ -81,5 +89,51 @@ export function gsi2UserByEmail(email: string, userId: string): Gsi2Key {
   return { GSI2PK: userLookupPartition('EMAIL', email), GSI2SK: userLookupSort(userId) };
 }
 
+export function skMembershipTenant(tenantId: string, membershipId: string): string {
+  return `TENANT#${tenantId}#${membershipId}`;
+}
+
+export function skMembershipUser(userId: string, membershipId: string): string {
+  return `USER#${userId}#${membershipId}`;
+}
+
+function membershipTenantLookupPartition(tenantId: string): string {
+  return `LOOKUP#MEMBERSHIP#TENANT#${tenantId}`;
+}
+
+function membershipTenantLookupSort(userId: string, membershipId: string): string {
+  return `USER#${userId}#MEMBERSHIP#${membershipId}`;
+}
+
+function membershipUserLookupPartition(userId: string): string {
+  return `LOOKUP#MEMBERSHIP#USER#${userId}`;
+}
+
+function membershipUserLookupSort(tenantId: string, membershipId: string): string {
+  return `TENANT#${tenantId}#MEMBERSHIP#${membershipId}`;
+}
+
+export function gsi2MembershipByTenant(
+  tenantId: string,
+  userId: string,
+  membershipId: string,
+): Gsi2Key {
+  return {
+    GSI2PK: membershipTenantLookupPartition(tenantId),
+    GSI2SK: membershipTenantLookupSort(userId, membershipId),
+  };
+}
+
+export function gsi2MembershipByUser(
+  userId: string,
+  tenantId: string,
+  membershipId: string,
+): Gsi2Key {
+  return {
+    GSI2PK: membershipUserLookupPartition(userId),
+    GSI2SK: membershipUserLookupSort(tenantId, membershipId),
+  };
+}
+
 export const GSI1_NAME = 'GSI1' as const; // Album tree (parent -> child)
-export const GSI2_NAME = 'GSI2' as const; // Shared lookup index (users by identity)
+export const GSI2_NAME = 'GSI2' as const; // Shared lookup index (users, memberships, and other lookups)

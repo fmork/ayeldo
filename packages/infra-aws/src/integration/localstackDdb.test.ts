@@ -2,6 +2,7 @@ import { Album, Image } from '@ayeldo/core';
 import type { DdbClient, QueryParams, QueryResult } from '../ddbClient';
 import { AlbumRepoDdb } from '../repos/albumRepoDdb';
 import { ImageRepoDdb } from '../repos/imageRepoDdb';
+import TenantMembershipRepoDdb from '../repos/tenantMembershipRepoDdb';
 import { UserRepoDdb } from '../userRepoDdb';
 
 // Only run when LocalStack is available
@@ -24,8 +25,14 @@ class SdkDdbClient implements DdbClient {
   private async getDocClient(): Promise<any> {
     if (!this.docClientPromise) {
       this.docClientPromise = (async () => {
-        const { DynamoDBClient, GetItemCommand, PutItemCommand, UpdateItemCommand, QueryCommand } =
-          await import('@aws-sdk/client-dynamodb');
+        const {
+          DynamoDBClient,
+          GetItemCommand,
+          PutItemCommand,
+          UpdateItemCommand,
+          QueryCommand,
+          DeleteItemCommand,
+        } = await import('@aws-sdk/client-dynamodb');
         const { DynamoDBDocumentClient } = await import('@aws-sdk/lib-dynamodb');
         const client = new DynamoDBClient({
           region: this.regionName,
@@ -36,7 +43,15 @@ class SdkDdbClient implements DdbClient {
         const doc = DynamoDBDocumentClient.from(client, {
           marshallOptions: { convertClassInstanceToMap: true, removeUndefinedValues: true },
         });
-        return { client, doc, GetItemCommand, PutItemCommand, UpdateItemCommand, QueryCommand };
+        return {
+          client,
+          doc,
+          GetItemCommand,
+          PutItemCommand,
+          UpdateItemCommand,
+          QueryCommand,
+          DeleteItemCommand,
+        };
       })();
     }
     return this.docClientPromise;
@@ -100,6 +115,12 @@ class SdkDdbClient implements DdbClient {
       }),
     );
     return { items: (out.Items ?? []) as TItem[], lastEvaluatedKey: out.LastEvaluatedKey as any };
+  }
+
+  async delete(params: { tableName: string; key: { PK: string; SK: string } }): Promise<void> {
+    const { doc } = await this.getDocClient();
+    const { DeleteCommand } = await import('@aws-sdk/lib-dynamodb');
+    await doc.send(new DeleteCommand({ TableName: params.tableName, Key: params.key }));
   }
 }
 
@@ -316,6 +337,58 @@ maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
 
     const oldLookup = await userRepo.getUserByOidcSub('sub-123');
     expect(oldLookup).toBeUndefined();
+  });
+
+  it('manages tenant memberships via dedicated repo and GSIs', async () => {
+    const membershipRepo = new TenantMembershipRepoDdb({ tableName, client });
+
+    const membership = {
+      membershipId: '11111111-1111-4111-8111-aaaaaaaaaaaa',
+      tenantId: tenantA,
+      userId: '55555555-5555-4555-8555-555555555555',
+      role: 'owner' as const,
+      status: 'active' as const,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await membershipRepo.putMembership(membership);
+
+    const foundByTenantUser = await membershipRepo.findMembership(tenantA, membership.userId);
+    expect(foundByTenantUser).toEqual(membership);
+
+    const listedByTenant = await membershipRepo.listMembershipsByTenant(tenantA);
+    expect(listedByTenant).toEqual([membership]);
+
+    const listedByUser = await membershipRepo.listMembershipsByUser(membership.userId);
+    expect(listedByUser).toEqual([membership]);
+
+    const foundById = await membershipRepo.findMembershipById(membership.membershipId);
+    expect(foundById).toEqual(membership);
+
+    const updatedAtLater = new Date(new Date(now).getTime() + 1000).toISOString();
+    const updated = {
+      ...membership,
+      role: 'admin' as const,
+      status: 'invited' as const,
+      updatedAt: updatedAtLater,
+    };
+
+    await membershipRepo.putMembership(updated);
+
+    const afterUpdate = await membershipRepo.findMembershipById(membership.membershipId);
+    expect(afterUpdate).toEqual(updated);
+
+    await membershipRepo.deleteMembership(membership.membershipId);
+
+    const afterDelete = await membershipRepo.findMembershipById(membership.membershipId);
+    expect(afterDelete).toBeUndefined();
+
+    const tenantListAfterDelete = await membershipRepo.listMembershipsByTenant(tenantA);
+    expect(tenantListAfterDelete).toHaveLength(0);
+
+    const userListAfterDelete = await membershipRepo.listMembershipsByUser(membership.userId);
+    expect(userListAfterDelete).toHaveLength(0);
   });
 });
 

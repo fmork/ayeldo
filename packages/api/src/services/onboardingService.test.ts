@@ -15,10 +15,14 @@ describe('OnboardingService', () => {
     const eventPublisher = {
       publish: jest.fn().mockResolvedValue(undefined),
     } as any;
+    const tenantAccess = {
+      grantMembership: jest.fn().mockResolvedValue(undefined),
+    } as any;
     const svc = new OnboardingService({
       tenantService: tenantSvc,
       userRepo,
       eventPublisher,
+      tenantAccess,
       logger: console as any,
     });
 
@@ -39,6 +43,12 @@ describe('OnboardingService', () => {
         }),
       }),
     );
+    expect(tenantAccess.grantMembership).toHaveBeenCalledWith({
+      tenantId: 't-1',
+      userId: 'user-1',
+      role: 'owner',
+      status: 'active',
+    });
     expect(res.tenant).toEqual(fakeTenant);
     expect(res.adminUser).toEqual(existingUser);
     expect(res.session).toBeUndefined();
@@ -66,12 +76,16 @@ describe('OnboardingService', () => {
       put: jest.fn().mockResolvedValue(undefined),
     } as any;
 
+    const tenantAccess = {
+      grantMembership: jest.fn().mockResolvedValue(undefined),
+    } as any;
     const svc = new OnboardingService({
       tenantService: tenantSvc,
       userRepo,
       eventPublisher,
       albumRepo,
       priceListRepo,
+      tenantAccess,
       logger: console as any,
     });
 
@@ -103,6 +117,12 @@ describe('OnboardingService', () => {
 
     expect(res.tenant).toEqual(fakeTenant);
     expect(res.adminUser).toEqual(existingUser);
+    expect(tenantAccess.grantMembership).toHaveBeenCalledWith({
+      tenantId: 't-2',
+      userId: 'user-2',
+      role: 'owner',
+      status: 'active',
+    });
   });
 
   it('skips seeding when repos are not provided', async () => {
@@ -119,10 +139,14 @@ describe('OnboardingService', () => {
       publish: jest.fn().mockResolvedValue(undefined),
     } as any;
 
+    const tenantAccess = {
+      grantMembership: jest.fn().mockResolvedValue(undefined),
+    } as any;
     const svc = new OnboardingService({
       tenantService: tenantSvc,
       userRepo,
       eventPublisher,
+      tenantAccess,
       logger: console as any,
     });
 
@@ -136,5 +160,11 @@ describe('OnboardingService', () => {
     expect(res.tenant).toEqual(fakeTenant);
     expect(res.adminUser).toEqual(existingUser);
     expect(res.session).toBeUndefined();
+    expect(tenantAccess.grantMembership).toHaveBeenCalledWith({
+      tenantId: 't-3',
+      userId: 'user-3',
+      role: 'owner',
+      status: 'active',
+    });
   });
 });

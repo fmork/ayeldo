@@ -1,4 +1,10 @@
-import type { TenantCreateDto, TenantDto, Uuid } from '@ayeldo/types';
+import type {
+  TenantCreateDto,
+  TenantDto,
+  TenantMembershipDto,
+  TenantMembershipId,
+  Uuid,
+} from '@ayeldo/types';
 import type { Album, Cart, Image, Order, PriceList } from '../index';
 import type { TenantId } from '../types';
 
@@ -35,4 +41,13 @@ export interface ITenantRepo {
   createTenant(input: TenantCreateDto, id?: Uuid): Promise<TenantDto>;
   getTenantById(id: Uuid): Promise<TenantDto | undefined>;
   getTenantByOwnerEmail(email: string): Promise<TenantDto | undefined>;
+}
+
+export interface ITenantMembershipRepo {
+  putMembership(membership: TenantMembershipDto): Promise<void>;
+  deleteMembership(membershipId: TenantMembershipId): Promise<void>;
+  findMembership(tenantId: TenantId, userId: Uuid): Promise<TenantMembershipDto | undefined>;
+  findMembershipById(membershipId: TenantMembershipId): Promise<TenantMembershipDto | undefined>;
+  listMembershipsByUser(userId: Uuid): Promise<readonly TenantMembershipDto[]>;
+  listMembershipsByTenant(tenantId: TenantId): Promise<readonly TenantMembershipDto[]>;
 }

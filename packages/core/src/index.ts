@@ -14,4 +14,5 @@ export * from './ports/storage';
 export * from './services/orderStateMachine';
 export * from './services/policyEvaluator';
 export * from './services/tieredPricingEngine';
+export * from './services/tenantAccessService';
 export * from './types';

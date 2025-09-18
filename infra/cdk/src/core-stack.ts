@@ -53,7 +53,7 @@ export class CoreStack extends Stack {
 
     // NOTE: Images by album also use GSI1 with SK prefixed by IMAGE#
 
-    // GSI2: Shared lookup index (users by identity, future lookups)
+    // GSI2: Shared lookup index (users, memberships, future lookups)
     this.table.addGlobalSecondaryIndex({
       indexName: 'GSI2',
       partitionKey: { name: 'GSI2PK', type: AttributeType.STRING },

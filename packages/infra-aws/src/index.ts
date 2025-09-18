@@ -10,5 +10,6 @@ export * from './repos/cartRepoDdb';
 export * from './repos/imageRepoDdb';
 export * from './repos/orderRepoDdb';
 export * from './repos/priceListRepoDdb';
+export * from './repos/tenantMembershipRepoDdb';
 export * from './repos/statsRepoDdb';
 export * from './storage/s3PresignedPostProvider';

@@ -9,15 +9,21 @@ import type {
   OrderLineDto,
   PriceItemDto,
   PriceListDto,
+  TenantMembershipCreateDto,
+  TenantMembershipDto,
 } from './dtos';
-import { isoTimestampSchema, uuidSchema } from './events';
+import {
+  isoTimestampSchema,
+  tenantMembershipRoleSchema,
+  tenantMembershipStatusSchema,
+  uuidSchema,
+} from './events';
 import { CartState, OrderState } from './state';
 
 export const userCreateSchema = z.object({
   email: z.string().email(),
   oidcSub: z.string().min(1),
   name: z.string().optional(),
-  tenantId: z.string().optional(),
 });
 
 export const userSchema = userCreateSchema.extend({
@@ -105,6 +111,25 @@ export const orderSchema = z.object({
 }) satisfies z.ZodType<OrderDto>;
 
 export const uuidStringSchema = uuidSchema;
+
+export const tenantMembershipSchema = z.object({
+  membershipId: uuidSchema,
+  tenantId: z.string().min(1),
+  userId: z.string().min(1),
+  role: tenantMembershipRoleSchema,
+  status: tenantMembershipStatusSchema,
+  createdAt: isoTimestampSchema,
+  updatedAt: isoTimestampSchema,
+}) satisfies z.ZodType<TenantMembershipDto>;
+
+export const tenantMembershipCreateSchema = z.object({
+  tenantId: z.string().min(1),
+  userId: z.string().min(1),
+  role: tenantMembershipRoleSchema,
+  status: tenantMembershipStatusSchema,
+  createdAt: isoTimestampSchema,
+  updatedAt: isoTimestampSchema,
+}) satisfies z.ZodType<TenantMembershipCreateDto>;
 
 export const tenantCreateSchema = z.object({
   name: z.string().min(1),
