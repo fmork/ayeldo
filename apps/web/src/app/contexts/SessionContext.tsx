@@ -1,15 +1,20 @@
+import type { Uuid } from '@ayeldo/types';
 import type { FC, ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useLazyGetSessionQuery } from '../../services/api/backendApi';
 
-export interface SessionInfo {
-  readonly loggedIn: boolean;
-  readonly sub?: string;
-  readonly email?: string;
-  readonly name?: string;
-  readonly fullName?: string;
-  readonly tenantId?: string; // undefined if user hasn't completed onboarding
-}
+export type SessionInfo =
+  | { readonly loggedIn: false }
+  | {
+      readonly loggedIn: true;
+      readonly sub: string;
+      readonly user: {
+        readonly id: Uuid;
+        readonly email: string;
+        readonly fullName: string;
+      };
+      readonly tenantIds?: readonly string[]; // empty array if user hasn't completed onboarding
+    };
 
 export interface SessionContextType {
   readonly session: SessionInfo | undefined;
@@ -37,14 +42,17 @@ export const SessionProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const fetchSession = useCallback(async (): Promise<void> => {
     try {
       const result = await triggerGetSession().unwrap();
-      if ('sub' in result && result.loggedIn) {
+      if (result.loggedIn) {
+        const tenantIds: readonly string[] = [...(result.tenantIds ?? [])];
         const sessionInfo: SessionInfo = {
           loggedIn: true,
           sub: result.sub,
-          ...(result.email !== undefined && { email: result.email }),
-          ...(result.name !== undefined && { name: result.name }),
-          ...(result.fullName !== undefined && { fullName: result.fullName }),
-          ...(result.tenantId !== undefined && { tenantId: result.tenantId }),
+          user: {
+            id: result.user.id,
+            email: result.user.email,
+            fullName: result.user.fullName,
+          },
+          tenantIds,
         };
         setSession(sessionInfo);
       } else {

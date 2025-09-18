@@ -159,7 +159,12 @@ describe('AuthFlowService', () => {
 
   test('sessionInfo returns loggedIn profile when session exists', async () => {
     const sessions = mkSessionService({
-      getSession: jest.fn().mockResolvedValue({ sub: 'u1', email: 'a@b.c', name: 'A' }),
+      getSession: jest.fn().mockResolvedValue({
+        sub: 'u1',
+        email: 'a@b.c',
+        name: 'A',
+        fullName: 'Person A',
+      }),
     });
     const oidc = mkOidc();
     const userRepo = mkUserRepo();
@@ -168,14 +173,21 @@ describe('AuthFlowService', () => {
     expect(info.loggedIn).toBe(true);
     if (info.loggedIn) {
       expect(info.sub).toBe('u1');
-      expect(info.email).toBe('a@b.c');
-      expect(info.name).toBe('A');
+      expect(info.user.email).toBe('a@b.c');
+      expect(info.user.fullName).toBe('Person A');
+      expect(info.user.id).toBe('u1');
+      expect(info.tenantIds).toEqual([]);
     }
   });
 
-  test('sessionInfo includes tenantId when user has tenant', async () => {
+  test('sessionInfo includes tenantIds when user has tenant', async () => {
     const sessions = mkSessionService({
-      getSession: jest.fn().mockResolvedValue({ sub: 'u1', email: 'a@b.c', name: 'A' }),
+      getSession: jest.fn().mockResolvedValue({
+        sub: 'u1',
+        email: 'a@b.c',
+        name: 'A',
+        fullName: 'Person A',
+      }),
     });
     const oidc = mkOidc();
     const userRepo = mkUserRepo({
@@ -191,15 +203,21 @@ describe('AuthFlowService', () => {
     expect(info.loggedIn).toBe(true);
     if (info.loggedIn) {
       expect(info.sub).toBe('u1');
-      expect(info.email).toBe('a@b.c');
-      expect(info.name).toBe('A');
-      expect(info.tenantId).toBe('tenant-123');
+      expect(info.user.email).toBe('a@b.c');
+      expect(info.user.id).toBe('user-1');
+      expect(info.user.fullName).toBe('Person A');
+      expect(info.tenantIds).toEqual(['tenant-123']);
     }
   });
 
-  test('sessionInfo excludes tenantId when user has no tenant', async () => {
+  test('sessionInfo returns empty tenantIds when user has no tenant', async () => {
     const sessions = mkSessionService({
-      getSession: jest.fn().mockResolvedValue({ sub: 'u1', email: 'a@b.c', name: 'A' }),
+      getSession: jest.fn().mockResolvedValue({
+        sub: 'u1',
+        email: 'a@b.c',
+        name: 'A',
+        fullName: 'Person A',
+      }),
     });
     const oidc = mkOidc();
     const userRepo = mkUserRepo({
@@ -215,15 +233,20 @@ describe('AuthFlowService', () => {
     expect(info.loggedIn).toBe(true);
     if (info.loggedIn) {
       expect(info.sub).toBe('u1');
-      expect(info.email).toBe('a@b.c');
-      expect(info.name).toBe('A');
-      expect(info.tenantId).toBeUndefined();
+      expect(info.user.email).toBe('a@b.c');
+      expect(info.user.fullName).toBe('Person A');
+      expect(info.tenantIds).toEqual([]);
     }
   });
 
   test('sessionInfo handles user lookup failure gracefully', async () => {
     const sessions = mkSessionService({
-      getSession: jest.fn().mockResolvedValue({ sub: 'u1', email: 'a@b.c', name: 'A' }),
+      getSession: jest.fn().mockResolvedValue({
+        sub: 'u1',
+        email: 'a@b.c',
+        name: 'A',
+        fullName: 'Person A',
+      }),
     });
     const oidc = mkOidc();
     const userRepo = mkUserRepo({
@@ -234,9 +257,9 @@ describe('AuthFlowService', () => {
     expect(info.loggedIn).toBe(true);
     if (info.loggedIn) {
       expect(info.sub).toBe('u1');
-      expect(info.email).toBe('a@b.c');
-      expect(info.name).toBe('A');
-      expect(info.tenantId).toBeUndefined(); // Should not be present due to error
+      expect(info.user.email).toBe('a@b.c');
+      expect(info.user.fullName).toBe('Person A');
+      expect(info.tenantIds).toEqual([]); // Should not include tenant IDs due to error
     }
   });
 

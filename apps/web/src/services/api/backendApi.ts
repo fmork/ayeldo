@@ -1,3 +1,4 @@
+import type { Uuid } from '@ayeldo/types';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { frontendConfig } from '../../app/FrontendConfigurationContext';
 
@@ -24,10 +25,12 @@ export const backendApi = createApi({
       | {
           loggedIn: true;
           sub: string;
-          email?: string;
-          name?: string;
-          fullName?: string;
-          tenantId?: string;
+          user: {
+            id: Uuid;
+            email: string;
+            fullName: string;
+          };
+          tenantIds?: readonly string[];
         }
       | { loggedIn: false },
       void

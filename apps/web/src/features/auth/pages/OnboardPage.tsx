@@ -44,17 +44,17 @@ const OnboardPage: FC = () => {
 
   // Redirect if already authenticated and has tenant
   useEffect(() => {
-    if (session?.loggedIn && session.tenantId) {
+    if (session?.loggedIn && (session.tenantIds?.length ?? 0) > 0) {
       // If user is already authenticated with a tenant, redirect to albums
       navigate('/albums/demo');
-    } else if (session?.loggedIn && !session.tenantId) {
-      setFormData(prev => {
+    } else if (session?.loggedIn && (session.tenantIds?.length ?? 0) === 0) {
+      setFormData((prev) => {
         const next: OnboardFormData = {
           ...prev,
-          ownerEmail: session.email ?? prev.ownerEmail,
+          ownerEmail: session.user.email,
         };
-        if (session.fullName !== undefined) {
-          next.adminName = session.fullName;
+        if (session.user.fullName.trim().length > 0) {
+          next.adminName = session.user.fullName;
         }
         return next;
       });

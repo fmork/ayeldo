@@ -130,14 +130,16 @@ export class AuthController extends PublicController {
               throw new Error('Authentication required for onboarding');
             }
 
-            if (!sessionInfo.email) {
+            if (sessionInfo.user.email.trim().length === 0) {
               throw new Error('User email required for onboarding');
             }
 
             const oidcIdentity = {
               sub: sessionInfo.sub,
-              email: sessionInfo.email,
-              ...(sessionInfo.name && { name: sessionInfo.name }),
+              email: sessionInfo.user.email,
+              ...(sessionInfo.user.fullName.trim().length > 0
+                ? { name: sessionInfo.user.fullName }
+                : {}),
             };
 
             // 3. Call OnboardingService with validated body and OIDC identity

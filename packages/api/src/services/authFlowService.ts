@@ -1,4 +1,5 @@
 import type { IUserRepo } from '@ayeldo/core/src/ports/userRepo';
+import type { Uuid, UserDto } from '@ayeldo/types';
 import type { ILogWriter } from '@fmork/backend-core';
 import { z } from 'zod';
 import { base64url } from './crypto';
@@ -37,12 +38,14 @@ export interface SessionInfoLoggedOut {
   readonly loggedIn: false;
 }
 export interface SessionInfoLoggedIn {
+  readonly user: {
+    readonly id: Uuid;
+    readonly email: string;
+    readonly fullName: string;
+  };
   readonly loggedIn: true;
   readonly sub: string;
-  readonly email?: string;
-  readonly name?: string;
-  readonly fullName?: string;
-  readonly tenantId?: string; // null if user hasn't completed onboarding
+  readonly tenantIds?: string[]; // empty array if user hasn't completed onboarding
 }
 export type SessionInfo = SessionInfoLoggedOut | SessionInfoLoggedIn;
 
@@ -154,23 +157,31 @@ export class AuthFlowService {
     this.logger.info(`Session info retrieved: ${JSON.stringify(sess)}`);
     if (!sess) return { loggedIn: false } as const;
 
-    // Fetch user to get tenant information
-    let tenantId: string | undefined;
+    // Fetch user to enrich response with directory data
+    let userRecord: UserDto | undefined;
+    let tenantIds: readonly string[] = [];
     try {
-      const user = await this.userRepo.getUserByOidcSub(sess.sub);
-      tenantId = user?.tenantId;
+      userRecord = await this.userRepo.getUserByOidcSub(sess.sub);
+      if (userRecord?.tenantId !== undefined) {
+        tenantIds = [userRecord.tenantId];
+      }
     } catch (err) {
       this.logger.warn(`Failed to fetch user for session ${sess.sub}: ${err}`);
-      // Continue without tenant info - user might not exist yet or have DB issues
+      // Continue with session-only data - user might not exist yet or have DB issues
     }
 
+    const email = userRecord?.email ?? sess.email ?? '';
+    const fullName = sess.fullName ?? userRecord?.name ?? sess.name ?? email;
+
     const out: SessionInfoLoggedIn = {
+      user: {
+        id: (userRecord?.id ?? sess.sub) as Uuid,
+        email,
+        fullName,
+      },
       loggedIn: true,
       sub: sess.sub,
-      ...(sess.email !== undefined ? { email: sess.email } : {}),
-      ...(sess.name !== undefined ? { name: sess.name } : {}),
-      ...(sess.fullName !== undefined ? { fullName: sess.fullName } : {}),
-      ...(tenantId !== undefined ? { tenantId } : {}),
+      tenantIds: tenantIds.length > 0 ? [...tenantIds] : [],
     } as const;
 
     this.logger.info(`Session info returned: ${JSON.stringify(out)}`);

@@ -63,13 +63,14 @@ const SignedInLandingPage: FC = () => {
 
     hasNavigatedRef.current = true;
 
-    if (!session.tenantId) {
-      console.info('No tenantId found, redirecting to onboarding');
+    const tenantCount = session.tenantIds?.length ?? 0;
+    if (tenantCount === 0) {
+      console.info('No tenant association found, redirecting to onboarding');
       navigate('/auth/onboard', { replace: true });
       return;
     }
 
-    console.info(`Session is ready, redirecting to ${returnTo}`);
+    console.info(`Session is ready with ${tenantCount} tenant(s), redirecting to ${returnTo}`);
     navigate(returnTo, { replace: true });
   }, [navigate, returnTo, session]);
 
