@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SiteConfiguration } from '@ayeldo/core';
 import { tenantCreateSchema } from '@ayeldo/types/src/schemas';
-import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
+import type { HttpRouter, ILogWriter, JsonUtil } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
 import { COOKIE_NAMES } from '../constants';
 import { requireCsrfForController } from '../middleware/csrfGuard';
@@ -14,18 +14,21 @@ export interface AuthControllerProps {
   readonly authFlow: AuthFlowService;
   readonly siteConfig: SiteConfiguration;
   readonly onboardingService?: OnboardingService;
+  readonly jsonUtil: JsonUtil;
 }
 
 export class AuthController extends PublicController {
   private readonly authFlow: AuthFlowService;
   private readonly siteConfig: SiteConfiguration;
   private readonly onboardingService?: OnboardingService | undefined;
+  private readonly jsonUtil: JsonUtil;
 
   public constructor(props: AuthControllerProps) {
     super(props.baseUrl, props.logWriter);
     this.authFlow = props.authFlow;
     this.siteConfig = props.siteConfig;
     this.onboardingService = props.onboardingService;
+    this.jsonUtil = props.jsonUtil;
   }
 
   public initialize(): HttpRouter {
@@ -119,8 +122,9 @@ export class AuthController extends PublicController {
             // Service existence already checked above
             const onboardingService = this.onboardingService as OnboardingService;
 
+            const parsedBody = this.jsonUtil.getParsedRequestBody((req as any).body);
             // 1. Validate input with zod
-            const validatedBody = tenantCreateSchema.parse((req as any).body);
+            const validatedBody = tenantCreateSchema.parse(parsedBody);
 
             // 2. Extract OIDC identity from session
             const sid = (req as any).cookies?.[COOKIE_NAMES.SESSION_ID] as string | undefined;
