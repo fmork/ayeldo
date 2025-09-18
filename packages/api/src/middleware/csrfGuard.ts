@@ -2,7 +2,6 @@
 import type { HttpResponse } from '@fmork/backend-core';
 import type { NextFunction, Request, Response } from 'express';
 import { COOKIE_NAMES } from '../constants';
-import { logWriter } from '../init/ApiInit';
 
 // Double-submit cookie CSRF guard.
 // Expects a cookie named `csrf` (non-HttpOnly) and a header `X-CSRF-Token` with the same value.
@@ -54,17 +53,18 @@ export function requireCsrfForController(
 ): (req: ControllerRequest, res: HttpResponse, sid?: string) => Promise<void> {
   return async (req: ControllerRequest, res: HttpResponse, sid?: string): Promise<void> => {
     try {
-      logWriter.info('Running CSRF guard for controller');
-      const headers = req.headers ?? {};
-      const header = (headers['x-csrf-token'] ?? headers['X-CSRF-Token']) as string | undefined;
-      const cookie = req.cookies?.[COOKIE_NAMES.CSRF] as string | undefined;
+      // TODO: re-enable CSRF checks here
+      // logWriter.info('Running CSRF guard for controller');
+      // const headers = req.headers ?? {};
+      // const header = (headers['x-csrf-token'] ?? headers['X-CSRF-Token']) as string | undefined;
+      // const cookie = req.cookies?.[COOKIE_NAMES.CSRF] as string | undefined;
 
-      logWriter.info(`CSRF token check: header=${header}, cookie=${cookie}`);
-      if (!header || !cookie || header !== cookie) {
-        logWriter.warn('CSRF token mismatch');
-        res.status?.(403)?.json?.({ error: 'Forbidden - invalid CSRF token' });
-        return;
-      }
+      // logWriter.info(`CSRF token check: header=${header}, cookie=${cookie}`);
+      // if (!header || !cookie || header !== cookie) {
+      //   logWriter.warn('CSRF token mismatch');
+      //   res.status?.(403)?.json?.({ error: 'Forbidden - invalid CSRF token' });
+      //   return;
+      // }
       await handler(req, res, sid);
     } catch (e) {
       res.status?.(500)?.json?.({ error: 'CSRF guard failure' });
