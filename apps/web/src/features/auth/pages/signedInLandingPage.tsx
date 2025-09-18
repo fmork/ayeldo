@@ -66,12 +66,12 @@ const SignedInLandingPage: FC = () => {
     const tenantCount = session.tenantIds?.length ?? 0;
     if (tenantCount === 0) {
       console.info('No tenant association found, redirecting to onboarding');
-      navigate('/auth/onboard', { replace: true });
+      setTimeout(() => navigate('/auth/onboard', { replace: true }), 1000);
       return;
     }
 
     console.info(`Session is ready with ${tenantCount} tenant(s), redirecting to ${returnTo}`);
-    navigate(returnTo, { replace: true });
+    setTimeout(() => navigate(returnTo, { replace: true }), 1000);
   }, [navigate, returnTo, session]);
 
   return (

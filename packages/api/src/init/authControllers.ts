@@ -19,6 +19,7 @@ export const authController = new AuthController({
   authFlow: authFlowService,
   siteConfig,
   onboardingService,
+  jsonUtil,
 });
 
 export const sessionController = new SessionController({
