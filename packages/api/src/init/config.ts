@@ -22,7 +22,7 @@ const jwtAuthorization = new JwtAuthorization({
   logWriter,
   // For a real setup, set OIDC_AUTHORITY to your issuer URL
   getKnownIssuers: (): string[] => [
-    process.env['OIDC_AUTHORITY'] || 'https://example-issuer.invalid',
+    process.env['OIDC_ISSUER_URL'] || 'https://example-issuer.invalid',
   ],
 });
 
