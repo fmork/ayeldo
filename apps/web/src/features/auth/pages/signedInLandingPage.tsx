@@ -17,7 +17,7 @@ const SignedInLandingPage: FC = () => {
   const hasNavigatedRef = useRef<boolean>(false);
   const returnTo = useMemo<string>(() => {
     const urlParams = new URLSearchParams(location.search);
-    return urlParams.get('returnTo') ?? '/';
+    return urlParams.get('returnTo') ?? '/my/dashboard';
   }, [location.search]);
 
   console.info('SignedInLandingPage mounted, current session:', session);

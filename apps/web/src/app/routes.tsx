@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import AdminPage from '../features/admin/pages/adminPage';
 import TenantsPage from '../features/admin/pages/tenantsPage';
 import AlbumPage from '../features/albums/pages/albumPage';
@@ -10,6 +10,12 @@ import SignedInLandingPage from '../features/auth/pages/signedInLandingPage';
 import CartPage from '../features/cart/pages/cartPage';
 import CheckoutResultPage from '../features/checkout/pages/resultPage';
 import HomePage from '../features/home/pages/homePage';
+import MyLayout from '../features/my/components/myLayout';
+import AnalyticsPage from '../features/my/pages/analyticsPage';
+import DashboardPage from '../features/my/pages/dashboardPage';
+import AlbumsPage from '../features/my/pages/albumsPage';
+import OrdersPage from '../features/my/pages/ordersPage';
+import SettingsPage from '../features/my/pages/settingsPage';
 import Layout from './components/Layout';
 import ThemeShowcase from './components/ThemeShowcase';
 import EnsureUserIsAuthenticated from './components/authentication/RequireAuthentication';
@@ -31,6 +37,14 @@ const AppRoutes: FC = () => {
           <Route path="/theme-showcase" element={<ThemeShowcase />} />
           <Route path="/admin" element={<EnsureUserIsAuthenticated element={<AdminPage />} />}>
             <Route path="tenants" element={<TenantsPage />} />
+          </Route>
+          <Route path="/my" element={<EnsureUserIsAuthenticated element={<MyLayout />} />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="albums" element={<AlbumsPage />} />
+            <Route path="orders" element={<OrdersPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Route>
       </Routes>
