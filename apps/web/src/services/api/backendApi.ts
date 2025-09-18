@@ -1,4 +1,4 @@
-import type { Uuid } from '@ayeldo/types';
+import type { SessionInfo } from '@ayeldo/types';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { frontendConfig } from '../../app/FrontendConfigurationContext';
 
@@ -21,22 +21,9 @@ export const backendApi = createApi({
         return `/auth/authorize-url${params}`;
       },
     }),
-    getSession: builder.query<
-      | {
-          loggedIn: true;
-          sub: string;
-          user: {
-            id: Uuid;
-            email: string;
-            fullName: string;
-          };
-          tenantIds?: readonly string[];
-        }
-      | { loggedIn: false },
-      void
-    >({
+    getSession: builder.query<SessionInfo, void>({
       query: () => '/session',
-      transformErrorResponse: () => ({ loggedIn: false as const }),
+      transformErrorResponse: () => ({ loggedIn: false } as const),
     }),
     onboard: builder.mutation<
       {

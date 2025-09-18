@@ -1,3 +1,5 @@
+import type { Uuid } from './dtos';
+
 export interface EncBlob {
   readonly kid: string;
   readonly iv: string; // base64
@@ -24,6 +26,25 @@ export interface SessionRecord {
   readonly ttl: number; // epoch seconds
   readonly tokensEnc: EncBlob;
 }
+
+export interface SessionInfoUser {
+  readonly id: Uuid;
+  readonly email: string;
+  readonly fullName: string;
+}
+
+export interface SessionInfoLoggedOut {
+  readonly loggedIn: false;
+}
+
+export interface SessionInfoLoggedIn {
+  readonly loggedIn: true;
+  readonly sub: string;
+  readonly user: SessionInfoUser;
+  readonly tenantIds?: readonly string[]; // empty array if user hasn't completed onboarding
+}
+
+export type SessionInfo = SessionInfoLoggedOut | SessionInfoLoggedIn;
 
 export interface StateRecord {
   readonly state: string;

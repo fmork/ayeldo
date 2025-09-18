@@ -1,5 +1,5 @@
 import type { IUserRepo } from '@ayeldo/core/src/ports/userRepo';
-import type { Uuid, UserDto } from '@ayeldo/types';
+import type { SessionInfo, SessionInfoLoggedIn, Uuid, UserDto } from '@ayeldo/types';
 import type { ILogWriter } from '@fmork/backend-core';
 import { z } from 'zod';
 import { base64url } from './crypto';
@@ -33,21 +33,6 @@ export interface CallbackResult {
     readonly fullName?: string;
   };
 }
-
-export interface SessionInfoLoggedOut {
-  readonly loggedIn: false;
-}
-export interface SessionInfoLoggedIn {
-  readonly user: {
-    readonly id: Uuid;
-    readonly email: string;
-    readonly fullName: string;
-  };
-  readonly loggedIn: true;
-  readonly sub: string;
-  readonly tenantIds?: string[]; // empty array if user hasn't completed onboarding
-}
-export type SessionInfo = SessionInfoLoggedOut | SessionInfoLoggedIn;
 
 export class AuthFlowService {
   private readonly oidc: OidcClientOpenId;
@@ -173,6 +158,8 @@ export class AuthFlowService {
     const email = userRecord?.email ?? sess.email ?? '';
     const fullName = sess.fullName ?? userRecord?.name ?? sess.name ?? email;
 
+    const normalizedTenantIds: readonly string[] = tenantIds.length > 0 ? [...tenantIds] : [];
+
     const out: SessionInfoLoggedIn = {
       user: {
         id: (userRecord?.id ?? sess.sub) as Uuid,
@@ -181,7 +168,7 @@ export class AuthFlowService {
       },
       loggedIn: true,
       sub: sess.sub,
-      tenantIds: tenantIds.length > 0 ? [...tenantIds] : [],
+      tenantIds: normalizedTenantIds,
     } as const;
 
     this.logger.info(`Session info returned: ${JSON.stringify(out)}`);

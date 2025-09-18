@@ -1,20 +1,9 @@
-import type { Uuid } from '@ayeldo/types';
+import type { SessionInfo } from '@ayeldo/types';
 import type { FC, ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useLazyGetSessionQuery } from '../../services/api/backendApi';
 
-export type SessionInfo =
-  | { readonly loggedIn: false }
-  | {
-      readonly loggedIn: true;
-      readonly sub: string;
-      readonly user: {
-        readonly id: Uuid;
-        readonly email: string;
-        readonly fullName: string;
-      };
-      readonly tenantIds?: readonly string[]; // empty array if user hasn't completed onboarding
-    };
+export type { SessionInfo } from '@ayeldo/types';
 
 export interface SessionContextType {
   readonly session: SessionInfo | undefined;
