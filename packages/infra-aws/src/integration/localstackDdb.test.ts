@@ -2,6 +2,7 @@ import { Album, Image } from '@ayeldo/core';
 import type { DdbClient, QueryParams, QueryResult } from '../ddbClient';
 import { AlbumRepoDdb } from '../repos/albumRepoDdb';
 import { ImageRepoDdb } from '../repos/imageRepoDdb';
+import { UserRepoDdb } from '../userRepoDdb';
 
 // Only run when LocalStack is available
 const env = ((globalThis as unknown as { process?: { env?: Record<string, string> } }).process
@@ -126,8 +127,6 @@ async function createTableWithGsis(
         { AttributeName: 'GSI1SK', AttributeType: 'S' },
         { AttributeName: 'GSI2PK', AttributeType: 'S' },
         { AttributeName: 'GSI2SK', AttributeType: 'S' },
-        { AttributeName: 'GSI3PK', AttributeType: 'S' },
-        { AttributeName: 'GSI3SK', AttributeType: 'S' },
       ],
       KeySchema: [
         { AttributeName: 'PK', KeyType: 'HASH' },
@@ -147,14 +146,6 @@ async function createTableWithGsis(
           KeySchema: [
             { AttributeName: 'GSI2PK', KeyType: 'HASH' },
             { AttributeName: 'GSI2SK', KeyType: 'RANGE' },
-          ],
-          Projection: { ProjectionType: 'ALL' },
-        },
-        {
-          IndexName: 'GSI3',
-          KeySchema: [
-            { AttributeName: 'GSI3PK', KeyType: 'HASH' },
-            { AttributeName: 'GSI3SK', KeyType: 'RANGE' },
           ],
           Projection: { ProjectionType: 'ALL' },
         },
@@ -298,6 +289,33 @@ maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
     const found = await imageRepo.listByAlbum(tenantA, albumId);
     const ids = found.map((i) => i.id).sort();
     expect(ids).toEqual([img1, img2].sort());
+  });
+
+  it('retrieves users via the shared lookup GSI', async () => {
+    const userRepo = new UserRepoDdb({ tableName, client });
+
+    const created = await userRepo.createUser({
+      email: 'person@example.com',
+      oidcSub: 'sub-123',
+      name: 'Test User',
+    });
+
+    const bySub = await userRepo.getUserByOidcSub('sub-123');
+    expect(bySub).toBeDefined();
+    expect(bySub?.id).toEqual(created.id);
+
+    const byEmail = await userRepo.getUserByEmail('person@example.com');
+    expect(byEmail).toBeDefined();
+    expect(byEmail?.id).toEqual(created.id);
+
+    await userRepo.updateUserSub(created.id, 'sub-456');
+
+    const updatedBySub = await userRepo.getUserByOidcSub('sub-456');
+    expect(updatedBySub).toBeDefined();
+    expect(updatedBySub?.id).toEqual(created.id);
+
+    const oldLookup = await userRepo.getUserByOidcSub('sub-123');
+    expect(oldLookup).toBeUndefined();
   });
 });
 

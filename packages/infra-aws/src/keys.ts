@@ -13,11 +13,6 @@ export interface Gsi2Key {
   readonly GSI2SK: string;
 }
 
-export interface Gsi3Key {
-  readonly GSI3PK: string;
-  readonly GSI3SK: string;
-}
-
 export function pkTenant(tenantId: string): string {
   return `TENANT#${tenantId}`;
 }
@@ -42,7 +37,23 @@ export function skOrder(orderId: string): string {
   return `ORDER#${orderId}`;
 }
 
-export function skUser(userId: string): string {
+export function pkUser(userId: string): string {
+  return `USER#${userId}`;
+}
+
+export function skUserMetadata(userId: string): string {
+  return `METADATA#${userId}`;
+}
+
+export function skUserLookup(scope: string): string {
+  return `LOOKUP#${scope}`;
+}
+
+export function userLookupPartition(scope: string, value: string): string {
+  return `LOOKUP#USER#${scope}#${value}`;
+}
+
+export function userLookupSort(userId: string): string {
   return `USER#${userId}`;
 }
 
@@ -63,13 +74,12 @@ export function gsi1ImageByAlbum(albumId: string, imageId: string): Gsi1Key {
 }
 
 export function gsi2UserByOidcSub(oidcSub: string, userId: string): Gsi2Key {
-  return { GSI2PK: `OIDC_SUB#${oidcSub}`, GSI2SK: skUser(userId) };
+  return { GSI2PK: userLookupPartition('OIDC_SUB', oidcSub), GSI2SK: userLookupSort(userId) };
 }
 
-export function gsi3UserByEmail(email: string, userId: string): Gsi3Key {
-  return { GSI3PK: `EMAIL#${email}`, GSI3SK: skUser(userId) };
+export function gsi2UserByEmail(email: string, userId: string): Gsi2Key {
+  return { GSI2PK: userLookupPartition('EMAIL', email), GSI2SK: userLookupSort(userId) };
 }
 
 export const GSI1_NAME = 'GSI1' as const; // Album tree (parent -> child)
-export const GSI2_NAME = 'GSI2' as const; // User lookup by OIDC sub
-export const GSI3_NAME = 'GSI3' as const; // User lookup by email
+export const GSI2_NAME = 'GSI2' as const; // Shared lookup index (users by identity)
