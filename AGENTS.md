@@ -36,6 +36,10 @@ export class MyClass {
 }
 ```
 
+## Avoid optional properties
+
+By default, avoid optional properties unless absolutely necessary. I prefer simpler code without conditionals.
+
 ### React components
 
 ```typescript
