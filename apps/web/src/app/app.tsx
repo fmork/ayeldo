@@ -7,6 +7,7 @@ import './i18n';
 import AppRoutes from './routes';
 import { store } from './store';
 import { AppThemeProvider } from './theme/AppThemeProvider';
+import { UploadQueueProvider } from './contexts/UploadQueueContext';
 
 const App: FC = () => {
 
@@ -16,9 +17,11 @@ const App: FC = () => {
         <AppThemeProvider>
           <Provider store={store}>
             <SessionProvider>
-              <BrowserRouter>
-                <AppRoutes />
-              </BrowserRouter>
+              <UploadQueueProvider>
+                <BrowserRouter>
+                  <AppRoutes />
+                </BrowserRouter>
+              </UploadQueueProvider>
             </SessionProvider>
           </Provider>
         </AppThemeProvider>

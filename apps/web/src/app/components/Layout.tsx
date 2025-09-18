@@ -7,6 +7,7 @@ import { Outlet } from 'react-router-dom';
 import { useFrontendConfiguration } from '../FrontendConfigurationContext';
 import AppBarComponent from './app-navigation/appBarComponent';
 import MobileDrawer from './app-navigation/mobileDrawer';
+import UploadQueueIndicator from './app-navigation/UploadQueueIndicator';
 
 const Layout: FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -35,6 +36,7 @@ const Layout: FC = () => {
           />
         )}
       </Box>
+      <UploadQueueIndicator />
     </Box>
   );
 };
