@@ -33,6 +33,7 @@ export { authFlowService, oidc, sessions } from './authServices';
 // Authentication controllers
 export {
   authController,
+  albumsController,
   cartController,
   rootController,
   sessionBasedAuthorizer,

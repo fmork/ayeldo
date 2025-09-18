@@ -1,4 +1,4 @@
-import type { SessionInfo } from '@ayeldo/types';
+import type { AlbumDto, SessionInfo } from '@ayeldo/types';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { frontendConfig } from '../../app/FrontendConfigurationContext';
 
@@ -20,6 +20,38 @@ export const backendApi = createApi({
         const params = args?.redirect ? `?redirect=${encodeURIComponent(args.redirect)}` : '';
         return `/auth/authorize-url${params}`;
       },
+    }),
+    listAlbums: builder.query<
+      readonly AlbumDto[],
+      { tenantId: string; parentAlbumId?: string }
+    >({
+      query: ({ tenantId, parentAlbumId }) => {
+        const params = parentAlbumId ? `?parentAlbumId=${encodeURIComponent(parentAlbumId)}` : '';
+        return `/creator/tenants/${tenantId}/albums${params}`;
+      },
+      providesTags: (_result, _error, arg) => [
+        { type: 'Album' as const, id: `tenant:${arg.tenantId}:parent:${arg.parentAlbumId ?? 'root'}` },
+      ],
+    }),
+    createAlbum: builder.mutation<
+      AlbumDto,
+      { tenantId: string; title: string; description?: string; parentAlbumId?: string }
+    >({
+      query: ({ tenantId, ...body }) => ({
+        url: `/creator/tenants/${tenantId}/albums`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (_result, _error, arg) => [
+        { type: 'Album' as const, id: `tenant:${arg.tenantId}:parent:${arg.parentAlbumId ?? 'root'}` },
+      ],
+    }),
+    getAlbum: builder.query<AlbumDto, { tenantId: string; albumId: string }>({
+      query: ({ tenantId, albumId }) => `/tenants/${tenantId}/albums/${albumId}`,
+      providesTags: (result, _error, arg) =>
+        result
+          ? [{ type: 'Album' as const, id: result.id }]
+          : [{ type: 'Album' as const, id: `tenant:${arg.tenantId}:lookup` }],
     }),
     getSession: builder.query<SessionInfo, void>({
       query: () => '/session',
@@ -55,4 +87,7 @@ export const {
   useLazyGetSessionQuery,
   useLogoutMutation,
   useOnboardMutation,
+  useListAlbumsQuery,
+  useCreateAlbumMutation,
+  useGetAlbumQuery,
 } = backendApi;

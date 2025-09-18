@@ -5,6 +5,8 @@ import { MediaQueryService } from './mediaQueryService';
 function mkAlbumRepo(album?: any) {
   return {
     getById: jest.fn().mockResolvedValue(album),
+    listRoot: jest.fn().mockResolvedValue([]),
+    listChildren: jest.fn().mockResolvedValue([]),
   } as any;
 }
 

@@ -170,6 +170,7 @@ Codex prompt: Implement policy evaluation with three modes; integrate guard in a
   - ✅ `/cart`
   - ✅ `/checkout/result`
 - ✅ Creator dashboard area under `/my/*` with nested navigation and landing page
+- ✅ Creator albums management page with creation workflow
 - ✅ State + API: `@reduxjs/toolkit` with RTK Query
   - ✅ Configure `fetchBaseQuery` with `baseUrl=VITE_BFF_BASE_URL`, `credentials: 'include'`, and `X-CSRF-Token` header
   - ✅ Expose generated hooks and use tag-based cache invalidation

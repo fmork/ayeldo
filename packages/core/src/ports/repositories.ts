@@ -10,6 +10,8 @@ import type { TenantId } from '../types';
 
 export interface IAlbumRepo {
   getById(tenantId: TenantId, id: string): Promise<Album | undefined>;
+  /** List albums at the root level (no parent). */
+  listRoot(tenantId: TenantId): Promise<readonly Album[]>;
   /** List direct child albums of a parent album using GSI. */
   listChildren(tenantId: TenantId, parentAlbumId: string): Promise<readonly Album[]>;
   put(entity: Album): Promise<void>;

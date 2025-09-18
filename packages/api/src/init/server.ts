@@ -1,6 +1,7 @@
 import { RequestLogMiddleware, Server } from '@fmork/backend-core';
 import {
   authController,
+  albumsController,
   cartController,
   rootController,
   sessionController,
@@ -25,6 +26,7 @@ logWriter.info(
 export const server = new Server({
   controllers: [
     cartController,
+    albumsController,
     orderController,
     paymentController,
     mediaController,

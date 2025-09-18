@@ -1,4 +1,5 @@
 import { AuthController } from '../controllers/authController';
+import { AlbumsController } from '../controllers/albumsController';
 import { CartController } from '../controllers/cartController';
 import { RootController } from '../controllers/rootController';
 import { SessionController } from '../controllers/sessionController';
@@ -6,7 +7,7 @@ import { TenantAdminController } from '../controllers/tenantAdminController';
 import { SessionBasedAuthorizer } from '../services/sessionBasedAuthorizer';
 import { authFlowService, sessions } from './authServices';
 import { claimBasedAuthorizer, jsonUtil, logWriter, siteConfig } from './config';
-import { cartRepo, eventPublisher, httpClient, priceListRepo } from './infrastructure';
+import { albumRepo, cartRepo, eventPublisher, httpClient, priceListRepo } from './infrastructure';
 import { onboardingService, tenantService } from './tenantServices';
 
 // Root controller (always available)
@@ -44,6 +45,13 @@ export const sessionBasedAuthorizer = new SessionBasedAuthorizer({
   sessionService: sessions,
   logWriter,
   claimBasedAuthorizer,
+});
+
+export const albumsController = new AlbumsController({
+  baseUrl: '',
+  logWriter,
+  albumRepo,
+  authorizer: sessionBasedAuthorizer.createAuthorizer,
 });
 
 // Tenant admin controller (requires authentication)

@@ -258,6 +258,35 @@ maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
     expect(ids).toEqual([childId1, childId2].sort());
   });
 
+  it('lists root albums without parent association', async () => {
+    const albumRepo = new AlbumRepoDdb({ tableName, client });
+
+    const rootIds = ['rootA', 'rootB'];
+    for (const id of rootIds) {
+      await albumRepo.put(
+        new Album({ id, tenantId: tenantA, title: `Album ${id}`, createdAt: now }),
+      );
+    }
+
+    // Child album should not appear in root listing
+    await albumRepo.put(
+      new Album({
+        id: 'nestedChild',
+        tenantId: tenantA,
+        title: 'Nested',
+        parentAlbumId: rootIds[0],
+        createdAt: now,
+      }),
+    );
+
+    const othersTenantRoot = new Album({ id: 'rootOther', tenantId: tenantB, title: 'Other', createdAt: now });
+    await albumRepo.put(othersTenantRoot);
+
+    const roots = await albumRepo.listRoot(tenantA);
+    const rootList = roots.map((a) => a.id).sort();
+    expect(rootList).toEqual(rootIds.sort());
+  });
+
   it('lists images by album via GSI1 and filters by tenant', async () => {
     const albumId = 'album1';
     const img1 = 'img1';

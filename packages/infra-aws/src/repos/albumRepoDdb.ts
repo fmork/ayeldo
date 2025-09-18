@@ -26,6 +26,20 @@ export class AlbumRepoDdb implements IAlbumRepo {
     return item ? new Album(fromAlbumItem(item)) : undefined;
   }
 
+  public async listRoot(tenantId: TenantId): Promise<readonly Album[]> {
+    const tenantPk = pkTenant(tenantId);
+    const names = { '#pk': 'PK', '#sk': 'SK', '#gsi1pk': 'GSI1PK' } as const;
+    const { items } = await this.client.query<AlbumItem>({
+      tableName: this.tableName,
+      keyCondition: '#pk = :pk AND begins_with(#sk, :skPrefix)',
+      names,
+      values: { ':pk': tenantPk, ':skPrefix': 'ALBUM#' },
+      filter: 'attribute_not_exists(#gsi1pk)',
+      scanIndexForward: true,
+    });
+    return items.map((i) => new Album(fromAlbumItem(i)));
+  }
+
   public async listChildren(tenantId: TenantId, parentAlbumId: string): Promise<readonly Album[]> {
     const tenantPk = pkTenant(tenantId);
     const parentKey = skAlbum(parentAlbumId);
