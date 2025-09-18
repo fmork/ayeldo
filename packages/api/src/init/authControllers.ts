@@ -8,6 +8,7 @@ import { SessionBasedAuthorizer } from '../services/sessionBasedAuthorizer';
 import { authFlowService, sessions } from './authServices';
 import { claimBasedAuthorizer, jsonUtil, logWriter, siteConfig } from './config';
 import { albumRepo, cartRepo, eventPublisher, httpClient, priceListRepo } from './infrastructure';
+import { getUploadProvider, getLogger } from '../init';
 import { onboardingService, tenantService } from './tenantServices';
 
 // Root controller (always available)
@@ -52,6 +53,9 @@ export const albumsController = new AlbumsController({
   logWriter,
   albumRepo,
   jsonUtil,
+  uploadProvider: getUploadProvider(),
+  publisher: eventPublisher,
+  requestLogger: getLogger(),
   authorizer: sessionBasedAuthorizer.createAuthorizer,
 });
 

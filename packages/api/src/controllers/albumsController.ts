@@ -1,4 +1,4 @@
-import type { IAlbumRepo } from '@ayeldo/core';
+import type { IAlbumRepo, IEventPublisher, IUploadUrlProvider } from '@ayeldo/core';
 import type {
   AuthorizationRequirement,
   HttpMiddleware,
@@ -6,16 +6,21 @@ import type {
   ILogWriter,
   JsonUtil,
 } from '@fmork/backend-core';
+import type { PinoLogWriter } from '@ayeldo/utils';
 import { ClaimAuthorizedController } from '@fmork/backend-core';
 import { z } from 'zod';
 import { requireCsrfForController } from '../middleware/csrfGuard';
 import { AlbumManagementService } from '../services/albumManagementService';
+import { AlbumUploadService } from '../services/albumUploadService';
 
 export interface AlbumsControllerProps {
   readonly baseUrl: string;
   readonly logWriter: ILogWriter;
   readonly albumRepo: IAlbumRepo;
   readonly jsonUtil: JsonUtil;
+  readonly uploadProvider: IUploadUrlProvider;
+  readonly publisher: IEventPublisher;
+  readonly requestLogger: PinoLogWriter;
   readonly authorizer:
     | HttpMiddleware
     | ((requirement?: AuthorizationRequirement) => HttpMiddleware);
@@ -23,11 +28,18 @@ export interface AlbumsControllerProps {
 
 export class AlbumsController extends ClaimAuthorizedController {
   private readonly service: AlbumManagementService;
+  private readonly uploadService: AlbumUploadService;
   private readonly jsonUtil: JsonUtil;
 
   public constructor(props: AlbumsControllerProps) {
     super(props.baseUrl, props.logWriter, props.authorizer);
     this.service = new AlbumManagementService({ albumRepo: props.albumRepo });
+    this.uploadService = new AlbumUploadService({
+      albumRepo: props.albumRepo,
+      uploadProvider: props.uploadProvider,
+      publisher: props.publisher,
+      logger: props.requestLogger,
+    });
     this.jsonUtil = props.jsonUtil;
   }
 
@@ -66,6 +78,42 @@ export class AlbumsController extends ClaimAuthorizedController {
             }),
           res as unknown as Parameters<typeof this.performRequest>[1],
           () => 201,
+        );
+      }),
+    );
+
+    this.addPost(
+      '/creator/tenants/:tenantId/albums/:albumId/uploads',
+      requireCsrfForController(async (req, res) => {
+        const params = z
+          .object({ tenantId: z.string().min(1), albumId: z.string().min(1) })
+          .parse((req as { params: unknown }).params);
+        const parsedBody = this.jsonUtil.getParsedRequestBody((req as { body?: unknown }).body);
+
+        await this.performRequest(
+          () =>
+            this.uploadService.createUpload({
+              tenantId: params.tenantId,
+              albumId: params.albumId,
+              body: parsedBody,
+            }),
+          res as unknown as Parameters<typeof this.performRequest>[1],
+          () => 201,
+        );
+      }),
+    );
+
+    this.addPost(
+      '/creator/tenants/:tenantId/albums/:albumId/uploads/:imageId/complete',
+      requireCsrfForController(async (req, res) => {
+        const params = z
+          .object({ tenantId: z.string().min(1), albumId: z.string().min(1), imageId: z.string().min(1) })
+          .parse((req as { params: unknown }).params);
+
+        await this.performRequest(
+          () => this.uploadService.completeUpload(params),
+          res as unknown as Parameters<typeof this.performRequest>[1],
+          () => 200,
         );
       }),
     );
