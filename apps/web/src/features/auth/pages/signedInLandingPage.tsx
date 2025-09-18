@@ -6,6 +6,8 @@ import PageIsLoading from '../../../app/components/PageIsLoading';
 import type { SessionInfo } from '../../../app/contexts/SessionContext';
 import { useSession, useSessionActions } from '../../../app/contexts/SessionContext';
 
+const pageRedirectDelayMs = 2000;
+
 const SignedInLandingPage: FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -66,12 +68,12 @@ const SignedInLandingPage: FC = () => {
     const tenantCount = session.tenantIds?.length ?? 0;
     if (tenantCount === 0) {
       console.info('No tenant association found, redirecting to onboarding');
-      setTimeout(() => navigate('/auth/onboard', { replace: true }), 1000);
+      setTimeout(() => navigate('/auth/onboard', { replace: true }), pageRedirectDelayMs);
       return;
     }
 
     console.info(`Session is ready with ${tenantCount} tenant(s), redirecting to ${returnTo}`);
-    setTimeout(() => navigate(returnTo, { replace: true }), 1000);
+    setTimeout(() => navigate(returnTo, { replace: true }), pageRedirectDelayMs);
   }, [navigate, returnTo, session]);
 
   return (
