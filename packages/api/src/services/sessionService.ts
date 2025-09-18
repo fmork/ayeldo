@@ -128,6 +128,7 @@ export class SessionService {
     }
 
     const nowSec: number = Math.floor(Date.now() / 1000);
+    this.logger.info(`Session retrieved for sid=${sid}, ttl=${session.ttl}, now=${nowSec}`);
     if (session.ttl <= nowSec) {
       this.logger.warn(`Session expired for sid=${sid}`);
       return undefined;

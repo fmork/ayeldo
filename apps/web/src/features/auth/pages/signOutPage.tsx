@@ -21,8 +21,12 @@ const SignOutPage: FC = () => {
       try {
         console.info('Initiating sign out process');
         await logout().unwrap();
+
+        console.info('Refreshing session');
         // Refresh session state to reflect sign out
         await refreshSession();
+
+        console.info('Redirecting to home page');
         // Small delay to ensure session is updated, then redirect
         setTimeout(() => {
           window.location.href = '/';
