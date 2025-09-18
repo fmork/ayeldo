@@ -28,7 +28,7 @@ export class SessionBasedAuthorizer {
     this.claimBasedAuthorizer = props.claimBasedAuthorizer;
   }
 
-  public createAuthorizer(requirement?: AuthorizationRequirement): HttpMiddleware {
+  public createAuthorizer = (requirement?: AuthorizationRequirement): HttpMiddleware => {
     return async (req: unknown, res: unknown, next: unknown): Promise<void> => {
       try {
         const request = req as {
@@ -83,5 +83,5 @@ export class SessionBasedAuthorizer {
         response.status(500).json({ error: 'Authorization error' });
       }
     };
-  }
+  };
 }
