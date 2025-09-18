@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { frontendConfig } from '../../app/FrontendConfigurationContext';
-import { getCsrfToken } from '../csrf/getCsrfToken';
 
 export const backendApi = createApi({
   reducerPath: 'backendApi',
@@ -11,13 +10,7 @@ export const backendApi = createApi({
     // the browser normally. In production/site builds, use the full apiBaseUrl.
     baseUrl: frontendConfig.apiBaseUrl,
     credentials: 'include',
-    prepareHeaders: (headers) => {
-      const csrf = getCsrfToken();
-      if (csrf) {
-        headers.set(frontendConfig.csrfHeaderName, csrf);
-      }
-      return headers;
-    },
+    // NOTE: X-CSRF-Token header disabled temporarily — re-enable later when CORS is settled
   }),
   tagTypes: ['Album', 'Image', 'Cart', 'Order', 'PriceList', 'Session'],
   endpoints: (builder) => ({
