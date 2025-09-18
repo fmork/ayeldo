@@ -25,7 +25,12 @@ export interface CallbackResult {
   readonly sid: string;
   readonly csrf: string;
   readonly redirectTarget: string;
-  readonly profile: { readonly sub: string; readonly email?: string; readonly name?: string };
+  readonly profile: {
+    readonly sub: string;
+    readonly email?: string;
+    readonly name?: string;
+    readonly fullName?: string;
+  };
 }
 
 export interface SessionInfoLoggedOut {
@@ -36,6 +41,7 @@ export interface SessionInfoLoggedIn {
   readonly sub: string;
   readonly email?: string;
   readonly name?: string;
+  readonly fullName?: string;
   readonly tenantId?: string; // null if user hasn't completed onboarding
 }
 export type SessionInfo = SessionInfoLoggedOut | SessionInfoLoggedIn;
@@ -163,6 +169,7 @@ export class AuthFlowService {
       sub: sess.sub,
       ...(sess.email !== undefined ? { email: sess.email } : {}),
       ...(sess.name !== undefined ? { name: sess.name } : {}),
+      ...(sess.fullName !== undefined ? { fullName: sess.fullName } : {}),
       ...(tenantId !== undefined ? { tenantId } : {}),
     } as const;
 

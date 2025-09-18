@@ -1,8 +1,9 @@
 import { Box, Container, Typography } from '@mui/material';
 import type { FC } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import PageIsLoading from '../../../app/components/PageIsLoading';
+import type { SessionInfo } from '../../../app/contexts/SessionContext';
 import { useSession, useSessionActions } from '../../../app/contexts/SessionContext';
 
 const SignedInLandingPage: FC = () => {
@@ -10,51 +11,67 @@ const SignedInLandingPage: FC = () => {
   const navigate = useNavigate();
   const { refreshSession } = useSessionActions();
   const session = useSession();
+  const sessionRef = useRef<SessionInfo | undefined>(session);
+  const hasNavigatedRef = useRef<boolean>(false);
+  const returnTo = useMemo<string>(() => {
+    const urlParams = new URLSearchParams(location.search);
+    return urlParams.get('returnTo') ?? '/';
+  }, [location.search]);
+
+  console.info('SignedInLandingPage mounted, current session:', session);
 
   useEffect(() => {
-    let mounted = true;
+    sessionRef.current = session;
+  }, [session]);
 
-    const waitForSession = async (): Promise<void> => {
-      // Try refreshing the session a few times in case the cookie was just set
-      const maxAttempts = 6;
-      const delayMs = 500;
+  useEffect(() => {
+    let cancelled = false;
+    const maxAttempts = 6;
+    const delayMs = 500;
 
-      const urlParams = new URLSearchParams(location.search);
-      const returnTo = urlParams.get('returnTo') ?? '/';
-
-      for (let i = 0; i < maxAttempts && mounted; i += 1) {
+    const refreshUntilReady = async (): Promise<void> => {
+      for (let attempt = 0; attempt < maxAttempts && !cancelled; attempt += 1) {
         try {
-          // eslint-disable-next-line no-await-in-loop
           await refreshSession();
-        } catch {
-          // ignore and retry
+          console.info(`Session refreshed (attempt ${attempt + 1})`, sessionRef.current);
+        } catch (error: unknown) {
+          void error;
         }
 
-        // We don't call hooks inside the loop; we rely on refreshSession to update
-        // the provider. Continue retrying until maxAttempts.
+        if (sessionRef.current?.loggedIn) {
+          console.info('Session is logged in:', sessionRef.current);
+          return;
+        }
 
-        // eslint-disable-next-line no-await-in-loop
-        await new Promise((r) => setTimeout(r, delayMs));
-      }
-
-      // After attempting to refresh session, check if user needs onboarding
-      // If session is available and user has no tenant, redirect to onboarding
-      // Otherwise, navigate to the intended destination
-      if (session?.loggedIn && !session.tenantId) {
-        // User is authenticated but has no tenant - redirect to onboarding
-        navigate('/auth/onboard', { replace: true });
-      } else {
-        // User has a tenant or session isn't ready yet - go to intended destination
-        navigate(returnTo, { replace: true });
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, delayMs);
+        });
       }
     };
 
-    void waitForSession();
+    void refreshUntilReady();
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
-  }, [location.search, navigate, refreshSession, session]);
+  }, [refreshSession]);
+
+  useEffect(() => {
+    if (!session?.loggedIn || hasNavigatedRef.current) {
+      return;
+    }
+
+    hasNavigatedRef.current = true;
+
+    if (!session.tenantId) {
+      console.info('No tenantId found, redirecting to onboarding');
+      navigate('/auth/onboard', { replace: true });
+      return;
+    }
+
+    console.info(`Session is ready, redirecting to ${returnTo}`);
+    navigate(returnTo, { replace: true });
+  }, [navigate, returnTo, session]);
 
   return (
     <Container maxWidth="sm">

@@ -17,6 +17,7 @@ export interface SessionRecord {
   readonly sub: string;
   readonly email?: string;
   readonly name?: string;
+  readonly fullName?: string;
   readonly roles?: readonly string[];
   readonly createdAt: string;
   readonly updatedAt: string;

@@ -44,9 +44,20 @@ const OnboardPage: FC = () => {
 
   // Redirect if already authenticated and has tenant
   useEffect(() => {
-    if (session?.loggedIn) {
+    if (session?.loggedIn && session.tenantId) {
       // If user is already authenticated with a tenant, redirect to albums
       navigate('/albums/demo');
+    } else if (session?.loggedIn && !session.tenantId) {
+      setFormData(prev => {
+        const next: OnboardFormData = {
+          ...prev,
+          ownerEmail: session.email ?? prev.ownerEmail,
+        };
+        if (session.fullName !== undefined) {
+          next.adminName = session.fullName;
+        }
+        return next;
+      });
     }
   }, [session, navigate]);
 
@@ -219,7 +230,7 @@ const OnboardPage: FC = () => {
                     error={!!errors.ownerEmail}
                     helperText={errors.ownerEmail}
                     placeholder="admin@yourcompany.com"
-                    disabled={isLoading}
+                    disabled={true /* Always disabled to use session email */}
                   />
                 </FormControl>
 

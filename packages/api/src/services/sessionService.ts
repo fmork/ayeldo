@@ -66,7 +66,7 @@ export class SessionService {
   ): Promise<{
     sid: string;
     csrf: string;
-    profile: { sub: string; email?: string; name?: string };
+    profile: { sub: string; email?: string; name?: string; fullName?: string };
   }> {
     this.logger.info(`Completing login for state=${params.state}`);
     const st = await this.states.getState(params.state);
@@ -96,12 +96,18 @@ export class SessionService {
     const sid = randomId(18);
     const csrf = randomId(18);
     const profile = this.parseIdToken(tokens.id_token);
+    const fullName =
+      profile.fullName ??
+      (profile.name !== undefined
+        ? profile.name
+        : this.combineNames(profile.givenName, profile.familyName));
     const ttl = nowSec + 7 * 24 * 3600; // 7 days default
     const rec: SessionRecord = {
       sid,
       sub: profile.sub ?? '',
       ...(profile.email !== undefined ? { email: profile.email } : {}),
       ...(profile.name !== undefined ? { name: profile.name } : {}),
+      ...(fullName !== undefined ? { fullName } : {}),
       ...(typeof (profile as Record<string, unknown>)['cognito:groups'] !== 'undefined'
         ? { roles: (profile as Record<string, unknown>)['cognito:groups'] as readonly string[] }
         : profile.roles !== undefined
@@ -115,9 +121,12 @@ export class SessionService {
 
     this.logger.info(`Session record created successfully: ${JSON.stringify(rec)}`);
     await this.store.putSession(rec);
-    const profileOut: { sub: string; email?: string; name?: string } = { sub: rec.sub };
+    const profileOut: { sub: string; email?: string; name?: string; fullName?: string } = {
+      sub: rec.sub,
+    };
     if (rec.email !== undefined) profileOut.email = rec.email;
     if (rec.name !== undefined) profileOut.name = rec.name;
+    if (rec.fullName !== undefined) profileOut.fullName = rec.fullName;
     return { sid, csrf, profile: profileOut };
   }
 
@@ -187,15 +196,54 @@ export class SessionService {
     sub?: string;
     email?: string;
     name?: string;
+    givenName?: string;
+    familyName?: string;
+    fullName?: string;
     roles?: readonly string[];
   } {
     try {
       const parts = idToken.split('.');
       if (parts.length < 2) return {};
       const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8')) as unknown;
-      return payload as { sub?: string; email?: string; name?: string; roles?: readonly string[] };
+      const obj = payload as {
+        sub?: string;
+        email?: string;
+        name?: string;
+        given_name?: string;
+        family_name?: string;
+        fullName?: string;
+        roles?: readonly string[];
+      };
+
+      const result: {
+        sub?: string;
+        email?: string;
+        name?: string;
+        givenName?: string;
+        familyName?: string;
+        fullName?: string;
+        roles?: readonly string[];
+      } = {};
+
+      if (typeof obj.sub === 'string') result.sub = obj.sub;
+      if (typeof obj.email === 'string') result.email = obj.email;
+      if (typeof obj.name === 'string') result.name = obj.name;
+      if (typeof obj.given_name === 'string') result.givenName = obj.given_name;
+      if (typeof obj.family_name === 'string') result.familyName = obj.family_name;
+      if (typeof obj.fullName === 'string') result.fullName = obj.fullName;
+      if (Array.isArray(obj.roles)) result.roles = obj.roles as readonly string[];
+
+      return result;
     } catch {
       return {};
     }
+  }
+
+  private combineNames(givenName?: string, familyName?: string): string | undefined {
+    const parts = [givenName, familyName].filter((part) => typeof part === 'string' && part.length > 0) as string[];
+    if (parts.length === 0) {
+      return undefined;
+    }
+    return parts.join(' ');
   }
 }

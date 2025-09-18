@@ -21,7 +21,14 @@ export const backendApi = createApi({
       },
     }),
     getSession: builder.query<
-      | { loggedIn: true; sub: string; email?: string; name?: string; tenantId?: string }
+      | {
+          loggedIn: true;
+          sub: string;
+          email?: string;
+          name?: string;
+          fullName?: string;
+          tenantId?: string;
+        }
       | { loggedIn: false },
       void
     >({
