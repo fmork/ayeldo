@@ -4,6 +4,7 @@ import type {
   HttpMiddleware,
   HttpRouter,
   ILogWriter,
+  JsonUtil,
 } from '@fmork/backend-core';
 import { ClaimAuthorizedController } from '@fmork/backend-core';
 import { z } from 'zod';
@@ -14,6 +15,7 @@ export interface AlbumsControllerProps {
   readonly baseUrl: string;
   readonly logWriter: ILogWriter;
   readonly albumRepo: IAlbumRepo;
+  readonly jsonUtil: JsonUtil;
   readonly authorizer:
     | HttpMiddleware
     | ((requirement?: AuthorizationRequirement) => HttpMiddleware);
@@ -21,10 +23,12 @@ export interface AlbumsControllerProps {
 
 export class AlbumsController extends ClaimAuthorizedController {
   private readonly service: AlbumManagementService;
+  private readonly jsonUtil: JsonUtil;
 
   public constructor(props: AlbumsControllerProps) {
     super(props.baseUrl, props.logWriter, props.authorizer);
     this.service = new AlbumManagementService({ albumRepo: props.albumRepo });
+    this.jsonUtil = props.jsonUtil;
   }
 
   public initialize(): HttpRouter {
@@ -52,12 +56,13 @@ export class AlbumsController extends ClaimAuthorizedController {
         const params = z
           .object({ tenantId: z.string().min(1) })
           .parse((req as { params: unknown }).params);
+        const parsedBody = this.jsonUtil.getParsedRequestBody((req as { body?: unknown }).body);
 
         await this.performRequest(
           () =>
             this.service.createAlbum({
               tenantId: params.tenantId,
-              body: (req as { body: unknown }).body,
+              body: parsedBody,
             }),
           res as unknown as Parameters<typeof this.performRequest>[1],
           () => 201,

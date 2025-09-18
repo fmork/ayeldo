@@ -51,6 +51,7 @@ export const albumsController = new AlbumsController({
   baseUrl: '',
   logWriter,
   albumRepo,
+  jsonUtil,
   authorizer: sessionBasedAuthorizer.createAuthorizer,
 });
 
