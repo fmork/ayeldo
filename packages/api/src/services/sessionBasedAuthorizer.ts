@@ -39,7 +39,9 @@ export class SessionBasedAuthorizer {
 
         // Extract session ID from cookies
         const sessionId =
-          request.cookies?.[COOKIE_NAMES.SESSION_ID_ALT] || request.cookies?.[COOKIE_NAMES.SID_ALT];
+          request.cookies?.[COOKIE_NAMES.SESSION_ID] ||
+          request.cookies?.[COOKIE_NAMES.SESSION_ID_ALT] ||
+          request.cookies?.[COOKIE_NAMES.SID_ALT];
 
         if (!sessionId) {
           this.logWriter.warn('No session ID found in request');
@@ -59,9 +61,9 @@ export class SessionBasedAuthorizer {
         // Use ClaimBasedAuthorizer.authorizeToken for JWT validation and claim checking
         const authResult = await this.claimBasedAuthorizer.authorizeToken(accessToken, requirement);
 
-        if (!authResult.success) {
-          const statusCode = authResult.error?.status || 403;
-          const message = authResult.error?.message || 'Authorization failed';
+        if (!authResult || !authResult.success) {
+          const statusCode = authResult?.error?.status || 403;
+          const message = authResult?.error?.message || 'Authorization failed';
 
           this.logWriter.warn(`Authorization failed for session ${sessionId}: ${message}`);
           response.status(statusCode).json({ error: message });
