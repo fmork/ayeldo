@@ -22,4 +22,6 @@ pnpm -w run typecheck
 pnpm -w run build
 
 # Run tests (packages only; web uses vitest separately)
-pnpm -w run test
+# Run Jest in-band to reduce intermittent worker-exit / leaked handle warnings in CI
+# Run Jest directly in-band to avoid passing extra literal arguments via pnpm run
+pnpm -w exec -- jest -c jest.config.ts --runInBand

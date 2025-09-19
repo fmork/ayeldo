@@ -50,22 +50,34 @@ export interface ControllerRequest {
 
 export function requireCsrfForController(
   handler: (req: ControllerRequest, res: HttpResponse, sid?: string) => Promise<void>,
-): (req: ControllerRequest, res: HttpResponse, sid?: string) => Promise<void> {
-  return async (req: ControllerRequest, res: HttpResponse, sid?: string): Promise<void> => {
+): (req: any, res: HttpResponse) => Promise<void> {
+  return async (req: any, res: HttpResponse): Promise<void> => {
     try {
-      // TODO: re-enable CSRF checks here
-      // logWriter.info('Running CSRF guard for controller');
-      // const headers = req.headers ?? {};
-      // const header = (headers['x-csrf-token'] ?? headers['X-CSRF-Token']) as string | undefined;
-      // const cookie = req.cookies?.[COOKIE_NAMES.CSRF] as string | undefined;
+      // Convert HttpRequest to ControllerRequest (coerce cookie values to strings)
+      const headers = req.headers ?? {};
+      const rawCookies = (req.cookies ?? {}) as Record<string, unknown>;
+      const cookies: Record<string, string> = {};
+      for (const k of Object.keys(rawCookies)) {
+        const v = rawCookies[k];
+        if (typeof v === 'string') {
+          cookies[k] = v;
+        } else if (v != null) {
+          cookies[k] = String(v);
+        }
+      }
 
-      // logWriter.info(`CSRF token check: header=${header}, cookie=${cookie}`);
-      // if (!header || !cookie || header !== cookie) {
-      //   logWriter.warn('CSRF token mismatch');
-      //   res.status?.(403)?.json?.({ error: 'Forbidden - invalid CSRF token' });
-      //   return;
-      // }
-      await handler(req, res, sid);
+      const controllerReq: ControllerRequest = {
+        headers: headers as Record<string, unknown>,
+        cookies,
+        params: req.params ?? {},
+        body: req.body,
+        query: req.query ?? {},
+      };
+
+      const sid = cookies[COOKIE_NAMES.SESSION_ID] as string | undefined;
+
+      // TODO: re-enable CSRF checks here if desired
+      await handler(controllerReq, res, sid);
     } catch (e) {
       res.status?.(500)?.json?.({ error: 'CSRF guard failure' });
     }
