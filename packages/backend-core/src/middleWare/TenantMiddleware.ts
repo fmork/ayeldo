@@ -34,10 +34,10 @@ export class TenantMiddleware {
 
     // Attach a normalized tenantContext for downstream handlers
     aReq.tenantContext = {
-      tenantId: tenant.tenantId,
-      userId: (tenant as Record<string, unknown>).userId as string | undefined,
-      roles: (tenant as Record<string, unknown>).roles as string[] | undefined,
-      plan: (tenant as Record<string, unknown>).plan as string | undefined,
+      tenantId: (tenant as Record<string, unknown>)['tenantId'] as string,
+      userId: (tenant as Record<string, unknown>)['userId'] as string | undefined,
+      roles: (tenant as Record<string, unknown>)['roles'] as string[] | undefined,
+      plan: (tenant as Record<string, unknown>)['plan'] as string | undefined,
     } as TenantContext;
 
     next();

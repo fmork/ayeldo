@@ -64,9 +64,11 @@ export class ExpressRequestAdapter implements HttpRequest {
   get headers(): Record<string, string | undefined> {
     return this.req.headers as Record<string, string | undefined>;
   }
-  get cookies(): Record<string, unknown> | undefined {
+  // exactOptionalPropertyTypes requires the implementing property to match the optional property's type
+  // We return an empty object when cookies are not present so callers can rely on an object shape
+  get cookies(): Record<string, unknown> {
     // Express cookie-parser optional
-    return (this.req as unknown as { cookies?: Record<string, unknown> }).cookies;
+    return (this.req as unknown as { cookies?: Record<string, unknown> }).cookies ?? {};
   }
 
   get(name: string): string | undefined {

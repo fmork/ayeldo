@@ -119,7 +119,7 @@ export class ClaimBasedAuthorizer {
    */
   public createAuthorizer = (requirement?: AuthorizationRequirement): HttpMiddleware => {
     return async (req: HttpRequest, res: HttpResponse, next: () => void): Promise<void> => {
-      const authHeader = req.headers.authorization;
+      const authHeader = (req.headers as Record<string, string | undefined>)['authorization'];
       if (!authHeader) {
         this.props.logWriter.warn('Authorization header missing');
         res.status(401).json({ message: 'Authorization token is missing' });
@@ -148,7 +148,7 @@ export class ClaimBasedAuthorizer {
       }
 
       // Attach user info to request
-      (req as unknown as Record<string, unknown>).user = result.user as unknown;
+      (req as unknown as Record<string, unknown>)['user'] = result.user as unknown;
       next();
     };
   };

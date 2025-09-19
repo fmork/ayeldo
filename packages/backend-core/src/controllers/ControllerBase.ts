@@ -5,6 +5,9 @@ import type { HttpHandler, HttpMiddleware, HttpResponse, HttpRouter } from './ht
 import { ExpressHttpRouter, ExpressRequestAdapter, ExpressResponseAdapter } from './http';
 
 export abstract class ControllerBase {
+  // Local alias to avoid using `any` directly in casts inside wrappers
+  // Keeps lint happy while allowing Express adapter shapes to be passed to Http handlers in tests
+  // (removed invalid in-class type alias)
   // Internal Express router is fully encapsulated
   protected readonly expressRouter: Router = Router();
   private readonly httpRouter = new ExpressHttpRouter(this.expressRouter);
@@ -48,7 +51,7 @@ export abstract class ControllerBase {
   }
 
   // Helper to wrap an HttpHandler into an Express handler
-  protected wrap(handler: HttpHandler) {
+  protected wrap(handler: HttpHandler): (req: Request, res: Response) => Promise<void> {
     return async (req: Request, res: Response): Promise<void> => {
       const httpReq = new ExpressRequestAdapter(req);
       const httpRes = new ExpressResponseAdapter(res);
@@ -57,7 +60,9 @@ export abstract class ControllerBase {
   }
 
   // Helper to wrap an HttpMiddleware into an Express middleware
-  protected wrapMiddleware(middleware: HttpMiddleware) {
+  protected wrapMiddleware(
+    middleware: HttpMiddleware,
+  ): (req: Request, res: Response, next: NextFunction) => Promise<void> {
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const httpReq = new ExpressRequestAdapter(req);
       const httpRes = new ExpressResponseAdapter(res);

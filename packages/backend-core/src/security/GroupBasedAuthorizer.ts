@@ -47,9 +47,12 @@ export class GroupBasedAuthorizer {
     let claimRequirement: AuthorizationRequirement | undefined;
 
     if (requirement) {
-      claimRequirement = {
-        requiredValues: requirement.requiredGroups || requirement.requiredValues,
-      };
+      const values = requirement.requiredGroups ?? requirement.requiredValues;
+      if (values && values.length > 0) {
+        claimRequirement = {
+          requiredValues: values as string[],
+        };
+      }
     }
 
     return this.claimAuthorizer.createAuthorizer(claimRequirement);
