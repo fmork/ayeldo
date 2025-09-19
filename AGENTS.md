@@ -250,7 +250,7 @@ When an AI agent generates code, it should:
 3. **Follow coding rules** (strict TS, zod validation, async/await, no any).
 4. **Respect architecture** (API → Services, ports, events).
 5. **Produce tests** for new domain logic.
-6. **Verify correctness** so that generated code does not contain errors. **ALWAYS** `scripts/build.sh` before a task is handed off in order to verify that nothing is broken. **Verify your working directory** before running the script.
+6. **Verify correctness** so that generated code does not contain errors. **ALWAYS** `scripts/build.sh` before a task is handed off in order to verify that nothing is broken. **Verify your working directory** before running the script. This script emits an ESLint TypeScript version warning: ignore this warning.
 7. **Document** new features in `docs/` as needed.
 
 ---
