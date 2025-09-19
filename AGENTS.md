@@ -56,17 +56,22 @@ const SomePage: FC<any> = () => {
 }
 
 
+
 export default SomePage;
 
 ```
+
+### API calls from React
+
+React clients should always use RTK toolkit for making API calls, unless there are very specific reasons not to.
 
 ### Logging
 
 Use the `ILogWriter` interface from `@fmork/backend-core` for all logging. Instantiate loggers via `@ayeldo/utils`' pino-backed adapter (`createRootLogger`) and create request-scoped child loggers with `withRequestId(logger, requestId)`.
 
-### Outgoing HTTP requests
+### Outgoing HTTP requests in the backend
 
-Code that needs to make HTTP requests should take a dependency on `HttpClient` from `@fmork/backend-core`. The type is described in `docs/type-snapshots/HttpClient.d.ts`.
+Code that needs to make HTTP requests should take a dependency on `HttpClient` from `backend-core`.
 
 - Backend (API/Services): inject an `HttpClient` implementation (Axios or fetch/undici-based) via manual DI.
 - Frontend (Web/Vite): use a small typed fetch wrapper that calls the API with `credentials: 'include'` and an `X-CSRF-Token` header.

@@ -46,7 +46,8 @@ const OnboardPage: FC = () => {
   useEffect(() => {
     if (session?.loggedIn && (session.tenantIds?.length ?? 0) > 0) {
       // If user is already authenticated with a tenant, redirect to albums
-      navigate('/albums/demo');
+      const firstTenantId = session.tenantIds?.[0] || 't-1';
+      navigate(`/tenants/${firstTenantId}/albums/demo`);
     } else if (session?.loggedIn && (session.tenantIds?.length ?? 0) === 0) {
       setFormData((prev) => {
         const next: OnboardFormData = {
@@ -132,8 +133,8 @@ const OnboardPage: FC = () => {
 
       await onboard(payload).unwrap();
 
-      // Success - navigate to albums
-      navigate('/albums/demo');
+      // Success - navigate to albums (use a default tenant ID)
+      navigate('/tenants/t-1/albums/demo');
     } catch (err) {
       // Error handling is done by RTK Query error state
       console.error('Onboarding failed:', err);

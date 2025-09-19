@@ -21,8 +21,8 @@ const AppBarComponent: FC<AppBarComponentProps> = ({ onMenuToggle }) => {
   const session = useSession();
 
   const navItems = [
-    { label: t('nav.home'), to: '/' },
-    { label: t('nav.albumDemo'), to: '/albums/demo' },
+    { label: t('nav.home'), to: session?.loggedIn ? '/my' : '/' },
+    { label: t('nav.albumDemo'), to: '/tenants/t-1/albums/demo' },
     { label: t('nav.cart'), to: '/cart' },
   ] as const;
 

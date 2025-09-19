@@ -11,10 +11,10 @@ import CartPage from '../features/cart/pages/cartPage';
 import CheckoutResultPage from '../features/checkout/pages/resultPage';
 import HomePage from '../features/home/pages/homePage';
 import MyLayout from '../features/my/components/myLayout';
+import AlbumDetailPage from '../features/my/pages/albumDetailPage';
+import AlbumsPage from '../features/my/pages/albumsPage';
 import AnalyticsPage from '../features/my/pages/analyticsPage';
 import DashboardPage from '../features/my/pages/dashboardPage';
-import AlbumsPage from '../features/my/pages/albumsPage';
-import AlbumDetailPage from '../features/my/pages/albumDetailPage';
 import OrdersPage from '../features/my/pages/ordersPage';
 import SettingsPage from '../features/my/pages/settingsPage';
 import Layout from './components/Layout';
@@ -32,7 +32,7 @@ const AppRoutes: FC = () => {
           <Route path="/auth/onboard" element={<OnboardPage />} />
           <Route path="/auth/signedin" element={<SignedInLandingPage />} />
           <Route path="/auth/signout" element={<SignOutPage />} />
-          <Route path="/albums/:id" element={<AlbumPage />} />
+          <Route path="/tenants/:tenantId/albums/:albumId" element={<AlbumPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout/result" element={<CheckoutResultPage />} />
           <Route path="/theme-showcase" element={<ThemeShowcase />} />
