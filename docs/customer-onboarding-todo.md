@@ -88,7 +88,7 @@ Phase 5 — Tests & QA
 Phase 6 — Docs & rollout
 
 - ☐ Add README snippet and docs section describing onboarding flow and required env vars.
-- ☐ Document transitional naming decisions: repo preserves `BFF_*` env var names (for example `BFF_JWT_SECRET`) and `bffOrigin` property for backwards compatibility. Plan a staged migration if you want to rename runtime keys (accept both old/new names for a release, then remove old names later).
+- ☐ Document transitional naming decisions: repo preserves `BFF_*` env var names (for example `API_JWT_SECRET`) and `bffOrigin` property for backwards compatibility. Plan a staged migration if you want to rename runtime keys (accept both old/new names for a release, then remove old names later).
 
 Acceptance criteria
 

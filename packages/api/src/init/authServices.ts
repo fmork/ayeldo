@@ -6,8 +6,8 @@ import { logWriter, siteConfig } from './config';
 import { ddb } from './infrastructure';
 import { tenantAccessService, userRepo } from './tenantServices';
 
-// DynamoDB table name
-const tableName = process.env['TABLE_NAME'] || 'AppTable';
+// DynamoDB table name (prefer siteConfig)
+const tableName = siteConfig.tableName ?? process.env['TABLE_NAME'] ?? 'AppTable';
 
 // Create OIDC config from SiteConfiguration (required)
 const authority = siteConfig.oidcAuthority;
@@ -48,7 +48,7 @@ export const sessions = new SessionService({
   states: new DdbStateStore({ tableName, client: ddb, logger: logWriter }),
   encKeyB64: siteConfig.sessionEncKey ?? 'c2Vzc2lvbl9lbmNfMzJieXRlc19iYXNlNjQ=',
   encKid: 'v1',
-  bffJwtSecretB64: siteConfig.bffJwtSecret ?? 'YnZmX2p3dF9zZWNyZXRfYmFzZTY0',
+  bffJwtSecretB64: siteConfig.apiJwtSecret ?? 'YnZmX2p3dF9zZWNyZXRfYmFzZTY0',
   issuer: 'bff',
   audience: 'api',
   logger: logWriter,

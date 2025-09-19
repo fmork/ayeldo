@@ -12,13 +12,13 @@ import {
 import { getEventBridgeClient } from '@ayeldo/utils';
 import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake';
 import { SignedUrlProviderFake } from '../storage/signedUrlProviderFake';
-import { logWriter } from './config';
+import { logWriter, siteConfig } from './config';
 
-// DynamoDB setup
-const tableName = process.env['TABLE_NAME'] || 'AppTable';
-const region = process.env['AWS_REGION'] || 'us-east-1';
-const eventBusName = process.env['EVENTS_BUS_NAME'] || 'default';
-const ddbEndpoint = process.env['DDB_ENDPOINT'];
+// DynamoDB setup (prefer siteConfig, then env override, then defaults)
+const tableName = siteConfig.tableName ?? process.env['TABLE_NAME'] ?? 'AppTable';
+const region = siteConfig.awsRegion ?? process.env['AWS_REGION'] ?? 'us-east-1';
+const eventBusName = siteConfig.eventBusName ?? process.env['EVENTS_BUS_NAME'] ?? 'default';
+const ddbEndpoint = siteConfig.ddbEndpoint ?? process.env['DDB_ENDPOINT'];
 
 export const ddb = new DdbDocumentClientAdapter({
   region,

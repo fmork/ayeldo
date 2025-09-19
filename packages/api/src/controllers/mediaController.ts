@@ -1,6 +1,7 @@
 import type { HttpRouter, ILogWriter } from '@ayeldo/backend-core';
 import { PublicController } from '@ayeldo/backend-core';
 import type { IAlbumRepo, IImageRepo } from '@ayeldo/core';
+import { siteConfig } from '../init/config';
 import { MediaQueryService } from '../services/mediaQueryService';
 
 export interface MediaControllerProps {
@@ -36,9 +37,9 @@ export class MediaController extends PublicController {
     this.addGet('/tenants/:tenantId/albums/:albumId/images', async (req, res) => {
       await this.performRequest(
         () => {
-          const cdnHost = process.env['CDN_HOST'];
+          const cdnHost = siteConfig.cdnHost ?? process.env['CDN_HOST'];
           if (!cdnHost) {
-            throw new Error('CDN_HOST environment variable is required');
+            throw new Error('CDN_HOST configuration is required');
           }
           return this.flow.listAlbumImagesWithCdnUrls(
             (req as unknown as { params: Record<string, unknown> }).params,

@@ -19,13 +19,20 @@ interface VariantConfig {
   readonly longEdge: number;
 }
 
-const REGION = process.env['AWS_REGION'] ?? 'us-east-1';
-const TABLE_NAME = process.env['TABLE_NAME'] ?? '';
-const MEDIA_BUCKET = process.env['MEDIA_BUCKET'] ?? '';
-const EVENT_BUS_NAME = process.env['EVENT_BUS_NAME'] ?? '';
+// Prefer reading from SiteConfiguration when available at runtime; fall back to env
+type RuntimeEnv = Record<string, string | undefined>;
+const g = globalThis as unknown as {
+  __AYELDO_SITE_CONFIG__?: RuntimeEnv;
+  process?: { env?: RuntimeEnv };
+};
+const runtimeEnv: RuntimeEnv = g.__AYELDO_SITE_CONFIG__ ?? g.process?.env ?? {};
+const REGION = runtimeEnv['AWS_REGION'] ?? 'us-east-1';
+const TABLE_NAME = runtimeEnv['TABLE_NAME'] ?? '';
+const MEDIA_BUCKET = runtimeEnv['MEDIA_BUCKET'] ?? '';
+const EVENT_BUS_NAME = runtimeEnv['EVENT_BUS_NAME'] ?? '';
 
 const VARIANT_CONFIG: readonly VariantConfig[] = ((): readonly VariantConfig[] => {
-  const raw = process.env['IMAGE_VARIANTS'];
+  const raw = runtimeEnv['IMAGE_VARIANTS'];
   if (raw) {
     try {
       const parsed = JSON.parse(raw) as VariantConfig[];

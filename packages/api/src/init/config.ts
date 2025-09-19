@@ -35,23 +35,13 @@ export const claimBasedAuthorizer = new ClaimBasedAuthorizer({
 
 // Helper to create SiteConfiguration from environment variables
 function createSiteConfigurationFromEnv(): SiteConfiguration {
-  const apiBaseUrl = process.env['API_BASE_URL'] ?? 'http://localhost:3000';
-  const url = new URL(apiBaseUrl);
-  const apiOrigin = `${url.protocol}//${url.host}`;
-  const webOrigin = process.env['WEB_ORIGIN'] ?? 'http://localhost:3001';
+  // SiteConfiguration now reads configuration directly from environment variables.
+  // Ensure defaults commonly used in local/test runs are present on process.env
+  process.env['API_BASE_URL'] = process.env['API_BASE_URL'] ?? 'http://localhost:3000';
+  process.env['WEB_ORIGIN'] = process.env['WEB_ORIGIN'] ?? 'http://localhost:3001';
 
-  return new SiteConfiguration({
-    webOrigin,
-    bffOrigin: apiOrigin,
-    ...(process.env['OIDC_ISSUER_URL'] && { oidcAuthority: process.env['OIDC_ISSUER_URL'] }),
-    ...(process.env['OIDC_CLIENT_ID'] && { oidcClientId: process.env['OIDC_CLIENT_ID'] }),
-    ...(process.env['OIDC_CLIENT_SECRET'] && {
-      oidcClientSecret: process.env['OIDC_CLIENT_SECRET'],
-    }),
-    ...(process.env['OIDC_SCOPES'] && { oidcScopes: process.env['OIDC_SCOPES'] }),
-    ...(process.env['SESSION_ENC_KEY'] && { sessionEncKey: process.env['SESSION_ENC_KEY'] }),
-    ...(process.env['BFF_JWT_SECRET'] && { bffJwtSecret: process.env['BFF_JWT_SECRET'] }),
-  });
+  // Construct without args; the class reads from environment.
+  return new SiteConfiguration();
 }
 
 // Create site configuration

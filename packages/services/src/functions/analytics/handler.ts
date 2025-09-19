@@ -20,8 +20,15 @@ export async function main(event: unknown): Promise<void> {
   if (!type) return;
   const detail = e.detail as EventEnvelope<string, unknown>;
 
-  const tableName = process.env['TABLE_NAME'];
-  const region = process.env['AWS_REGION'] ?? 'us-east-1';
+  // Prefer SiteConfiguration in runtime if injected (globalThis.__AYELDO_SITE_CONFIG__), else env
+  type RuntimeEnv = Record<string, string | undefined>;
+  const g = globalThis as unknown as {
+    __AYELDO_SITE_CONFIG__?: RuntimeEnv;
+    process?: { env?: RuntimeEnv };
+  };
+  const runtimeEnv: RuntimeEnv = g.__AYELDO_SITE_CONFIG__ ?? g.process?.env ?? {};
+  const tableName = runtimeEnv['TABLE_NAME'];
+  const region = runtimeEnv['AWS_REGION'] ?? 'us-east-1';
   if (!tableName) throw new Error('TABLE_NAME env var is required');
 
   const ddb = new DdbDocumentClientAdapter({ region, logger });

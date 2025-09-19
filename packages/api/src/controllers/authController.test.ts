@@ -80,13 +80,12 @@ describe('AuthController', () => {
     }) as any;
 
   const mkSiteConfig = (): SiteConfiguration => {
-    return new SiteConfiguration({
-      webOrigin: 'http://localhost:3001',
-      bffOrigin: 'http://localhost:3000',
-      oidcAuthority: 'https://auth.example.com',
-      oidcClientId: 'test-client-id',
-      oidcClientSecret: 'test-client-secret',
-    });
+    process.env['WEB_ORIGIN'] = process.env['WEB_ORIGIN'] ?? 'http://localhost:3001';
+    process.env['API_BASE_URL'] = process.env['API_BASE_URL'] ?? 'http://localhost:3000';
+    process.env['OIDC_ISSUER_URL'] = process.env['OIDC_ISSUER_URL'] ?? 'https://auth.example.com';
+    process.env['OIDC_CLIENT_ID'] = process.env['OIDC_CLIENT_ID'] ?? 'test-client-id';
+    process.env['OIDC_CLIENT_SECRET'] = process.env['OIDC_CLIENT_SECRET'] ?? 'test-client-secret';
+    return new SiteConfiguration();
   };
 
   const mkAuthFlow = (overrides?: Partial<AuthFlowService>): AuthFlowService =>

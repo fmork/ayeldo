@@ -15,9 +15,9 @@ const requestLogger = new RequestLogMiddleware({ logWriter });
 // Replace the request logger with the enhanced version so Server.initialize
 // picks it up when it installs middleware.
 // requestLogger.logRequest = enhancedLogRequest.bind(requestLogger);
-const serverPort: number = process.env['PORT']
-  ? Number.parseInt(process.env['PORT'] as string, 10)
-  : 3000;
+const serverPort: number =
+  siteConfig.serverPort ??
+  (process.env['PORT'] ? Number.parseInt(process.env['PORT'] as string, 10) : 3000);
 
 logWriter.info(
   `Starting API server on port ${serverPort}, API origin: ${siteConfig.apiOrigin}, Web origin: ${siteConfig.webOrigin}`,

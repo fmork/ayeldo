@@ -63,25 +63,25 @@ export class ApiStack extends Stack {
     // used the acronym "BFF" for a backend-for-frontend service. The responsibilities are
     // now served by the HTTP API; we keep the `bffOrigin` property for backward compatibility
     // but it represents the API origin.
-    const siteConfig = new SiteConfiguration({
-      webOrigin,
-      bffOrigin: apiOrigin, // API origin (keeps historical bffOrigin prop for compat)
-      ...(maybe('FMORK_SITE_OIDC_AUTHORITY') && {
-        oidcAuthority: maybe('FMORK_SITE_OIDC_AUTHORITY') as string,
-      }),
-      ...(maybe('FMORK_SITE_OIDC_CLIENT_ID') && {
-        oidcClientId: maybe('FMORK_SITE_OIDC_CLIENT_ID') as string,
-      }),
-      ...(maybe('FMORK_SITE_OIDC_CLIENT_SECRET') && {
-        oidcClientSecret: maybe('FMORK_SITE_OIDC_CLIENT_SECRET') as string,
-      }),
-      ...(maybe('FMORK_SITE_SESSION_ENC_KEY') && {
-        sessionEncKey: maybe('FMORK_SITE_SESSION_ENC_KEY') as string,
-      }),
-      ...(maybe('FMORK_SITE_BFF_JWT_SECRET') && {
-        bffJwtSecret: maybe('FMORK_SITE_BFF_JWT_SECRET') as string,
-      }),
-    });
+    // Populate environment variables used by SiteConfiguration so the
+    // constructor can read them. CDK runs at synth-time; we set defaults
+    // derived from the stack props.
+    process.env['API_BASE_URL'] = process.env['API_BASE_URL'] ?? apiOrigin;
+    process.env['BFF_ORIGIN'] = process.env['BFF_ORIGIN'] ?? apiOrigin;
+    process.env['WEB_ORIGIN'] = process.env['WEB_ORIGIN'] ?? webOrigin;
+    if (maybe('FMORK_SITE_OIDC_AUTHORITY'))
+      process.env['OIDC_ISSUER_URL'] = maybe('FMORK_SITE_OIDC_AUTHORITY') as string;
+    if (maybe('FMORK_SITE_OIDC_CLIENT_ID'))
+      process.env['OIDC_CLIENT_ID'] = maybe('FMORK_SITE_OIDC_CLIENT_ID') as string;
+    if (maybe('FMORK_SITE_OIDC_CLIENT_SECRET'))
+      process.env['OIDC_CLIENT_SECRET'] = maybe('FMORK_SITE_OIDC_CLIENT_SECRET') as string;
+    if (maybe('FMORK_SITE_SESSION_ENC_KEY'))
+      process.env['SESSION_ENC_KEY'] = maybe('FMORK_SITE_SESSION_ENC_KEY') as string;
+    if (maybe('FMORK_SITE_API_JWT_SECRET'))
+      process.env['API_JWT_SECRET'] = maybe('FMORK_SITE_API_JWT_SECRET') as string;
+
+    // Construct SiteConfiguration which will read from process.env
+    const siteConfig = new SiteConfiguration();
 
     // Get environment variables for Lambda from SiteConfiguration
     const lambdaEnv = siteConfig.toLambdaEnvironment();
