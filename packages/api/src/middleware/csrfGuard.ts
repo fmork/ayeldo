@@ -53,27 +53,26 @@ export function requireCsrfForController(
 ): (req: any, res: HttpResponse) => Promise<void> {
   return async (req: any, res: HttpResponse): Promise<void> => {
     try {
-      // The following code is intentionally commented out. I will be brought back at a later time.
-      // // Convert HttpRequest to ControllerRequest (coerce cookie values to strings)
-      // const headers = req.headers ?? {};
-      // const rawCookies = (req.cookies ?? {}) as Record<string, unknown>;
-      // const cookies: Record<string, string> = {};
-      // for (const k of Object.keys(rawCookies)) {
-      //   const v = rawCookies[k];
-      //   if (typeof v === 'string') {
-      //     cookies[k] = v;
-      //   } else if (v != null) {
-      //     cookies[k] = String(v);
-      //   }
-      // }
+      // Convert HttpRequest to ControllerRequest (coerce cookie values to strings)
+      const headers = req.headers ?? {};
+      const rawCookies = (req.cookies ?? {}) as Record<string, unknown>;
+      const cookies: Record<string, string> = {};
+      for (const k of Object.keys(rawCookies)) {
+        const v = rawCookies[k];
+        if (typeof v === 'string') {
+          cookies[k] = v;
+        } else if (v != null) {
+          cookies[k] = String(v);
+        }
+      }
 
-      // const controllerReq: ControllerRequest = {
-      //   headers: headers as Record<string, unknown>,
-      //   cookies,
-      //   params: req.params ?? {},
-      //   body: req.body,
-      //   query: req.query ?? {},
-      // };
+      const controllerReq: ControllerRequest = {
+        headers: headers as Record<string, unknown>,
+        cookies,
+        params: req.params ?? {},
+        body: req.body,
+        query: req.query ?? {},
+      };
 
       const sid = cookies[COOKIE_NAMES.SESSION_ID] as string | undefined;
 
