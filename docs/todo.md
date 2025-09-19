@@ -276,3 +276,16 @@ Next Steps (follow-up todos to add later if prioritized):
 - Add unit tests for new \*FlowService classes.
 - Add README section or architecture doc snippet referencing this pattern (C4 update optional).
 - Consider shared base for flow services if duplication grows (currently minimal).
+
+## Upload Pipeline (In Progress)
+
+- [x] Extend image DTO/entity/repository marshalling to capture original key, variants, and processed timestamps.
+- [x] Generate uploaded object keys under `uploads/tenant/album/image/original/filename` and sanitize filenames.
+- [x] Implement streaming-friendly processing Lambda:
+  - [x] Download/copy originals and generate derivative variants using bundled image tooling (sharp/ImageMagick) without loading entire asset into memory.
+  - [ ] Package native image tooling with the Lambda bundle and verify the processor in a local/integration environment.
+- [ ] Ensure Lambda package includes required native/image tooling (Confirm bundler output, layer strategy, dependency lock).
+- [ ] Persist variant metadata + emit `ImageProcessed` events (verify repository output, event fields).
+- [x] Configure CDK stack to deploy media processor Lambda with S3 trigger, bucket permissions, lifecycle rules, and EventBridge wiring (synth/test).
+- [ ] Update API/media query responses to surface variant metadata for consumption by frontend.
+- [ ] Implement cleanup/lifecycle rules for `uploads/` prefix once processing completes.

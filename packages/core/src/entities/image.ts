@@ -11,6 +11,9 @@ export class Image {
   public readonly width: number;
   public readonly height: number;
   public readonly createdAt: string;
+  public readonly originalKey: string | undefined;
+  public readonly variants: readonly { readonly label: string; readonly key: string; readonly width: number; readonly height: number; readonly sizeBytes: number; }[];
+  public readonly processedAt: string | undefined;
 
   constructor(props: ImageDto) {
     this.id = props.id;
@@ -22,5 +25,8 @@ export class Image {
     this.width = props.width;
     this.height = props.height;
     this.createdAt = props.createdAt;
+    this.originalKey = props.originalKey;
+    this.variants = props.variants ?? [];
+    this.processedAt = props.processedAt;
   }
 }

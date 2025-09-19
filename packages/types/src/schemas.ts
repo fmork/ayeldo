@@ -5,6 +5,7 @@ import type {
   CartDto,
   CartItemDto,
   ImageDto,
+  ImageVariantDto,
   OrderDto,
   OrderLineDto,
   PriceItemDto,
@@ -40,7 +41,15 @@ export const albumSchema = z.object({
   createdAt: isoTimestampSchema,
 }) as z.ZodType<AlbumDto>;
 
-export const imageSchema = z.object({
+export const imageVariantSchema = z.object({
+  label: z.string().min(1),
+  key: z.string().min(1),
+  width: z.number().int().nonnegative(),
+  height: z.number().int().nonnegative(),
+  sizeBytes: z.number().int().nonnegative(),
+}) satisfies z.ZodType<ImageVariantDto>;
+
+const imageBaseSchema = z.object({
   id: z.string().min(1),
   tenantId: z.string().min(1),
   albumId: z.string().min(1),
@@ -50,7 +59,12 @@ export const imageSchema = z.object({
   width: z.number().int().positive(),
   height: z.number().int().positive(),
   createdAt: isoTimestampSchema,
-}) satisfies z.ZodType<ImageDto>;
+  originalKey: z.string().min(1).optional(),
+  variants: z.array(imageVariantSchema).readonly().optional(),
+  processedAt: isoTimestampSchema.optional(),
+});
+
+export const imageSchema = imageBaseSchema as z.ZodType<ImageDto>;
 
 export const priceItemSchema = z.object({
   sku: z.string().min(1),

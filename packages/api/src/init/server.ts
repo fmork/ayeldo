@@ -1,4 +1,4 @@
-import { RequestLogMiddleware, Server } from '@fmork/backend-core';
+import { RequestLogMiddleware, Server, type ControllerBase } from '@fmork/backend-core';
 import {
   authController,
   albumsController,
@@ -32,8 +32,8 @@ export const server = new Server({
     mediaController,
     // API controllers
     rootController,
-    sessionController,
-    authController,
+    sessionController as unknown as ControllerBase,
+    authController as unknown as ControllerBase,
     // Authenticated controllers
     tenantAdminController,
   ],

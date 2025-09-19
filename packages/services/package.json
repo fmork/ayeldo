@@ -20,6 +20,13 @@
     "@ayeldo/types": "workspace:*",
     "@ayeldo/utils": "workspace:*",
     "@fmork/backend-core": "^4.0.3",
-    "aws-xray-sdk-core": "^3.10.3"
+    "aws-xray-sdk-core": "^3.10.3",
+    "@aws-sdk/client-eventbridge": "^3.634.0",
+    "@aws-sdk/client-s3": "^3.892.0",
+    "@aws-sdk/lib-storage": "^3.892.0",
+    "sharp": "^0.33.3"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.138"
   }
 }

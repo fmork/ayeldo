@@ -1,4 +1,3 @@
-import { describe, expect, test, jest } from '@jest/globals';
 import { registerImage, completeUpload } from './images';
 
 describe('image upload handlers', () => {
@@ -13,8 +12,8 @@ describe('image upload handlers', () => {
 
     const mockPresigned = {
       url: 'https://bucket.s3.amazonaws.com',
-      fields: { key: 'tenants/t1/albums/alb1/images/img1' },
-      key: 'tenants/t1/albums/alb1/images/img1',
+      fields: { key: 'uploads/t1/alb1/img1/original/photo.jpg' },
+      key: 'uploads/t1/alb1/img1/original/photo.jpg',
       expiresAtIso: new Date(Date.now() + 300_000).toISOString(),
     };
 
@@ -33,7 +32,7 @@ describe('image upload handlers', () => {
 
     expect(upload.createPresignedPost).toHaveBeenCalledTimes(1);
     expect(upload.createPresignedPost).toHaveBeenCalledWith({
-      key: 'tenants/t1/albums/alb1/images/img1',
+      key: 'uploads/t1/alb1/img1/original/photo.jpg',
       contentType: 'image/jpeg',
     });
     expect(result).toEqual(mockPresigned);

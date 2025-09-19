@@ -19,7 +19,7 @@ export const tenantService = new TenantService({
   tenantRepo,
   publisher: eventPublisher,
   jsonUtil,
-  logger: logWriter,
+  logWriter: logWriter,
 });
 
 export const tenantAccessService = new TenantAccessService({

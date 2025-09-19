@@ -1,4 +1,3 @@
-import { describe, expect, test, jest } from '@jest/globals';
 import { createOrderFromCart, getOrder, fulfillOrder } from './orders';
 import { TieredPricingEngine } from '@ayeldo/core';
 
@@ -30,8 +29,8 @@ describe('createOrderFromCart', () => {
     const put = jest.fn(async () => {});
 
     const deps = {
-      cartRepo: { getById: async () => cart },
-      priceListRepo: { getById: async () => priceList },
+      cartRepo: { getById: async () => cart, put: jest.fn() },
+      priceListRepo: { getById: async () => priceList, put: jest.fn() },
       orderRepo: { put } as any,
       engine,
     } as const;

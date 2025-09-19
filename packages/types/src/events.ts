@@ -5,6 +5,7 @@ import type {
   TenantMembershipRole,
   TenantMembershipStatus,
   Uuid,
+  ImageVariantDto,
 } from './dtos';
 
 export interface EventEnvelope<TType extends string, TPayload> {
@@ -101,3 +102,30 @@ export const tenantMembershipRevokedEventSchema = makeEventEnvelopeSchema(
 );
 
 export type TenantMembershipRevokedEvent = z.infer<typeof tenantMembershipRevokedEventSchema>;
+
+export interface ImageProcessedPayload {
+  readonly albumId: string;
+  readonly imageId: string;
+  readonly originalKey: string;
+  readonly variants: readonly ImageVariantDto[];
+}
+
+export const imageProcessedPayloadSchema = z.object({
+  albumId: z.string().min(1),
+  imageId: z.string().min(1),
+  originalKey: z.string().min(1),
+  variants: z.array(z.object({
+    label: z.string().min(1),
+    key: z.string().min(1),
+    width: z.number().int().nonnegative(),
+    height: z.number().int().nonnegative(),
+    sizeBytes: z.number().int().nonnegative(),
+  })).readonly(),
+});
+
+export const imageProcessedEventSchema = makeEventEnvelopeSchema(
+  'ImageProcessed',
+  imageProcessedPayloadSchema,
+);
+
+export type ImageProcessedEvent = z.infer<typeof imageProcessedEventSchema>;

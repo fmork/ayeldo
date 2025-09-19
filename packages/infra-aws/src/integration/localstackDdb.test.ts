@@ -8,9 +8,9 @@ import { UserRepoDdb } from '../userRepoDdb';
 // Only run when LocalStack is available
 const env = ((globalThis as unknown as { process?: { env?: Record<string, string> } }).process
   ?.env ?? {}) as Record<string, string>;
-const hasLocalstack = !!env.LOCALSTACK_URL;
-const ddbEndpoint = env.LOCALSTACK_URL ?? '';
-const region = env.AWS_REGION ?? 'us-east-1';
+const hasLocalstack = !!env['LOCALSTACK_URL'];
+const ddbEndpoint = env['LOCALSTACK_URL'] ?? '';
+const region = env['AWS_REGION'] ?? 'us-east-1';
 
 // Wrap AWS SDK v3 as a DdbClient implementation
 class SdkDdbClient implements DdbClient {

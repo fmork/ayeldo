@@ -1,4 +1,3 @@
-import { describe, expect, test, jest } from '@jest/globals';
 import { createCheckoutSession, handleStripeWebhook } from './payments';
 import { createHmac } from 'crypto';
 
@@ -49,7 +48,7 @@ describe('handleStripeWebhook', () => {
     } as const;
     const put = jest.fn(async () => {});
     const published: any[] = [];
-    const publisher = { publish: jest.fn(async (evt: any) => published.push(evt)) };
+    const publisher = { publish: jest.fn(async (evt: any) => { published.push(evt); }) };
     const deps = { orderRepo: { getById: async () => order, put }, publisher } as any;
     const payload = { tenantId: 't1', orderId: 'o1', eventType: 'payment_succeeded' } as const;
     const secret = 'shh';
@@ -76,7 +75,7 @@ describe('handleStripeWebhook', () => {
     } as const;
     const put = jest.fn(async () => {});
     const published: any[] = [];
-    const publisher = { publish: jest.fn(async (evt: any) => published.push(evt)) };
+    const publisher = { publish: jest.fn(async (evt: any) => { published.push(evt); }) };
     const deps = { orderRepo: { getById: async () => order, put }, publisher } as any;
     const payload = { tenantId: 't2', orderId: 'o2', eventType: 'payment_failed' } as const;
     const secret = 'shh2';

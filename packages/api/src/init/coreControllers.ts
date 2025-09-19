@@ -37,4 +37,5 @@ export const mediaController = new MediaController({
   logWriter,
   albumRepo,
   imageRepo,
+  downloadProvider: download,
 });

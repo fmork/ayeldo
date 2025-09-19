@@ -52,6 +52,9 @@ export class ImageRepoDdb implements IImageRepo {
       width: entity.width,
       height: entity.height,
       createdAt: entity.createdAt,
+      ...(entity.originalKey ? { originalKey: entity.originalKey } : {}),
+      ...(entity.variants.length ? { variants: entity.variants } : {}),
+      ...(entity.processedAt ? { processedAt: entity.processedAt } : {}),
     };
     const item = toImageItem(dto);
     await this.client.put({ tableName: this.tableName, item });

@@ -77,6 +77,57 @@ async function writeText(p, content) {
 /**
  * @returns {Promise<void>}
  */
+const nativeDeps = ['sharp'];
+
+async function copyNativeDeps(pkg, outDir) {
+  try {
+    const pkgJsonPath = path.join(packagesDir, pkg, 'package.json');
+    const pkgJson = JSON.parse(await fs.readFile(pkgJsonPath, 'utf8'));
+    const declared = { ...pkgJson.dependencies, ...pkgJson.devDependencies };
+    for (const dep of nativeDeps) {
+      if (!declared || !declared[dep]) continue;
+
+      // In pnpm workspaces, native deps may be hoisted to root node_modules
+      const possibleSources = [
+        path.join(packagesDir, pkg, 'node_modules', dep),
+        path.join(repoRoot, 'node_modules', dep),
+        path.join(repoRoot, 'node_modules', '.pnpm', `${dep}@${declared[dep].replace(/^\^/, '')}`, 'node_modules', dep),
+      ];
+
+      let src = null;
+      for (const candidate of possibleSources) {
+        try {
+          await fs.access(candidate);
+          src = candidate;
+          break;
+        } catch {
+          continue;
+        }
+      }
+
+      if (!src) {
+        console.warn(`Could not find ${dep} in any expected location for ${pkg}`);
+        continue;
+      }
+
+      const dest = path.join(outDir, 'node_modules', dep);
+      await ensureDir(path.dirname(dest));
+
+      // Remove destination if it exists to avoid copy conflicts
+      try {
+        await fs.rm(dest, { recursive: true, force: true });
+      } catch {
+        // Ignore errors if destination doesn't exist
+      }
+
+      await fs.cp(src, dest, { recursive: true });
+      console.log(`  Copied ${dep} from ${path.relative(repoRoot, src)}`);
+    }
+  } catch (err) {
+    console.warn(`Skipping native dependency copy for ${pkg}:`, err?.message ?? err);
+  }
+}
+
 async function main() {
   const entries = await findLambdaEntries();
   if (entries.length === 0) {
@@ -104,6 +155,7 @@ async function main() {
       outfile,
       metafile: true,
       logLevel: 'info',
+      external: nativeDeps,
       // Use root tsconfig for path aliasing to workspace sources
       tsconfig: tsconfigPath,
       legalComments: 'none',
@@ -111,6 +163,7 @@ async function main() {
 
     // Write small meta file with output size summary
     const bytes = Object.values(result.metafile?.outputs ?? {}).reduce((acc, o) => acc + (o.bytes || 0), 0);
+    await copyNativeDeps(pkg, outDir);
     await writeText(path.join(outDir, 'meta.json'), JSON.stringify({ bytes }, null, 2));
     results.push({ id: `${pkg}-${funcId}`, bytes });
   }

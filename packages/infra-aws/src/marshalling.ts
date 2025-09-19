@@ -27,9 +27,20 @@ export type ImageItem = BaseItem & {
   readonly sizeBytes: number;
   readonly width: number;
   readonly height: number;
+  readonly originalKey?: string;
+  readonly variants?: readonly ImageVariantRecord[];
+  readonly processedAt?: string;
   readonly GSI1PK: string;
   readonly GSI1SK: string;
 };
+
+export interface ImageVariantRecord {
+  readonly label: string;
+  readonly key: string;
+  readonly width: number;
+  readonly height: number;
+  readonly sizeBytes: number;
+}
 
 export type PriceListItem = BaseItem & {
   readonly type: 'PriceList';
@@ -105,6 +116,9 @@ export function toImageItem(dto: ImageDto): ImageItem {
     sizeBytes: dto.sizeBytes,
     width: dto.width,
     height: dto.height,
+    ...(dto.originalKey ? { originalKey: dto.originalKey } : {}),
+    ...(dto.variants ? { variants: dto.variants } : {}),
+    ...(dto.processedAt ? { processedAt: dto.processedAt } : {}),
     ...gsi1ImageByAlbum(dto.albumId, dto.id),
   };
 }
@@ -120,6 +134,9 @@ export function fromImageItem(item: ImageItem): ImageDto {
     width: item.width,
     height: item.height,
     createdAt: item.createdAt,
+    ...(item.originalKey ? { originalKey: item.originalKey } : {}),
+    ...(item.variants ? { variants: item.variants } : {}),
+    ...(item.processedAt ? { processedAt: item.processedAt } : {}),
   };
 }
 

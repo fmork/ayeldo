@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SiteConfiguration } from '@ayeldo/core';
 import { tenantCreateSchema } from '@ayeldo/types/src/schemas';
-import type { HttpRouter, ILogWriter, JsonUtil } from '@fmork/backend-core';
+import type { ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
+import type { HttpRouter, HttpResponse } from '@fmork/backend-core/dist/controllers/http';
 import { COOKIE_NAMES } from '../constants';
-import { requireCsrfForController } from '../middleware/csrfGuard';
+import { requireCsrfForController, type ControllerRequest } from '../middleware/csrfGuard';
 import type { AuthFlowService } from '../services/authFlowService';
 import type { OnboardingService } from '../services/onboardingService';
 
@@ -14,14 +15,14 @@ export interface AuthControllerProps {
   readonly authFlow: AuthFlowService;
   readonly siteConfig: SiteConfiguration;
   readonly onboardingService?: OnboardingService;
-  readonly jsonUtil: JsonUtil;
+  readonly jsonUtil: any;
 }
 
 export class AuthController extends PublicController {
   private readonly authFlow: AuthFlowService;
   private readonly siteConfig: SiteConfiguration;
   private readonly onboardingService?: OnboardingService | undefined;
-  private readonly jsonUtil: JsonUtil;
+  private readonly jsonUtil: any;
 
   public constructor(props: AuthControllerProps) {
     super(props.baseUrl, props.logWriter);
@@ -36,7 +37,7 @@ export class AuthController extends PublicController {
     this.addGet('/authorize-url', async (req, res) => {
       await this.performRequest(
         () => this.authFlow.buildAuthorizeUrl((req as any).query?.redirect as string | undefined),
-        res,
+        res as HttpResponse,
       );
     });
 
@@ -48,7 +49,7 @@ export class AuthController extends PublicController {
           (res as any).setHeader?.('Location', url)?.end?.();
           return { redirected: true } as const;
         },
-        res,
+        res as HttpResponse,
         () => 302,
       );
     });
@@ -80,7 +81,7 @@ export class AuthController extends PublicController {
           (res as any).setHeader?.('Location', result.redirectTarget);
           return { redirected: true } as const;
         },
-        res,
+        res as HttpResponse,
         () => 302,
       );
     });
@@ -88,7 +89,7 @@ export class AuthController extends PublicController {
     // POST /logout
     this.addPost(
       '/logout',
-      requireCsrfForController(async (req, res) => {
+      requireCsrfForController(async (req: ControllerRequest, res: HttpResponse) => {
         await this.performRequest(
           async () => {
             const sid = (req as any).cookies?.[COOKIE_NAMES.SESSION_ID] as string | undefined;
@@ -108,7 +109,7 @@ export class AuthController extends PublicController {
     // POST /onboard - OIDC-authenticated tenant onboarding
     this.addPost(
       '/onboard',
-      requireCsrfForController(async (req, res) => {
+      requireCsrfForController(async (req: ControllerRequest, res: HttpResponse) => {
         const response = res as unknown as Parameters<typeof this.performRequest>[1];
 
         if (!this.onboardingService) {

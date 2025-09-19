@@ -1,6 +1,10 @@
 import type { IEventPublisher, ITenantRepo } from '@ayeldo/core';
-import { JsonUtil } from '@fmork/backend-core';
 import { TenantService } from './tenantService';
+
+// Mock JsonUtil
+const JsonUtil = jest.fn().mockImplementation(() => ({
+  getParsedRequestBody: jest.fn((body) => body), // Just return the body as-is
+}));
 
 describe('TenantService', () => {
   test('happy path: creates tenant and publishes event', async () => {
@@ -14,7 +18,7 @@ describe('TenantService', () => {
     } as const;
 
     const repo: ITenantRepo = {
-      async createTenant(input, id) {
+      async createTenant(input: any, id: any) {
         return { ...fakeTenant } as any;
       },
       async getTenantById() {
@@ -39,7 +43,7 @@ describe('TenantService', () => {
       tenantRepo: repo,
       publisher,
       jsonUtil,
-      logger: { info: () => {}, warn: () => {}, error: () => {} } as any,
+      logWriter: { info: () => {}, warn: () => {}, error: () => {} } as any,
     });
 
     const body = { name: 'Acme Ltd', ownerEmail: 'owner@acme.test' } as unknown;
@@ -59,7 +63,7 @@ describe('TenantService', () => {
       tenantRepo: repo,
       publisher,
       jsonUtil,
-      logger: { info: () => {}, warn: () => {}, error: () => {} } as any,
+      logWriter: { info: () => {}, warn: () => {}, error: () => {} } as any,
     });
 
     await expect(

@@ -1,5 +1,6 @@
-import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
+import type { ILogWriter } from '@fmork/backend-core';
 import { PublicController } from '@fmork/backend-core';
+import type { HttpRouter, HttpResponse } from '@fmork/backend-core/dist/controllers/http';
 import { COOKIE_NAMES } from '../constants';
 import type { AuthFlowService } from '../services/authFlowService';
 
@@ -26,7 +27,7 @@ export class SessionController extends PublicController {
             (req as { cookies?: Record<string, string> }).cookies?.[COOKIE_NAMES.SESSION_ID],
           );
         },
-        res,
+        res as HttpResponse,
         (r) => (r.loggedIn ? 200 : 401),
       );
     });

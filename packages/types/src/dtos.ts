@@ -43,6 +43,14 @@ export interface AlbumDto {
   readonly createdAt: string; // ISO timestamp
 }
 
+export interface ImageVariantDto {
+  readonly label: string;
+  readonly key: string;
+  readonly width: number;
+  readonly height: number;
+  readonly sizeBytes: number;
+}
+
 export interface ImageDto {
   readonly id: ImageId;
   readonly tenantId: TenantId;
@@ -53,6 +61,9 @@ export interface ImageDto {
   readonly width: number;
   readonly height: number;
   readonly createdAt: string; // ISO timestamp
+  readonly originalKey?: string;
+  readonly variants?: readonly ImageVariantDto[];
+  readonly processedAt?: string;
 }
 
 export interface PriceItemDto {

@@ -10,10 +10,19 @@ import {
 } from 'aws-cdk-lib/aws-cloudfront';
 import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
+import type { IEventBus } from 'aws-cdk-lib/aws-events';
 import { AnyPrincipal, Effect, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { S3EventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { ARecord, AaaaRecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
-import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods } from 'aws-cdk-lib/aws-s3';
+import {
+  BlockPublicAccess,
+  Bucket,
+  BucketEncryption,
+  EventType,
+  HttpMethods,
+} from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, CacheControl, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import type { Construct } from 'constructs';
 import fs from 'fs';
@@ -31,6 +40,7 @@ export class CoreStack extends Stack {
   public readonly webDistribution: Distribution;
   public readonly mediaBucket: Bucket;
   public readonly mediaDistribution: Distribution;
+  public readonly mediaProcessorFunction?: lambda.Function;
 
   constructor(scope: Construct, id: string, props?: CoreStackProps) {
     super(scope, id, props);
@@ -112,16 +122,60 @@ export class CoreStack extends Stack {
       cors: [
         {
           allowedHeaders: ['*'],
-          allowedMethods: [HttpMethods.POST, HttpMethods.PUT, HttpMethods.GET, HttpMethods.HEAD, HttpMethods.OPTIONS],
+          allowedMethods: [
+            HttpMethods.POST,
+            HttpMethods.PUT,
+            HttpMethods.GET,
+            HttpMethods.HEAD,
+            HttpMethods.DELETE,
+          ],
           allowedOrigins: Array.from(uploadAllowedOrigins),
           maxAge: 3600,
         },
       ],
     });
 
-    const mediaOriginAccessControl = new S3OriginAccessControl(this, 'MediaDistributionAccessControl', {
-      description: `OAC for ${props?.domainConfig?.cdnHost ?? 'media'}`,
-    });
+    const mediaProcessorAssets = path.resolve(
+      __dirnameLocal,
+      '../assets/lambdas/services-mediaProcessor',
+    );
+    if (fs.existsSync(mediaProcessorAssets)) {
+      const fn = new lambda.Function(this, 'MediaProcessorFunction', {
+        code: lambda.Code.fromAsset(mediaProcessorAssets),
+        handler: 'index.main',
+        runtime: lambda.Runtime.NODEJS_20_X,
+        memorySize: 1024,
+        timeout: Duration.minutes(2),
+        logRetention: 30,
+        environment: {
+          NODE_OPTIONS: '--enable-source-maps',
+          MEDIA_BUCKET: this.mediaBucket.bucketName,
+          TABLE_NAME: this.table.tableName,
+          IMAGE_VARIANTS: JSON.stringify([
+            { label: 'xl', longEdge: 1900 },
+            { label: 'lg', longEdge: 1200 },
+            { label: 'md', longEdge: 800 },
+          ]),
+        },
+      });
+      this.mediaBucket.grantReadWrite(fn);
+      this.table.grantReadWriteData(fn);
+      fn.addEventSource(
+        new S3EventSource(this.mediaBucket, {
+          events: [EventType.OBJECT_CREATED],
+          filters: [{ prefix: 'uploads/' }],
+        }),
+      );
+      this.mediaProcessorFunction = fn;
+    }
+
+    const mediaOriginAccessControl = new S3OriginAccessControl(
+      this,
+      'MediaDistributionAccessControl',
+      {
+        description: `OAC for ${props?.domainConfig?.cdnHost ?? 'media'}`,
+      },
+    );
 
     // Optionally attach custom domain + ACM cert (created in us-east-1 via CertStack)
     const distributionExtraProps =
@@ -309,5 +363,13 @@ export class CoreStack extends Stack {
       new CfnOutput(this, 'ComputedBackendHost', { value: props.domainConfig.bffHost });
       new CfnOutput(this, 'ComputedCdnHost', { value: props.domainConfig.cdnHost });
     }
+  }
+
+  public configureMediaProcessing(eventBus: IEventBus): void {
+    if (!this.mediaProcessorFunction) {
+      return;
+    }
+    this.mediaProcessorFunction.addEnvironment('EVENT_BUS_NAME', eventBus.eventBusName);
+    eventBus.grantPutEventsTo(this.mediaProcessorFunction);
   }
 }

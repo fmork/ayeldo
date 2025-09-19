@@ -1,7 +1,7 @@
-import { z } from 'zod';
 import type { IAlbumRepo, IImageRepo } from '@ayeldo/core';
 import { PolicyMode, type PolicyEvaluator } from '@ayeldo/core';
 import type { AlbumDto, ImageDto } from '@ayeldo/types';
+import { z } from 'zod';
 
 export const accessSchema = z.object({
   mode: z.enum([PolicyMode.Public, PolicyMode.Hidden, PolicyMode.Restricted]),
@@ -22,10 +22,14 @@ export async function getAlbum(
   deps: { albumRepo: IAlbumRepo; policy: PolicyEvaluator },
 ): Promise<AlbumDto | undefined> {
   const { tenantId, albumId, access } = getAlbumSchema.parse(input);
-  const baseCtx = { mode: access.mode, hasLinkToken: Boolean(access.linkToken) } as unknown as Parameters<
-    PolicyEvaluator['evaluate']
-  >[0];
-  const ctx = access.isMember !== undefined ? ({ ...baseCtx, isMember: access.isMember } as typeof baseCtx) : baseCtx;
+  const baseCtx = {
+    mode: access.mode,
+    hasLinkToken: Boolean(access.linkToken),
+  } as unknown as Parameters<PolicyEvaluator['evaluate']>[0];
+  const ctx =
+    access.isMember !== undefined
+      ? ({ ...baseCtx, isMember: access.isMember } as typeof baseCtx)
+      : baseCtx;
   const allowed = deps.policy.evaluate(ctx);
   if (!allowed) throw new Error('Forbidden');
   const album = await deps.albumRepo.getById(tenantId, albumId);
@@ -53,22 +57,32 @@ export async function listAlbumImages(
   deps: { imageRepo: IImageRepo; policy: PolicyEvaluator },
 ): Promise<readonly ImageDto[]> {
   const { tenantId, albumId, access } = listAlbumImagesSchema.parse(input);
-  const baseCtx = { mode: access.mode, hasLinkToken: Boolean(access.linkToken) } as unknown as Parameters<
-    PolicyEvaluator['evaluate']
-  >[0];
-  const ctx = access.isMember !== undefined ? ({ ...baseCtx, isMember: access.isMember } as typeof baseCtx) : baseCtx;
+  const baseCtx = {
+    mode: access.mode,
+    hasLinkToken: Boolean(access.linkToken),
+  } as unknown as Parameters<PolicyEvaluator['evaluate']>[0];
+  const ctx =
+    access.isMember !== undefined
+      ? ({ ...baseCtx, isMember: access.isMember } as typeof baseCtx)
+      : baseCtx;
   const allowed = deps.policy.evaluate(ctx);
   if (!allowed) throw new Error('Forbidden');
   const images = await deps.imageRepo.listByAlbum(tenantId, albumId);
-  return images.map((img) => ({
-    id: img.id,
-    tenantId: img.tenantId,
-    albumId: img.albumId,
-    filename: img.filename,
-    contentType: img.contentType,
-    sizeBytes: img.sizeBytes,
-    width: img.width,
-    height: img.height,
-    createdAt: img.createdAt,
-  } as const));
+  return images.map(
+    (img) =>
+      ({
+        id: img.id,
+        tenantId: img.tenantId,
+        albumId: img.albumId,
+        filename: img.filename,
+        contentType: img.contentType,
+        sizeBytes: img.sizeBytes,
+        width: img.width,
+        height: img.height,
+        createdAt: img.createdAt,
+        ...(img.originalKey ? { originalKey: img.originalKey } : {}),
+        ...(img.variants && img.variants.length > 0 ? { variants: img.variants } : {}),
+        ...(img.processedAt ? { processedAt: img.processedAt } : {}),
+      }) as const,
+  );
 }

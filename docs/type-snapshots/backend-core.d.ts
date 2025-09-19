@@ -102,7 +102,9 @@ declare module '@fmork/backend-core/src/controllers' {
     /** @deprecated Use requiredValues instead */
     requiredGroups?: string[];
   }
-
+  export interface HttpRouter {
+    asExpressRouter(): Router;
+  }
   export abstract class ControllerBase {
     protected readonly router: unknown;
     readonly baseUrl: string;
@@ -110,9 +112,9 @@ declare module '@fmork/backend-core/src/controllers' {
 
     constructor(baseUrl: string, logWriter: unknown);
 
-    abstract initialize(): unknown;
+    abstract initialize(): HttpRouter;
 
-    protected getRouter(): unknown;
+    protected getRouter(): HttpRouter;
 
     protected abstract addGet(path: string, handler: (req: unknown, res: unknown) => void): void;
     protected abstract addPut(path: string, handler: (req: unknown, res: unknown) => void): void;

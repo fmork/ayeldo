@@ -18,6 +18,11 @@ const accessQuerySchema = z.object({
 });
 
 const paramsAlbumSchema = z.object({ tenantId: z.string().min(1), albumId: z.string().min(1) });
+const paramsImageSchema = z.object({
+  tenantId: z.string().min(1),
+  albumId: z.string().min(1),
+  imageId: z.string().min(1),
+});
 
 export class MediaQueryService {
   private readonly albumRepo: IAlbumRepo;
@@ -49,5 +54,27 @@ export class MediaQueryService {
       { ...params, access },
       { imageRepo: this.imageRepo, policy: this.policy },
     );
+  }
+
+  public async getImageForSignedUrl(
+    paramsInput: unknown,
+  ): Promise<
+    | { id: string; originalKey?: string; variants?: readonly { label: string; key: string }[] }
+    | undefined
+  > {
+    const params = paramsImageSchema.parse(paramsInput);
+    const image = await this.imageRepo.getById(params.tenantId, params.imageId);
+    if (!image || image.albumId !== params.albumId) {
+      return undefined;
+    }
+    return {
+      id: image.id,
+      ...(image.originalKey ? { originalKey: image.originalKey } : {}),
+      ...(image.variants && image.variants.length > 0
+        ? {
+            variants: image.variants.map((v) => ({ label: v.label, key: v.key })),
+          }
+        : {}),
+    };
   }
 }

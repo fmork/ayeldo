@@ -34,10 +34,12 @@ function makeService(overrides?: Partial<AlbumUploadService>): AlbumUploadServic
   };
 
   return new AlbumUploadService({
-    albumRepo,
-    uploadProvider,
-    publisher,
-    logger: loggerStub,
+    ...{
+      albumRepo,
+      uploadProvider,
+      publisher,
+      logger: loggerStub,
+    },
     ...(overrides as unknown as AlbumUploadServiceProps),
   });
 }
@@ -75,7 +77,7 @@ describe('AlbumUploadService', () => {
     expect(result.imageId).toEqual(expect.any(String));
     expect(result.upload).toEqual(presigned);
     expect(uploadProvider.createPresignedPost).toHaveBeenCalledWith(
-      expect.objectContaining({ key: expect.stringContaining('tenants/t1/albums/a1/images/') }),
+      expect.objectContaining({ key: expect.stringContaining('uploads/t1/a1/') }),
     );
   });
 

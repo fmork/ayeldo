@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { z } from 'zod';
 import type { PinoLogWriter } from '@ayeldo/utils';
 import type { IEventPublisher, IUploadUrlProvider } from '@ayeldo/core';
@@ -24,9 +25,10 @@ export async function registerImage(
   input: RegisterImageInput,
   deps: { upload: IUploadUrlProvider; logger: PinoLogWriter },
 ): Promise<RegisterImageResult> {
-  const { tenantId, albumId, imageId, contentType } = registerImageSchema.parse(input);
-  const key = `tenants/${tenantId}/albums/${albumId}/images/${imageId}`;
-  deps.logger.info(`register image: ${imageId}`);
+  const { tenantId, albumId, imageId, filename, contentType } = registerImageSchema.parse(input);
+  const sanitizedFilename = sanitizeFilename(filename);
+  const key = `uploads/${tenantId}/${albumId}/${imageId}/original/${sanitizedFilename}`;
+  deps.logger.info(`register image: ${imageId} -> ${key}`);
   const presigned = await deps.upload.createPresignedPost({ key, contentType });
   return presigned;
 }
@@ -57,3 +59,19 @@ export async function completeUpload(
   return { ok: true };
 }
 
+function sanitizeFilename(filename: string): string {
+  const stripped = filename.split('\\').pop()?.split('/').pop() ?? 'upload';
+  const trimmed = stripped.trim();
+  const ext = path.extname(trimmed);
+  const base = ext ? trimmed.slice(0, -ext.length) : trimmed;
+  const safeBase = base
+    .normalize('NFKD')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || 'file';
+  const extClean = ext
+    ? '.' + ext.slice(1).replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+    : ''; // drop weird characters
+  const finalExt = extClean.length > 1 ? extClean : '.bin';
+  return `${safeBase}${finalExt}`;
+}

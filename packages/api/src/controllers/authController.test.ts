@@ -74,6 +74,10 @@ describe('AuthController', () => {
     debug: jest.fn(),
   });
 
+  const mkJsonUtil = () => ({
+    getParsedRequestBody: jest.fn(),
+  } as any);
+
   const mkSiteConfig = (): SiteConfiguration => {
     return new SiteConfiguration({
       webOrigin: 'http://localhost:3001',
@@ -125,6 +129,7 @@ describe('AuthController', () => {
       authFlow,
       siteConfig,
       onboardingService,
+      jsonUtil: mkJsonUtil(),
     });
 
     expect(controller).toBeInstanceOf(AuthController);
@@ -140,6 +145,7 @@ describe('AuthController', () => {
       logWriter: logger,
       authFlow,
       siteConfig,
+      jsonUtil: mkJsonUtil(),
     });
 
     expect(controller).toBeInstanceOf(AuthController);
@@ -157,6 +163,7 @@ describe('AuthController', () => {
       authFlow,
       siteConfig,
       onboardingService,
+      jsonUtil: mkJsonUtil(),
     });
 
     const router = controller.initialize();

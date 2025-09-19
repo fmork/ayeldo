@@ -57,6 +57,8 @@ const events = new EventsStack(app, `AyeldoEventsStack-${envName}`, env);
 Tags.of(events).add('Environment', envName);
 Tags.of(events).add('Service', 'ayeldo');
 
+core.configureMediaProcessing(events.bus);
+
 const api = new ApiStack(app, `AyeldoApiStack-${envName}`, {
   ...(env as { env?: { account?: string; region?: string } }),
   table: core.table,

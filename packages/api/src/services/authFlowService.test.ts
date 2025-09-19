@@ -57,7 +57,7 @@ describe('AuthFlowService', () => {
 
   function mkOidc(urlTemplate?: (s: CreatedState) => string) {
     return {
-      buildAuthorizeUrl: ({ state }) => {
+      buildAuthorizeUrl: ({ state }: { state: string }) => {
         return urlTemplate
           ? urlTemplate({ state } as any)
           : `https://issuer/authorize?state=${state}`;

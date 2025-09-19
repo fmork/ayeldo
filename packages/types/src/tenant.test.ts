@@ -1,4 +1,3 @@
-import { describe, expect, test } from '@jest/globals';
 import { tenantCreateSchema, tenantSchema } from './schemas';
 
 describe('Tenant schemas', () => {

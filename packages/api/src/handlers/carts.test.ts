@@ -1,5 +1,6 @@
 import { priceCart, addCartItem, removeCartItem } from './carts';
 import { TieredPricingEngine } from '@ayeldo/core';
+import { CartState } from '@ayeldo/types';
 
 const engine = new TieredPricingEngine();
 
@@ -10,7 +11,7 @@ describe('priceCart handler', () => {
         getById: async (_tenant: string, _id: string) => ({
           id: 'c1',
           tenantId: 't1',
-          state: 'active',
+          state: CartState.Active,
           priceListId: 'pl1',
           items: [
             { imageId: 'img1', sku: 'SKU1', quantity: 2 },
@@ -18,6 +19,7 @@ describe('priceCart handler', () => {
           ],
           createdAt: new Date().toISOString(),
         }),
+        put: jest.fn(),
       },
       priceListRepo: {
         getById: async (_tenant: string, _id: string) => ({
@@ -29,6 +31,7 @@ describe('priceCart handler', () => {
           ],
           createdAt: new Date().toISOString(),
         }),
+        put: jest.fn(),
       },
       engine,
     } as const;

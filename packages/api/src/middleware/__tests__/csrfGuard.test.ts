@@ -1,5 +1,6 @@
-import type { HttpResponse } from '@fmork/backend-core';
+import type { HttpResponse } from '@fmork/backend-core/dist/controllers/http';
 import type { NextFunction, Request, Response } from 'express';
+import type { ControllerRequest } from '../csrfGuard';
 
 // Mock the logWriter import to prevent ApiInit from running
 jest.mock('../../init/ApiInit', () => ({
@@ -92,7 +93,7 @@ describe('requireCsrfWrapper', () => {
 
 describe('requireCsrfForController', () => {
   test('invokes controller handler when tokens match', async () => {
-    const req = { headers: { 'x-csrf-token': 'x' }, cookies: { csrf: 'x' } } as unknown;
+    const req = { headers: { 'x-csrf-token': 'x' }, cookies: { csrf: 'x' } } as ControllerRequest;
     const json = jest.fn();
     const status = jest.fn().mockReturnValue({ json });
     const res = { status, json } as unknown as HttpResponse;
@@ -106,7 +107,7 @@ describe('requireCsrfForController', () => {
   });
 
   test.skip('returns 403 when tokens do not match', async () => {
-    const req = { headers: {}, cookies: {} } as unknown;
+    const req = { headers: {}, cookies: {} } as ControllerRequest;
     const json = jest.fn();
     const status = jest.fn().mockReturnValue({ json });
     const res = { status, json } as unknown as HttpResponse;
