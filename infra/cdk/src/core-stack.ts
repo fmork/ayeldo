@@ -40,6 +40,7 @@ export class CoreStack extends Stack {
   public readonly webDistribution: Distribution;
   public readonly mediaBucket: Bucket;
   public readonly mediaDistribution: Distribution;
+  public readonly sharpLayer: lambda.LayerVersion;
   public readonly mediaProcessorFunction?: lambda.Function;
 
   constructor(scope: Construct, id: string, props?: CoreStackProps) {
@@ -135,6 +136,35 @@ export class CoreStack extends Stack {
       ],
     });
 
+    // Create Sharp layer for image processing
+    this.sharpLayer = new lambda.LayerVersion(this, 'SharpLayer', {
+      code: lambda.Code.fromAsset('layers/sharp-layer', {
+        bundling: {
+          image: lambda.Runtime.NODEJS_20_X.bundlingImage,
+          command: [
+            'bash',
+            '-c',
+            [
+              'mkdir -p /asset-output/nodejs',
+              'cd /asset-output/nodejs',
+              'npm init -y',
+              // Install Sharp with specific platform and architecture for Lambda
+              'npm install sharp@0.33.5 --platform=linux --arch=x64 --libc=glibc',
+              // Clean up package files to reduce layer size
+              'rm package.json package-lock.json',
+              // Remove unnecessary files to optimize layer size
+              'find . -name "*.md" -delete',
+              'find . -name "*.txt" -delete',
+              'find . -name "test*" -type d -exec rm -rf {} + 2>/dev/null || true',
+            ].join(' && '),
+          ],
+          user: 'root',
+        },
+      }),
+      compatibleRuntimes: [lambda.Runtime.NODEJS_20_X],
+      description: 'Sharp image processing library compiled for Lambda Linux environment',
+    });
+
     const mediaProcessorAssets = path.resolve(
       __dirnameLocal,
       '../assets/lambdas/services-mediaProcessor',
@@ -147,6 +177,7 @@ export class CoreStack extends Stack {
         memorySize: 1024,
         timeout: Duration.minutes(2),
         logRetention: 30,
+        layers: [this.sharpLayer],
         environment: {
           NODE_OPTIONS: '--enable-source-maps',
           MEDIA_BUCKET: this.mediaBucket.bucketName,

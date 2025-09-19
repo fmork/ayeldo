@@ -1,0 +1,2 @@
+# This directory is used for CDK bundling during deployment
+# The actual layer contents are generated dynamically by CDK

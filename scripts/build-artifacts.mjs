@@ -77,7 +77,11 @@ async function writeText(p, content) {
 /**
  * @returns {Promise<void>}
  */
-const nativeDeps = ['sharp'];
+// Note: Sharp is now provided by Lambda layer, so removed from native deps
+const nativeDeps = [];
+
+// External dependencies that should not be bundled (provided by layers or AWS runtime)
+const externalDeps = ['sharp']; // Sharp provided by Lambda layer
 
 async function copyNativeDeps(pkg, outDir) {
   try {
@@ -155,7 +159,7 @@ async function main() {
       outfile,
       metafile: true,
       logLevel: 'info',
-      external: nativeDeps,
+      external: [...nativeDeps, ...externalDeps],
       // Use root tsconfig for path aliasing to workspace sources
       tsconfig: tsconfigPath,
       legalComments: 'none',
