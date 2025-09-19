@@ -2,6 +2,7 @@ import type { IAlbumRepo, IImageRepo } from '@ayeldo/core';
 import { PolicyEvaluator, PolicyMode } from '@ayeldo/core';
 import { z } from 'zod';
 import { getAlbum, listAlbumImages } from '../handlers/media';
+import { enhanceImageWithCdnUrls, type ImageWithCdnDto } from '../types/enhancedImageDto';
 
 export interface MediaQueryServiceProps {
   readonly albumRepo: IAlbumRepo;
@@ -54,6 +55,15 @@ export class MediaQueryService {
       { ...params, access },
       { imageRepo: this.imageRepo, policy: this.policy },
     );
+  }
+
+  public async listAlbumImagesWithCdnUrls(
+    paramsInput: unknown,
+    queryInput: unknown,
+    cdnHost: string,
+  ): Promise<readonly ImageWithCdnDto[]> {
+    const images = await this.listAlbumImages(paramsInput, queryInput);
+    return images.map((image) => enhanceImageWithCdnUrls(image, cdnHost));
   }
 
   public async getImageForSignedUrl(

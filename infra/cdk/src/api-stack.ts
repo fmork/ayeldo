@@ -12,13 +12,13 @@ import {
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import type { Table } from 'aws-cdk-lib/aws-dynamodb';
 import type { EventBus } from 'aws-cdk-lib/aws-events';
-import type { Bucket } from 'aws-cdk-lib/aws-s3';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import type { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { ARecord, AaaaRecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { ApiGatewayDomain } from 'aws-cdk-lib/aws-route53-targets';
+import type { Bucket } from 'aws-cdk-lib/aws-s3';
 import type { Construct } from 'constructs';
 import path from 'path';
 import type { DomainConfig } from './domain';
@@ -28,6 +28,7 @@ export interface ApiStackProps extends StackProps {
   readonly eventBus: EventBus;
   readonly mediaBucket: Bucket;
   readonly domainConfig?: DomainConfig;
+  readonly cdnHost?: string;
 }
 
 export class ApiStack extends Stack {
@@ -105,6 +106,7 @@ export class ApiStack extends Stack {
         TABLE_NAME: props.table.tableName,
         EVENTS_BUS_NAME: props.eventBus.eventBusName,
         UPLOAD_BUCKET: props.mediaBucket.bucketName,
+        ...(props.cdnHost && { CDN_HOST: props.cdnHost }),
         ...lambdaEnv,
         // Allow explicit overrides for provider-specific endpoints and redirect URI
         ...(maybe('FMORK_SITE_OIDC_AUTH_URL') && {

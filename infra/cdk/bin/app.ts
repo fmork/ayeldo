@@ -64,7 +64,7 @@ const api = new ApiStack(app, `AyeldoApiStack-${envName}`, {
   table: core.table,
   eventBus: events.bus,
   mediaBucket: core.mediaBucket,
-  ...(domainConfig ? { domainConfig } : {}),
+  ...(domainConfig ? { domainConfig, cdnHost: domainConfig.cdnHost } : {}),
 });
 Tags.of(api).add('Environment', envName);
 Tags.of(api).add('Service', 'ayeldo');
