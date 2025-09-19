@@ -5,13 +5,12 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
+// ...existing imports
 import Typography from '@mui/material/Typography';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
-import { useSession } from '../../contexts/SessionContext';
+// ...existing imports
 
 const drawerWidth = 240;
 
@@ -21,8 +20,8 @@ interface MobileDrawerProps {
 }
 
 const MobileDrawer: FC<MobileDrawerProps> = ({ isOpen, onClose }) => {
-  const { t, i18n } = useTranslation();
-  const session = useSession();
+  const { t } = useTranslation();
+  // session not needed here anymore; auth handled in UserPanel
 
   const navItems = [
     { label: t('nav.home'), to: '/' },
@@ -44,31 +43,8 @@ const MobileDrawer: FC<MobileDrawerProps> = ({ isOpen, onClose }) => {
             </ListItemButton>
           </ListItem>
         ))}
-        <Divider sx={{ my: 1 }} />
-        {!session?.loggedIn ? (
-          <ListItem disablePadding>
-            <ListItemButton component={RouterLink} to="/auth/signin">
-              <ListItemText primary={t('app.signin')} />
-            </ListItemButton>
-          </ListItem>
-        ) : (
-          <ListItem disablePadding>
-            <ListItemButton component={RouterLink} to="/auth/signout">
-              <ListItemText primary={t('app.signout')} />
-            </ListItemButton>
-          </ListItem>
-        )}
-        <ListItem>
-          <Select
-            size="small"
-            value={i18n.resolvedLanguage || 'en'}
-            onChange={(e) => void i18n.changeLanguage(String(e.target.value))}
-            variant="outlined"
-          >
-            <MenuItem value="en">English</MenuItem>
-            <MenuItem value="sv">Svenska</MenuItem>
-          </Select>
-        </ListItem>
+        {/* Auth actions moved to app bar user panel */}
+        {/* Language selection moved into UserPanel menu */}
       </List>
     </Box>
   );

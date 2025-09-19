@@ -3,21 +3,21 @@ import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
+// ...existing imports
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 import { useSession } from '../../contexts/SessionContext';
+import UserPanel from './UserPanel';
 
 interface AppBarComponentProps {
   readonly onMenuToggle: () => void;
 }
 
 const AppBarComponent: FC<AppBarComponentProps> = ({ onMenuToggle }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const session = useSession();
 
   const navItems = [
@@ -46,30 +46,19 @@ const AppBarComponent: FC<AppBarComponentProps> = ({ onMenuToggle }) => {
         >
           {t('app.title')}
         </Typography>
-        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+
+        {/* Navigation buttons (visible on sm and up) */}
+        <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1, flexWrap: 'nowrap' }}>
           {navItems.map((item) => (
             <Button key={item.to} component={RouterLink} to={item.to} sx={{ color: '#fff' }}>
               {item.label}
             </Button>
           ))}
-          {(!session?.loggedIn) ? (
-            <Button component={RouterLink} to="/auth/signin" sx={{ color: '#fff' }}>
-              {t('app.signin')}
-            </Button>
-          ) : (
-            <Button component={RouterLink} to="/auth/signout" sx={{ color: '#fff' }}>
-              {t('app.signout')}
-            </Button>
-          )}
-          <Select
-            size="small"
-            value={i18n.resolvedLanguage || 'en'}
-            onChange={(e) => void i18n.changeLanguage(String(e.target.value))}
-            sx={{ ml: 1, color: 'inherit', borderColor: 'inherit' }}
-          >
-            <MenuItem value="en">EN</MenuItem>
-            <MenuItem value="sv">SV</MenuItem>
-          </Select>
+        </Box>
+
+        {/* Controls: language selector and user panel - visible on all sizes and aligned to the right */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <UserPanel />
         </Box>
       </Toolbar>
     </AppBar>
