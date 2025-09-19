@@ -14,7 +14,7 @@ export class AuthMiddleware {
     res: HttpResponse,
     next: () => void,
   ): Promise<void> => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers['authorization']?.split(' ')[1];
 
     if (!token) {
       res.status(401).json({ message: 'Authorization token is missing' });
@@ -23,7 +23,7 @@ export class AuthMiddleware {
         const verified = await this.props.jwtAuthorization.getVerifiedToken(token);
 
         // Optionally attach user info to request object
-        (req as unknown as Record<string, unknown>).user = verified as UserJwtPayload;
+        (req as unknown as Record<string, unknown>)['user'] = verified as UserJwtPayload;
         next();
       } catch (error) {
         const _error = error as Error;

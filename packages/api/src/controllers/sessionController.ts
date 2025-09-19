@@ -1,6 +1,5 @@
-import type { ILogWriter } from '@ayeldo/backend-core';
+import type { HttpResponse, HttpRouter, ILogWriter } from '@ayeldo/backend-core';
 import { PublicController } from '@ayeldo/backend-core';
-import type { HttpResponse, HttpRouter } from '@ayeldo/backend-core/dist/controllers/http';
 import { COOKIE_NAMES } from '../constants';
 import type { AuthFlowService } from '../services/authFlowService';
 
