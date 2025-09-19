@@ -5,8 +5,8 @@ import type {
   HttpRouter,
   ILogWriter,
   JsonUtil,
-} from '@fmork/backend-core';
-import { ClaimAuthorizedController } from '@fmork/backend-core';
+} from '@ayeldo/backend-core';
+import { ClaimAuthorizedController } from '@ayeldo/backend-core';
 import { requireCsrfForController } from '../middleware/csrfGuard';
 import type { SessionService } from '../services/sessionService';
 import type { TenantService } from '../services/tenantService';

@@ -1,6 +1,6 @@
-import { priceCart, addCartItem, removeCartItem } from './carts';
 import { TieredPricingEngine } from '@ayeldo/core';
 import { CartState } from '@ayeldo/types';
+import { addCartItem, priceCart, removeCartItem } from './carts';
 
 const engine = new TieredPricingEngine();
 
@@ -47,7 +47,9 @@ describe('priceCart handler', () => {
       priceListRepo: { getById: async () => undefined },
       engine,
     } as any;
-    await expect(priceCart({ tenantId: 't1', cartId: 'nope' }, deps)).rejects.toThrow('Cart not found');
+    await expect(priceCart({ tenantId: 't1', cartId: 'nope' }, deps)).rejects.toThrow(
+      'Cart not found',
+    );
   });
 
   it('throws when price list is missing', async () => {
@@ -65,7 +67,9 @@ describe('priceCart handler', () => {
       priceListRepo: { getById: async () => undefined },
       engine,
     } as any;
-    await expect(priceCart({ tenantId: 't1', cartId: 'c1' }, deps)).rejects.toThrow('Price list not found');
+    await expect(priceCart({ tenantId: 't1', cartId: 'c1' }, deps)).rejects.toThrow(
+      'Price list not found',
+    );
   });
 });
 
@@ -89,7 +93,13 @@ describe('cart update events', () => {
       publisher: { publish: jest.fn(async () => {}) },
     } as any;
 
-    const input = { tenantId: 't1', cartId: 'c1', imageId: 'img1', sku: 'SKU1', quantity: 1 } as const;
+    const input = {
+      tenantId: 't1',
+      cartId: 'c1',
+      imageId: 'img1',
+      sku: 'SKU1',
+      quantity: 1,
+    } as const;
     const result = await addCartItem(input, deps);
     expect(result.items).toHaveLength(1);
     expect(deps.publisher.publish).toHaveBeenCalledTimes(1);
@@ -103,7 +113,10 @@ describe('cart update events', () => {
     const put = jest.fn(async () => {});
     const deps = {
       cartRepo: {
-        getById: async () => ({ ...baseCart, items: [{ imageId: 'img1', sku: 'SKU1', quantity: 1 }] }),
+        getById: async () => ({
+          ...baseCart,
+          items: [{ imageId: 'img1', sku: 'SKU1', quantity: 1 }],
+        }),
         put,
       },
       publisher: { publish: jest.fn(async () => {}) },

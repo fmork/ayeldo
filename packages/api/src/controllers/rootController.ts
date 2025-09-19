@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
-import { PublicController } from '@fmork/backend-core';
+import type { HttpRouter, ILogWriter } from '@ayeldo/backend-core';
+import { PublicController } from '@ayeldo/backend-core';
 
 export interface RootControllerProps {
   readonly baseUrl: string;

@@ -1,6 +1,6 @@
 import { TenantAccessService } from '@ayeldo/core';
-import TenantRepoDdb from '@ayeldo/infra-aws/src/tenantRepoDdb';
 import TenantMembershipRepoDdb from '@ayeldo/infra-aws/src/repos/tenantMembershipRepoDdb';
+import TenantRepoDdb from '@ayeldo/infra-aws/src/tenantRepoDdb';
 import UserRepoDdb from '@ayeldo/infra-aws/src/userRepoDdb';
 import { makeUuid } from '@ayeldo/utils';
 import OnboardingService from '../services/onboardingService';

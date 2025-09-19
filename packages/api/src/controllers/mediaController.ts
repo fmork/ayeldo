@@ -1,6 +1,6 @@
+import type { HttpRouter, ILogWriter } from '@ayeldo/backend-core';
+import { PublicController } from '@ayeldo/backend-core';
 import type { IAlbumRepo, IDownloadUrlProvider, IImageRepo } from '@ayeldo/core';
-import type { HttpRouter, ILogWriter } from '@fmork/backend-core';
-import { PublicController } from '@fmork/backend-core';
 import { z } from 'zod';
 import { MediaQueryService } from '../services/mediaQueryService';
 

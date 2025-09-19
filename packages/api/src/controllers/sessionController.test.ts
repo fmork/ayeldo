@@ -1,4 +1,4 @@
-import type { ILogWriter } from '@fmork/backend-core';
+import type { ILogWriter } from '@ayeldo/backend-core';
 import type { AuthFlowService } from '../services/authFlowService';
 import { SessionController } from './sessionController';
 

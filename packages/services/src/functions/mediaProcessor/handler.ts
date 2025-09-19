@@ -1,10 +1,10 @@
 import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { DeleteObjectCommand, GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
+import type { ILogWriter } from '@ayeldo/backend-core';
 import { Image } from '@ayeldo/core';
 import { DdbDocumentClientAdapter, EventBridgePublisher, ImageRepoDdb } from '@ayeldo/infra-aws';
 import type { ImageProcessedEvent, ImageVariantDto } from '@ayeldo/types';
-import type { ILogWriter } from '@fmork/backend-core';
 import type { S3Event } from 'aws-lambda';
 import { randomUUID } from 'node:crypto';
 import { createReadStream, createWriteStream } from 'node:fs';

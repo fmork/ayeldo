@@ -1,5 +1,5 @@
+import type { ILogWriter } from '@ayeldo/backend-core';
 import { SiteConfiguration } from '@ayeldo/core';
-import type { ILogWriter } from '@fmork/backend-core';
 import type { AuthFlowService } from '../services/authFlowService';
 import type { OnboardingService } from '../services/onboardingService';
 import { AuthController } from './authController';
@@ -74,9 +74,10 @@ describe('AuthController', () => {
     debug: jest.fn(),
   });
 
-  const mkJsonUtil = () => ({
-    getParsedRequestBody: jest.fn(),
-  } as any);
+  const mkJsonUtil = () =>
+    ({
+      getParsedRequestBody: jest.fn(),
+    }) as any;
 
   const mkSiteConfig = (): SiteConfiguration => {
     return new SiteConfiguration({

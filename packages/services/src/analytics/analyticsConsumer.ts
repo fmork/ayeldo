@@ -1,6 +1,6 @@
+import type { ILogWriter } from '@ayeldo/backend-core';
 import type { IStatsRepo } from '@ayeldo/core';
 import type { EventEnvelope } from '@ayeldo/types';
-import type { ILogWriter } from '@fmork/backend-core';
 
 export interface AnalyticsConsumerProps {
   readonly statsRepo: IStatsRepo;

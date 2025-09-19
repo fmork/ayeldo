@@ -1,4 +1,5 @@
 import type { EventBridgeClient } from '@aws-sdk/client-eventbridge';
+import { AxiosHttpClient } from '@ayeldo/backend-core';
 import {
   AlbumRepoDdb,
   CartRepoDdb,
@@ -9,7 +10,6 @@ import {
   PriceListRepoDdb,
 } from '@ayeldo/infra-aws';
 import { getEventBridgeClient } from '@ayeldo/utils';
-import { AxiosHttpClient } from '@fmork/backend-core';
 import { StripePaymentProviderFake } from '../payments/stripePaymentProviderFake';
 import { SignedUrlProviderFake } from '../storage/signedUrlProviderFake';
 import { logWriter } from './config';

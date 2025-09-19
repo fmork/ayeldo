@@ -1,4 +1,4 @@
-import type { HttpResponse } from '@fmork/backend-core/dist/controllers/http';
+import type { HttpResponse } from '@ayeldo/backend-core/dist/controllers/http';
 import type { NextFunction, Request, Response } from 'express';
 import type { ControllerRequest } from '../csrfGuard';
 

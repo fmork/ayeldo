@@ -1,7 +1,7 @@
-import { RequestLogMiddleware, Server, type ControllerBase } from '@fmork/backend-core';
+import { RequestLogMiddleware, Server, type ControllerBase } from '@ayeldo/backend-core';
 import {
-  authController,
   albumsController,
+  authController,
   cartController,
   rootController,
   sessionController,

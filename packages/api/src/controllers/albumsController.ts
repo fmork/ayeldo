@@ -1,13 +1,13 @@
-import type { IAlbumRepo, IEventPublisher, IUploadUrlProvider } from '@ayeldo/core';
 import type {
   AuthorizationRequirement,
   HttpMiddleware,
   HttpRouter,
   ILogWriter,
   JsonUtil,
-} from '@fmork/backend-core';
+} from '@ayeldo/backend-core';
+import { ClaimAuthorizedController } from '@ayeldo/backend-core';
+import type { IAlbumRepo, IEventPublisher, IUploadUrlProvider } from '@ayeldo/core';
 import type { PinoLogWriter } from '@ayeldo/utils';
-import { ClaimAuthorizedController } from '@fmork/backend-core';
 import { z } from 'zod';
 import { requireCsrfForController } from '../middleware/csrfGuard';
 import { AlbumManagementService } from '../services/albumManagementService';
@@ -44,23 +44,20 @@ export class AlbumsController extends ClaimAuthorizedController {
   }
 
   public initialize(): HttpRouter {
-    this.addGet(
-      '/creator/tenants/:tenantId/albums',
-      async (req, res) => {
-        const params = z
-          .object({ tenantId: z.string().min(1) })
-          .parse((req as { params: unknown }).params);
-        const query = z
-          .object({ parentAlbumId: z.string().min(1).optional() })
-          .parse(((req as { query?: unknown }).query ?? {}) as Record<string, unknown>);
+    this.addGet('/creator/tenants/:tenantId/albums', async (req, res) => {
+      const params = z
+        .object({ tenantId: z.string().min(1) })
+        .parse((req as { params: unknown }).params);
+      const query = z
+        .object({ parentAlbumId: z.string().min(1).optional() })
+        .parse(((req as { query?: unknown }).query ?? {}) as Record<string, unknown>);
 
-        await this.performRequest(
-          () => this.service.listAlbums({ tenantId: params.tenantId, ...query }),
-          res as unknown as Parameters<typeof this.performRequest>[1],
-          () => 200,
-        );
-      },
-    );
+      await this.performRequest(
+        () => this.service.listAlbums({ tenantId: params.tenantId, ...query }),
+        res as unknown as Parameters<typeof this.performRequest>[1],
+        () => 200,
+      );
+    });
 
     this.addPost(
       '/creator/tenants/:tenantId/albums',
@@ -107,7 +104,11 @@ export class AlbumsController extends ClaimAuthorizedController {
       '/creator/tenants/:tenantId/albums/:albumId/uploads/:imageId/complete',
       requireCsrfForController(async (req, res) => {
         const params = z
-          .object({ tenantId: z.string().min(1), albumId: z.string().min(1), imageId: z.string().min(1) })
+          .object({
+            tenantId: z.string().min(1),
+            albumId: z.string().min(1),
+            imageId: z.string().min(1),
+          })
           .parse((req as { params: unknown }).params);
 
         await this.performRequest(

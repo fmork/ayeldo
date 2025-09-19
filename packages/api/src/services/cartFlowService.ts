@@ -1,4 +1,4 @@
-import type { AxiosHttpClient, ILogWriter } from '@fmork/backend-core';
+import type { AxiosHttpClient, ILogWriter } from '@ayeldo/backend-core';
 import { z } from 'zod';
 import type { SessionService } from './sessionService';
 

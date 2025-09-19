@@ -1,6 +1,6 @@
+import type { ILogWriter } from '@ayeldo/backend-core';
 import type { ISessionStore, IStateStore } from '@ayeldo/core';
 import type { SessionRecord } from '@ayeldo/types';
-import type { ILogWriter } from '@fmork/backend-core';
 import * as crypto from 'node:crypto';
 import type { TokenBundle } from '../types/session';
 import { base64url, decryptTokens, encryptTokens, randomId, signHs256Jwt } from './crypto';
@@ -240,7 +240,9 @@ export class SessionService {
   }
 
   private combineNames(givenName?: string, familyName?: string): string | undefined {
-    const parts = [givenName, familyName].filter((part) => typeof part === 'string' && part.length > 0) as string[];
+    const parts = [givenName, familyName].filter(
+      (part) => typeof part === 'string' && part.length > 0,
+    ) as string[];
     if (parts.length === 0) {
       return undefined;
     }

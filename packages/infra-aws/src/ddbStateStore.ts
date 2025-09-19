@@ -1,6 +1,6 @@
+import type { ILogWriter } from '@ayeldo/backend-core';
 import type { IStateStore } from '@ayeldo/core';
 import type { StateRecord } from '@ayeldo/types';
-import type { ILogWriter } from '@fmork/backend-core';
 import type { DdbClient } from './ddbClient';
 import { skState } from './keys';
 

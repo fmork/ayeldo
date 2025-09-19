@@ -1,5 +1,5 @@
-import { createCheckoutSession, handleStripeWebhook } from './payments';
 import { createHmac } from 'crypto';
+import { createCheckoutSession, handleStripeWebhook } from './payments';
 
 describe('createCheckoutSession', () => {
   test('creates session and updates order state', async () => {
@@ -8,16 +8,27 @@ describe('createCheckoutSession', () => {
       tenantId: 't1',
       cartId: 'c1',
       state: 'created',
-      lines: [{ imageId: 'img1', sku: 'SKU1', quantity: 1, unitPriceCents: 100, lineTotalCents: 100 }],
+      lines: [
+        { imageId: 'img1', sku: 'SKU1', quantity: 1, unitPriceCents: 100, lineTotalCents: 100 },
+      ],
       totalCents: 100,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     } as const;
     const put = jest.fn(async () => {});
-    const payments = { createCheckoutSession: jest.fn(async () => ({ id: 'sess_123', url: 'https://checkout/123', provider: 'stripe' as const })) };
+    const payments = {
+      createCheckoutSession: jest.fn(async () => ({
+        id: 'sess_123',
+        url: 'https://checkout/123',
+        provider: 'stripe' as const,
+      })),
+    };
     const deps = { orderRepo: { getById: async () => order, put }, payments } as any;
 
-    const result = await createCheckoutSession({ tenantId: 't1', orderId: 'o1', successUrl: 'https://ok', cancelUrl: 'https://cancel' }, deps);
+    const result = await createCheckoutSession(
+      { tenantId: 't1', orderId: 'o1', successUrl: 'https://ok', cancelUrl: 'https://cancel' },
+      deps,
+    );
 
     expect(result.session.id).toBeDefined();
     expect(payments.createCheckoutSession).toHaveBeenCalledTimes(1);
@@ -27,9 +38,15 @@ describe('createCheckoutSession', () => {
   });
 
   test('throws if order missing', async () => {
-    const deps = { orderRepo: { getById: async () => undefined, put: jest.fn() }, payments: { createCheckoutSession: jest.fn() } } as any;
+    const deps = {
+      orderRepo: { getById: async () => undefined, put: jest.fn() },
+      payments: { createCheckoutSession: jest.fn() },
+    } as any;
     await expect(
-      createCheckoutSession({ tenantId: 't1', orderId: 'nope', successUrl: 'https://ok', cancelUrl: 'https://cancel' }, deps),
+      createCheckoutSession(
+        { tenantId: 't1', orderId: 'nope', successUrl: 'https://ok', cancelUrl: 'https://cancel' },
+        deps,
+      ),
     ).rejects.toThrow('Order not found');
   });
 });
@@ -41,19 +58,30 @@ describe('handleStripeWebhook', () => {
       tenantId: 't1',
       cartId: 'c1',
       state: 'pending_payment',
-      lines: [{ imageId: 'img1', sku: 'SKU1', quantity: 1, unitPriceCents: 100, lineTotalCents: 100 }],
+      lines: [
+        { imageId: 'img1', sku: 'SKU1', quantity: 1, unitPriceCents: 100, lineTotalCents: 100 },
+      ],
       totalCents: 100,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     } as const;
     const put = jest.fn(async () => {});
     const published: any[] = [];
-    const publisher = { publish: jest.fn(async (evt: any) => { published.push(evt); }) };
+    const publisher = {
+      publish: jest.fn(async (evt: any) => {
+        published.push(evt);
+      }),
+    };
     const deps = { orderRepo: { getById: async () => order, put }, publisher } as any;
     const payload = { tenantId: 't1', orderId: 'o1', eventType: 'payment_succeeded' } as const;
     const secret = 'shh';
     const sig = createHmac('sha256', secret).update(JSON.stringify(payload)).digest('hex');
-    await handleStripeWebhook(payload, { orderRepo: deps.orderRepo, publisher, secret, signatureHeader: `sha256=${sig}` });
+    await handleStripeWebhook(payload, {
+      orderRepo: deps.orderRepo,
+      publisher,
+      secret,
+      signatureHeader: `sha256=${sig}`,
+    });
     expect(put).toHaveBeenCalledTimes(1);
     const saved = (put as jest.Mock).mock.calls[0][0];
     expect(saved.state).toBe('paid');
@@ -68,19 +96,30 @@ describe('handleStripeWebhook', () => {
       tenantId: 't2',
       cartId: 'c2',
       state: 'pending_payment',
-      lines: [{ imageId: 'img1', sku: 'SKU1', quantity: 1, unitPriceCents: 100, lineTotalCents: 100 }],
+      lines: [
+        { imageId: 'img1', sku: 'SKU1', quantity: 1, unitPriceCents: 100, lineTotalCents: 100 },
+      ],
       totalCents: 100,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     } as const;
     const put = jest.fn(async () => {});
     const published: any[] = [];
-    const publisher = { publish: jest.fn(async (evt: any) => { published.push(evt); }) };
+    const publisher = {
+      publish: jest.fn(async (evt: any) => {
+        published.push(evt);
+      }),
+    };
     const deps = { orderRepo: { getById: async () => order, put }, publisher } as any;
     const payload = { tenantId: 't2', orderId: 'o2', eventType: 'payment_failed' } as const;
     const secret = 'shh2';
     const sig = createHmac('sha256', secret).update(JSON.stringify(payload)).digest('hex');
-    await handleStripeWebhook(payload, { orderRepo: deps.orderRepo, publisher, secret, signatureHeader: `sha256=${sig}` });
+    await handleStripeWebhook(payload, {
+      orderRepo: deps.orderRepo,
+      publisher,
+      secret,
+      signatureHeader: `sha256=${sig}`,
+    });
     expect(put).toHaveBeenCalledTimes(1);
     const saved = (put as jest.Mock).mock.calls[0][0];
     expect(saved.state).toBe('failed');
@@ -95,7 +134,9 @@ describe('handleStripeWebhook', () => {
       tenantId: 't3',
       cartId: 'c3',
       state: 'pending_payment',
-      lines: [{ imageId: 'img1', sku: 'SKU1', quantity: 1, unitPriceCents: 100, lineTotalCents: 100 }],
+      lines: [
+        { imageId: 'img1', sku: 'SKU1', quantity: 1, unitPriceCents: 100, lineTotalCents: 100 },
+      ],
       totalCents: 100,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -103,7 +144,12 @@ describe('handleStripeWebhook', () => {
     const deps = { orderRepo: { getById: async () => order, put: jest.fn(async () => {}) } } as any;
     const payload = { tenantId: 't3', orderId: 'o3', eventType: 'payment_succeeded' } as const;
     await expect(
-      handleStripeWebhook(payload, { orderRepo: deps.orderRepo, publisher: { publish: jest.fn() } as any, secret: 'right', signatureHeader: 'sha256=wrong' }),
+      handleStripeWebhook(payload, {
+        orderRepo: deps.orderRepo,
+        publisher: { publish: jest.fn() } as any,
+        secret: 'right',
+        signatureHeader: 'sha256=wrong',
+      }),
     ).rejects.toThrow('Invalid signature');
   });
 });

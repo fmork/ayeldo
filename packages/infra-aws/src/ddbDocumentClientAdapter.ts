@@ -1,4 +1,4 @@
-import type { ILogWriter } from '@fmork/backend-core';
+import type { ILogWriter } from '@ayeldo/backend-core';
 import type {
   DdbClient,
   DeleteParams,

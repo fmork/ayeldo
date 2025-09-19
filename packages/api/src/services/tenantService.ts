@@ -1,8 +1,8 @@
+import type { ILogWriter } from '@ayeldo/backend-core';
 import type { IEventPublisher, ITenantRepo } from '@ayeldo/core';
 import type { TenantCreateDto, TenantDto } from '@ayeldo/types';
 import { makeEventEnvelopeSchema, tenantCreateSchema } from '@ayeldo/types';
 import { makeUuid } from '@ayeldo/utils';
-import type { ILogWriter } from '@fmork/backend-core';
 import { z } from 'zod';
 
 interface JsonUtil {

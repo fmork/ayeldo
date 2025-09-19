@@ -3,7 +3,7 @@ import type {
   ClaimBasedAuthorizer,
   HttpMiddleware,
   ILogWriter,
-} from '@fmork/backend-core';
+} from '@ayeldo/backend-core';
 import { COOKIE_NAMES } from '../constants';
 import type { SessionService } from '../services/sessionService';
 

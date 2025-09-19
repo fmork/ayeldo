@@ -1,6 +1,5 @@
-import { Album } from '@ayeldo/core';
-import { NotFoundError } from '@ayeldo/core';
 import type { IAlbumRepo, IEventPublisher, IUploadUrlProvider } from '@ayeldo/core';
+import { Album, NotFoundError } from '@ayeldo/core';
 import type { PresignedPostPayload } from '@ayeldo/core/src/ports/storage';
 import type { PinoLogWriter } from '@ayeldo/utils';
 import { AlbumUploadService } from './albumUploadService';
@@ -21,7 +20,16 @@ const presigned: PresignedPostPayload = {
 
 function makeService(overrides?: Partial<AlbumUploadService>): AlbumUploadService {
   const albumRepo: IAlbumRepo = {
-    getById: jest.fn().mockResolvedValue(new Album({ id: 'a1', tenantId: 't1', title: 'Album', createdAt: new Date().toISOString() })),
+    getById: jest
+      .fn()
+      .mockResolvedValue(
+        new Album({
+          id: 'a1',
+          tenantId: 't1',
+          title: 'Album',
+          createdAt: new Date().toISOString(),
+        }),
+      ),
     listRoot: jest.fn(),
     listChildren: jest.fn(),
     put: jest.fn(),
@@ -49,7 +57,16 @@ type AlbumUploadServiceProps = ConstructorParameters<typeof AlbumUploadService>[
 describe('AlbumUploadService', () => {
   test('createUpload returns image id and presigned data', async () => {
     const albumRepo = {
-      getById: jest.fn().mockResolvedValue(new Album({ id: 'a1', tenantId: 't1', title: 'Album', createdAt: new Date().toISOString() })),
+      getById: jest
+        .fn()
+        .mockResolvedValue(
+          new Album({
+            id: 'a1',
+            tenantId: 't1',
+            title: 'Album',
+            createdAt: new Date().toISOString(),
+          }),
+        ),
       listRoot: jest.fn(),
       listChildren: jest.fn(),
       put: jest.fn(),
@@ -95,7 +112,12 @@ describe('AlbumUploadService', () => {
       publish: jest.fn(),
     };
 
-    const svc = new AlbumUploadService({ albumRepo, uploadProvider, publisher, logger: loggerStub });
+    const svc = new AlbumUploadService({
+      albumRepo,
+      uploadProvider,
+      publisher,
+      logger: loggerStub,
+    });
 
     await expect(
       svc.createUpload({
@@ -109,7 +131,16 @@ describe('AlbumUploadService', () => {
   test('completeUpload publishes event after verifying album exists', async () => {
     const publishMock = jest.fn().mockResolvedValue(undefined);
     const albumRepo = {
-      getById: jest.fn().mockResolvedValue(new Album({ id: 'a1', tenantId: 't1', title: 'Album', createdAt: new Date().toISOString() })),
+      getById: jest
+        .fn()
+        .mockResolvedValue(
+          new Album({
+            id: 'a1',
+            tenantId: 't1',
+            title: 'Album',
+            createdAt: new Date().toISOString(),
+          }),
+        ),
       listRoot: jest.fn(),
       listChildren: jest.fn(),
       put: jest.fn(),
@@ -121,9 +152,18 @@ describe('AlbumUploadService', () => {
       publish: publishMock,
     };
 
-    const svc = new AlbumUploadService({ albumRepo, uploadProvider, publisher, logger: loggerStub });
+    const svc = new AlbumUploadService({
+      albumRepo,
+      uploadProvider,
+      publisher,
+      logger: loggerStub,
+    });
 
-    await svc.completeUpload({ tenantId: 't1', albumId: 'a1', imageId: '11111111-1111-1111-1111-111111111111' });
+    await svc.completeUpload({
+      tenantId: 't1',
+      albumId: 'a1',
+      imageId: '11111111-1111-1111-1111-111111111111',
+    });
     expect(publishMock).toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-import { registerImage, completeUpload } from './images';
+import { completeUpload, registerImage } from './images';
 
 describe('image upload handlers', () => {
   test('registerImage returns presigned POST payload and calls provider', async () => {
@@ -49,7 +49,12 @@ describe('image upload handlers', () => {
     await expect(
       registerImage(badInput, {
         upload: { createPresignedPost: jest.fn() } as any,
-        logger: { info: () => undefined, debug: () => undefined, warn: () => undefined, error: () => undefined } as any,
+        logger: {
+          info: () => undefined,
+          debug: () => undefined,
+          warn: () => undefined,
+          error: () => undefined,
+        } as any,
       }),
     ).rejects.toThrow();
   });
@@ -70,7 +75,10 @@ describe('image upload handlers', () => {
       error: () => undefined,
     } as const;
 
-    const result = await completeUpload(input, { publisher: publisher as any, logger: logger as any });
+    const result = await completeUpload(input, {
+      publisher: publisher as any,
+      logger: logger as any,
+    });
     expect(result).toEqual({ ok: true });
     expect(publisher.publish).toHaveBeenCalledTimes(1);
     const evt = published[0];

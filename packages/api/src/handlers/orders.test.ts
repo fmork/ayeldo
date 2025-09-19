@@ -1,5 +1,5 @@
-import { createOrderFromCart, getOrder, fulfillOrder } from './orders';
 import { TieredPricingEngine } from '@ayeldo/core';
+import { createOrderFromCart, fulfillOrder, getOrder } from './orders';
 
 describe('createOrderFromCart', () => {
   const engine = new TieredPricingEngine();
@@ -49,19 +49,30 @@ describe('createOrderFromCart', () => {
       orderRepo: { put: jest.fn() },
       engine,
     } as any;
-    await expect(createOrderFromCart({ tenantId: 't1', cartId: 'nope' }, deps)).rejects.toThrow('Cart not found');
+    await expect(createOrderFromCart({ tenantId: 't1', cartId: 'nope' }, deps)).rejects.toThrow(
+      'Cart not found',
+    );
   });
 
   test('throws when price list is missing', async () => {
     const deps = {
-      cartRepo: { getById: async () => ({
-        id: 'c1', tenantId: 't1', state: 'active', priceListId: 'pl-missing', items: [], createdAt: new Date().toISOString()
-      }) },
+      cartRepo: {
+        getById: async () => ({
+          id: 'c1',
+          tenantId: 't1',
+          state: 'active',
+          priceListId: 'pl-missing',
+          items: [],
+          createdAt: new Date().toISOString(),
+        }),
+      },
       priceListRepo: { getById: async () => undefined },
       orderRepo: { put: jest.fn() },
       engine,
     } as any;
-    await expect(createOrderFromCart({ tenantId: 't1', cartId: 'c1' }, deps)).rejects.toThrow('Price list not found');
+    await expect(createOrderFromCart({ tenantId: 't1', cartId: 'c1' }, deps)).rejects.toThrow(
+      'Price list not found',
+    );
   });
 });
 
@@ -105,10 +116,16 @@ describe('fulfillOrder', () => {
     const put = jest.fn(async () => {});
     const orderRepo = { getById: async () => order, put } as any;
     const download = {
-      getSignedUrl: jest.fn(async ({ key }: { key: string }) => ({ url: `https://downloads/${key}`, expiresAtIso: new Date(Date.now() + 60_000).toISOString() })),
+      getSignedUrl: jest.fn(async ({ key }: { key: string }) => ({
+        url: `https://downloads/${key}`,
+        expiresAtIso: new Date(Date.now() + 60_000).toISOString(),
+      })),
     } as any;
 
-    const out = await fulfillOrder({ tenantId: 't-fulfill', orderId: 'o-fulfill' }, { orderRepo, download });
+    const out = await fulfillOrder(
+      { tenantId: 't-fulfill', orderId: 'o-fulfill' },
+      { orderRepo, download },
+    );
     expect(put).toHaveBeenCalledTimes(1);
     const saved = (put as jest.Mock).mock.calls[0][0];
     expect(saved.state).toBe('fulfilled');
@@ -129,12 +146,16 @@ describe('fulfillOrder', () => {
     } as const;
     const orderRepo = { getById: async () => order, put: jest.fn() } as any;
     const download = { getSignedUrl: jest.fn() } as any;
-    await expect(fulfillOrder({ tenantId: 't-bad', orderId: 'o-bad' }, { orderRepo, download })).rejects.toThrow();
+    await expect(
+      fulfillOrder({ tenantId: 't-bad', orderId: 'o-bad' }, { orderRepo, download }),
+    ).rejects.toThrow();
   });
 
   test('throws when order missing', async () => {
     const orderRepo = { getById: async () => undefined, put: jest.fn() } as any;
     const download = { getSignedUrl: jest.fn() } as any;
-    await expect(fulfillOrder({ tenantId: 't1', orderId: 'nope' }, { orderRepo, download })).rejects.toThrow('Order not found');
+    await expect(
+      fulfillOrder({ tenantId: 't1', orderId: 'nope' }, { orderRepo, download }),
+    ).rejects.toThrow('Order not found');
   });
 });

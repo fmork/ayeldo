@@ -257,28 +257,26 @@ describe('AuthFlowService', () => {
       }),
     });
     const tenantAccess = mkTenantAccess({
-      listMembershipsForUser: jest
-        .fn()
-        .mockResolvedValue([
-          {
-            membershipId: '11111111-1111-4111-8111-aaaaaaaaaaaa',
-            tenantId: 'tenant-123',
-            userId: 'user-1',
-            role: 'owner',
-            status: 'active',
-            createdAt: '2024-01-01T00:00:00.000Z',
-            updatedAt: '2024-01-01T00:00:00.000Z',
-          },
-          {
-            membershipId: '22222222-2222-4222-8222-bbbbbbbbbbbb',
-            tenantId: 'tenant-999',
-            userId: 'user-1',
-            role: 'member',
-            status: 'invited',
-            createdAt: '2024-01-01T00:00:00.000Z',
-            updatedAt: '2024-01-02T00:00:00.000Z',
-          },
-        ]),
+      listMembershipsForUser: jest.fn().mockResolvedValue([
+        {
+          membershipId: '11111111-1111-4111-8111-aaaaaaaaaaaa',
+          tenantId: 'tenant-123',
+          userId: 'user-1',
+          role: 'owner',
+          status: 'active',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-01T00:00:00.000Z',
+        },
+        {
+          membershipId: '22222222-2222-4222-8222-bbbbbbbbbbbb',
+          tenantId: 'tenant-999',
+          userId: 'user-1',
+          role: 'member',
+          status: 'invited',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-02T00:00:00.000Z',
+        },
+      ]),
     });
     const svc = new AuthFlowService({
       oidc,

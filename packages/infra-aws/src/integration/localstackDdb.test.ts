@@ -279,7 +279,12 @@ maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
       }),
     );
 
-    const othersTenantRoot = new Album({ id: 'rootOther', tenantId: tenantB, title: 'Other', createdAt: now });
+    const othersTenantRoot = new Album({
+      id: 'rootOther',
+      tenantId: tenantB,
+      title: 'Other',
+      createdAt: now,
+    });
     await albumRepo.put(othersTenantRoot);
 
     const roots = await albumRepo.listRoot(tenantA);

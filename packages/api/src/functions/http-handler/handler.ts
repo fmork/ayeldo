@@ -1,5 +1,5 @@
+import type { HttpRequest, HttpResponse } from '@ayeldo/backend-core';
 import { runWithRequestContext } from '@ayeldo/utils';
-import type { HttpRequest, HttpResponse } from '@fmork/backend-core';
 import AWSXRay from 'aws-xray-sdk-core';
 import type { NextFunction, Request, Response } from 'express';
 import ServerlessHttp from 'serverless-http';

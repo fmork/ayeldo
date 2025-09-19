@@ -1,13 +1,13 @@
-import { SiteConfiguration } from '@ayeldo/core';
-import { createRootLogger, loadEnv } from '@ayeldo/utils';
-import type { ILogWriter } from '@fmork/backend-core';
+import type { ILogWriter } from '@ayeldo/backend-core';
 import {
   AxiosHttpClient,
   ClaimBasedAuthorizer,
   JsonUtil,
   JwtAuthorization,
   TokenKeyCache,
-} from '@fmork/backend-core';
+} from '@ayeldo/backend-core';
+import { SiteConfiguration } from '@ayeldo/core';
+import { createRootLogger, loadEnv } from '@ayeldo/utils';
 import { z } from 'zod';
 
 // Root logger using @ayeldo/utils pino adapter (implements ILogWriter shape)
