@@ -110,12 +110,17 @@ async function processRecord(record: S3Event['Records'][number]): Promise<void> 
     .replace(/\\/g, '/');
 
   const workDir = await mkdtemp(path.join(tmpdir(), 'media-'));
+  let shouldCleanupUpload = false;
+
   try {
     const originalPath = path.join(workDir, descriptor.filename);
     const { contentType } = await downloadOriginal(rawKey, originalPath);
 
     const originalStats = await stat(originalPath);
     const originalMeta = await sharp(originalPath).rotate().metadata();
+
+    // Mark for cleanup once we've successfully validated the file
+    shouldCleanupUpload = true;
 
     const variants: ImageVariantDto[] = [];
     for (const variant of VARIANT_CONFIG) {
@@ -170,12 +175,21 @@ async function processRecord(record: S3Event['Records'][number]): Promise<void> 
       },
     };
     await eventPublisher.publish(imageProcessedEvent);
-
-    await s3
-      .send(new DeleteObjectCommand({ Bucket: bucket, Key: rawKey }))
-      .catch((error) => console.warn('Failed to delete original upload object', error));
+  } catch (error) {
+    console.error(`Failed to process ${rawKey}:`, error);
+    throw error;
   } finally {
+    // Always clean up temp directory
     await rm(workDir, { recursive: true, force: true }).catch(() => undefined);
+
+    // Clean up upload file if we successfully validated it
+    // This ensures we don't accumulate invalid files, but also don't delete
+    // files that we couldn't even download (might be transient issues)
+    if (shouldCleanupUpload) {
+      await s3
+        .send(new DeleteObjectCommand({ Bucket: bucket, Key: rawKey }))
+        .catch((error) => console.warn('Failed to delete original upload object', error));
+    }
   }
 }
 

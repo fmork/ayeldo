@@ -21,16 +21,16 @@ export const backendApi = createApi({
         return `/auth/authorize-url${params}`;
       },
     }),
-    listAlbums: builder.query<
-      readonly AlbumDto[],
-      { tenantId: string; parentAlbumId?: string }
-    >({
+    listAlbums: builder.query<readonly AlbumDto[], { tenantId: string; parentAlbumId?: string }>({
       query: ({ tenantId, parentAlbumId }) => {
         const params = parentAlbumId ? `?parentAlbumId=${encodeURIComponent(parentAlbumId)}` : '';
         return `/creator/tenants/${tenantId}/albums${params}`;
       },
       providesTags: (_result, _error, arg) => [
-        { type: 'Album' as const, id: `tenant:${arg.tenantId}:parent:${arg.parentAlbumId ?? 'root'}` },
+        {
+          type: 'Album' as const,
+          id: `tenant:${arg.tenantId}:parent:${arg.parentAlbumId ?? 'root'}`,
+        },
       ],
     }),
     createAlbum: builder.mutation<
@@ -43,7 +43,10 @@ export const backendApi = createApi({
         body,
       }),
       invalidatesTags: (_result, _error, arg) => [
-        { type: 'Album' as const, id: `tenant:${arg.tenantId}:parent:${arg.parentAlbumId ?? 'root'}` },
+        {
+          type: 'Album' as const,
+          id: `tenant:${arg.tenantId}:parent:${arg.parentAlbumId ?? 'root'}`,
+        },
       ],
     }),
     getAlbum: builder.query<AlbumDto, { tenantId: string; albumId: string }>({
@@ -55,7 +58,7 @@ export const backendApi = createApi({
     }),
     getSession: builder.query<SessionInfo, void>({
       query: () => '/session',
-      transformErrorResponse: () => ({ loggedIn: false } as const),
+      transformErrorResponse: () => ({ loggedIn: false }) as const,
     }),
     onboard: builder.mutation<
       {

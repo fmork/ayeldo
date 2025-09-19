@@ -285,7 +285,7 @@ Next Steps (follow-up todos to add later if prioritized):
   - [x] Download/copy originals and generate derivative variants using bundled image tooling (sharp/ImageMagick) without loading entire asset into memory.
   - [x] Package native image tooling with the Lambda bundle and verify the processor in a local/integration environment.
 - [x] Ensure Lambda package includes required native/image tooling (Confirm bundler output, layer strategy, dependency lock).
-- [ ] Persist variant metadata + emit `ImageProcessed` events (verify repository output, event fields).
+- [x] Persist variant metadata + emit `ImageProcessed` events (verify repository output, event fields).
 - [x] Configure CDK stack to deploy media processor Lambda with S3 trigger, bucket permissions, lifecycle rules, and EventBridge wiring (synth/test).
-- [ ] Update API/media query responses to surface variant metadata for consumption by frontend.
-- [ ] Implement cleanup/lifecycle rules for `uploads/` prefix once processing completes.
+- [x] Update API/media query responses to surface variant metadata for consumption by frontend.
+- [x] Implement cleanup/lifecycle rules for `uploads/` prefix once processing completes.

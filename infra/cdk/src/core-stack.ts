@@ -119,6 +119,11 @@ export class CoreStack extends Stack {
           prefix: 'downloads/',
           expiration: Duration.days(7),
         },
+        {
+          id: 'CleanupUnprocessedUploads',
+          prefix: 'uploads/',
+          expiration: Duration.days(3),
+        },
       ],
       cors: [
         {
