@@ -1,7 +1,7 @@
-import { ILogWriter } from '../logging/ILogWriter';
-import { JwtAuthorization } from '../security/JwtAuthorization';
-import { UserJwtPayload } from '../types';
-import { HttpMiddleware, HttpRequest, HttpResponse } from '../controllers/http';
+import type { HttpMiddleware, HttpRequest, HttpResponse } from '../controllers/http';
+import type { ILogWriter } from '../logging/ILogWriter';
+import type { JwtAuthorization } from '../security/JwtAuthorization';
+import type { UserJwtPayload } from '../types';
 
 interface AuthMiddlewareProps {
   jwtAuthorization: JwtAuthorization;
@@ -9,7 +9,11 @@ interface AuthMiddlewareProps {
 }
 export class AuthMiddleware {
   constructor(private readonly props: AuthMiddlewareProps) {}
-  public authorizeRequest: HttpMiddleware = async (req: HttpRequest, res: HttpResponse, next: () => void): Promise<void> => {
+  public authorizeRequest: HttpMiddleware = async (
+    req: HttpRequest,
+    res: HttpResponse,
+    next: () => void,
+  ): Promise<void> => {
     const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
@@ -19,11 +23,14 @@ export class AuthMiddleware {
         const verified = await this.props.jwtAuthorization.getVerifiedToken(token);
 
         // Optionally attach user info to request object
-        (req as any).user = verified as UserJwtPayload;
+        (req as unknown as Record<string, unknown>).user = verified as UserJwtPayload;
         next();
       } catch (error) {
         const _error = error as Error;
-        this.props.logWriter.error(`Error in ${this.constructor.name}.${this.authorizeRequest.name}()`, _error);
+        this.props.logWriter.error(
+          `Error in ${this.constructor.name}.${this.authorizeRequest.name}()`,
+          _error,
+        );
         res.status(401).json({ message: 'Invalid or expired token' });
       }
     }

@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from 'express';
-import { ILogWriter } from '../logging/ILogWriter';
+import type { NextFunction, Request, Response } from 'express';
+import type { ILogWriter } from '../logging/ILogWriter';
 
 interface RequestLogMiddlewareProps {
   logWriter: ILogWriter;

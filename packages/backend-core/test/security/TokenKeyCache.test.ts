@@ -1,13 +1,14 @@
 import { describe } from '@jest/globals';
 import { readFileSync } from 'node:fs';
-import { AxiosHttpClient, HttpClient } from 'src/IO';
-import { TokenKeyCache } from 'src/security';
-import { runTest } from 'test/TestDependencies';
-import { TestLogWriter } from 'test/TestLogWriter';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
-import { HttpResponse } from '../../src/IO/HttpRequest';
-import { JwksResponse } from '../../src/models/security/JwksResponse';
-import { WellKnownOpenIdConfiguration } from '../../src/models/security/WellKnownOpenIdConfiguration';
+import type { HttpClient } from '../../src/IO';
+import { AxiosHttpClient } from '../../src/IO';
+import type { HttpResponse } from '../../src/IO/HttpRequest';
+import type { JwksResponse } from '../../src/models/security/JwksResponse';
+import type { WellKnownOpenIdConfiguration } from '../../src/models/security/WellKnownOpenIdConfiguration';
+import { TokenKeyCache } from '../../src/security';
+import { runTest } from '../TestDependencies';
+import { TestLogWriter } from '../TestLogWriter';
 
 const logWriter = new TestLogWriter();
 
@@ -43,7 +44,9 @@ describe('TokenKeyCache', () => {
 const getHttpClientMock = (): HttpClient => {
   const httpClientMock = mock(AxiosHttpClient);
 
-  const wellKnownOidcConfigurationString = readFileSync('./test/testdata/well-known-openid-configuration.json').toString();
+  const wellKnownOidcConfigurationString = readFileSync(
+    './test/testdata/well-known-openid-configuration.json',
+  ).toString();
   when(httpClientMock.get(anything())).thenCall((request: any) => {
     if (request.url === 'https://auth-host/.well-known/openid-configuration') {
       const result = JSON.parse(wellKnownOidcConfigurationString) as WellKnownOpenIdConfiguration;

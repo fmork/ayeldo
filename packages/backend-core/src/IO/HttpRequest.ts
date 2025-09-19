@@ -1,4 +1,4 @@
-import { Agent } from 'node:https';
+import type { Agent } from 'node:https';
 
 export interface HttpRequest {
   url: string;

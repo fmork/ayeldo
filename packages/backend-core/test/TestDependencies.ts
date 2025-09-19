@@ -1,7 +1,7 @@
 import { TestLogWriter } from './TestLogWriter';
 
 export const testLogWriter = new TestLogWriter();
-export const runTest = (name: string, action: () => Promise<unknown>) => {
+export const runTest = (name: string, action: () => Promise<unknown>): void => {
   test(name, async () => {
     try {
       await action();

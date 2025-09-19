@@ -1,13 +1,18 @@
-import { Request, Response } from 'express';
-import type { Router } from 'express';
-import type { HttpRouter } from '../../src/controllers/http';
+import type { NextFunction, Request, Response, Router } from 'express';
 import { GroupAuthorizedController } from '../../src/controllers/GroupAuthorizedController';
-import { ILogWriter } from '../../src/logging/ILogWriter';
-import { AuthorizationRequirement } from '../../src/security/AuthorizationTypes';
+import type { HttpMiddleware, HttpRouter } from '../../src/controllers/http';
+import type { ILogWriter } from '../../src/logging/ILogWriter';
+import type { AuthorizationRequirement } from '../../src/security/AuthorizationTypes';
 
 // Test controller implementation
 class TestGroupAuthorizedController extends GroupAuthorizedController {
-  constructor(baseUrl: string, logWriter: ILogWriter, authorizerOrFactory: any) {
+  constructor(
+    baseUrl: string,
+    logWriter: ILogWriter,
+    authorizerOrFactory:
+      | HttpMiddleware
+      | ((requirement?: AuthorizationRequirement) => HttpMiddleware),
+  ) {
     super(baseUrl, logWriter, authorizerOrFactory);
   }
 
@@ -22,7 +27,7 @@ class TestGroupAuthorizedController extends GroupAuthorizedController {
       (_req, res) => {
         res.json({ message: 'admin only' });
       },
-      { requiredGroups: ['admins'] }
+      { requiredGroups: ['admins'] },
     );
 
     this.addPut(
@@ -30,7 +35,7 @@ class TestGroupAuthorizedController extends GroupAuthorizedController {
       (_req, res) => {
         res.json({ message: 'multiple groups' });
       },
-      { requiredGroups: ['admins', 'editors'] }
+      { requiredGroups: ['admins', 'editors'] },
     );
 
     this.addDelete(
@@ -38,7 +43,7 @@ class TestGroupAuthorizedController extends GroupAuthorizedController {
       (_req, res) => {
         res.json({ message: 'super admin only' });
       },
-      { requiredGroups: ['super-admins'] }
+      { requiredGroups: ['super-admins'] },
     );
 
     return this.getRouter();
@@ -63,19 +68,23 @@ describe('GroupAuthorizedController', () => {
       debug: jest.fn(),
     };
 
-    mockLegacyAuthorizer = jest.fn((req: Request, res: Response, next: Function) => {
+    mockLegacyAuthorizer = jest.fn((req: Request, res: Response, next: NextFunction) => {
       next();
     });
 
     mockAuthorizerFactory = jest.fn((requirement?: AuthorizationRequirement) => {
-      return (req: Request, res: Response, next: Function) => {
+      return (req: Request, res: Response, next: NextFunction) => {
         next();
       };
     });
   });
 
   it('should work with legacy authorizer (3 parameters)', () => {
-    const controller = new TestGroupAuthorizedController('/api', mockLogWriter, mockLegacyAuthorizer);
+    const controller = new TestGroupAuthorizedController(
+      '/api',
+      mockLogWriter,
+      mockLegacyAuthorizer,
+    );
 
     const router = controller.initialize();
 
@@ -84,7 +93,11 @@ describe('GroupAuthorizedController', () => {
   });
 
   it('should work with authorizer factory (1 parameter)', () => {
-    const controller = new TestGroupAuthorizedController('/api', mockLogWriter, mockAuthorizerFactory);
+    const controller = new TestGroupAuthorizedController(
+      '/api',
+      mockLogWriter,
+      mockAuthorizerFactory,
+    );
 
     const router = controller.initialize();
 
@@ -101,10 +114,13 @@ describe('GroupAuthorizedController', () => {
   });
 
   it('should detect legacy authorizer by parameter count', () => {
-    const legacyAuthorizer = (req: Request, res: Response, next: Function) => next();
+    const legacyAuthorizer = (req: Request, res: Response, next: NextFunction) => next();
     expect(legacyAuthorizer.length).toBe(3); // Should have 3 parameters
 
-    const authorizerFactory = (requirement?: AuthorizationRequirement) => (req: Request, res: Response, next: Function) => next();
+    const authorizerFactory =
+      (requirement?: AuthorizationRequirement) =>
+      (req: Request, res: Response, next: NextFunction) =>
+        next();
     expect(authorizerFactory.length).toBe(1); // Should have 1 parameter
   });
 

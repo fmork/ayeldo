@@ -1,12 +1,12 @@
-import { NextFunction, Request, Response } from 'express';
-import { ILogWriter } from '../logging/ILogWriter';
+import type { NextFunction, Request, Response } from 'express';
+import type { ILogWriter } from '../logging/ILogWriter';
 // Local TenantContext shape (matches packages/common-models/src/tenant.ts)
-export type TenantContext = {
+export interface TenantContext {
   tenantId: string;
   userId?: string;
   roles?: string[];
   plan?: string;
-};
+}
 
 export interface TenantMiddlewareOptions {
   logWriter: ILogWriter;
@@ -14,7 +14,7 @@ export interface TenantMiddlewareOptions {
 
 // Extend Express Request with optional tenant fields used by our middleware
 export interface AugmentedRequest extends Request {
-  tenant?: TenantContext | Record<string, any>;
+  tenant?: TenantContext | Record<string, unknown>;
   tenantContext?: TenantContext;
 }
 
@@ -35,9 +35,9 @@ export class TenantMiddleware {
     // Attach a normalized tenantContext for downstream handlers
     aReq.tenantContext = {
       tenantId: tenant.tenantId,
-      userId: (tenant as any).userId,
-      roles: (tenant as any).roles,
-      plan: (tenant as any).plan,
+      userId: (tenant as Record<string, unknown>).userId as string | undefined,
+      roles: (tenant as Record<string, unknown>).roles as string[] | undefined,
+      plan: (tenant as Record<string, unknown>).plan as string | undefined,
     } as TenantContext;
 
     next();

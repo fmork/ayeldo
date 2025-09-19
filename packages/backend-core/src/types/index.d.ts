@@ -1,4 +1,4 @@
-import { UserJwtPayload } from './UserJwtPayload';
+import type { UserJwtPayload } from './UserJwtPayload';
 declare namespace Express {
   export interface Request {
     user?: UserJwtPayload;

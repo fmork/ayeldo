@@ -1,5 +1,5 @@
-import { Logger } from 'log4js';
-import { ILogWriter } from './ILogWriter';
+import type { Logger } from 'log4js';
+import type { ILogWriter } from './ILogWriter';
 
 interface Log4JsLogWriterConstructorParameters {
   logger: Logger;

@@ -1,8 +1,9 @@
-import axios, { Axios, AxiosRequestConfig } from 'axios';
-import { ILogWriter } from '../logging/ILogWriter';
-import { BodyRequest } from './BodyRequest';
-import { HttpClient } from './HttpClient';
-import { HttpRequest, HttpResponse } from './HttpRequest';
+import type { AxiosRequestConfig } from 'axios';
+import axios, { Axios } from 'axios';
+import type { ILogWriter } from '../logging/ILogWriter';
+import type { BodyRequest } from './BodyRequest';
+import type { HttpClient } from './HttpClient';
+import type { HttpRequest, HttpResponse } from './HttpRequest';
 
 interface AxiosHttpClientProps {
   logWriter: ILogWriter;

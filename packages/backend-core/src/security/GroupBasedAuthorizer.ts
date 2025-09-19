@@ -1,7 +1,8 @@
-import { ILogWriter } from '../logging/ILogWriter';
-import { AuthorizationRequirement } from './AuthorizationTypes';
+import type { HttpMiddleware } from '../controllers/http';
+import type { ILogWriter } from '../logging/ILogWriter';
+import type { AuthorizationRequirement } from './AuthorizationTypes';
 import { ClaimBasedAuthorizer } from './ClaimBasedAuthorizer';
-import { JwtAuthorization } from './JwtAuthorization';
+import type { JwtAuthorization } from './JwtAuthorization';
 
 interface GroupBasedAuthorizerProps {
   jwtAuthorization: JwtAuthorization;
@@ -42,8 +43,7 @@ export class GroupBasedAuthorizer {
    * Creates an authorization middleware that validates the token and checks for required groups
    * @deprecated Use ClaimBasedAuthorizer.createAuthorizer instead
    */
-  public createAuthorizer = (requirement?: AuthorizationRequirement) => {
-    // Convert group-based requirement to claim-based requirement
+  public createAuthorizer(requirement?: AuthorizationRequirement): HttpMiddleware {
     let claimRequirement: AuthorizationRequirement | undefined;
 
     if (requirement) {
@@ -53,5 +53,5 @@ export class GroupBasedAuthorizer {
     }
 
     return this.claimAuthorizer.createAuthorizer(claimRequirement);
-  };
+  }
 }

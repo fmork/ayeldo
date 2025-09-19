@@ -1,5 +1,5 @@
 export interface UserJwtPayload {
-  [key: string]: any;
+  [key: string]: unknown;
   iss?: string | undefined;
   sub?: string | undefined;
   aud?: string | string[] | undefined;

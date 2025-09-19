@@ -1,9 +1,10 @@
-import jwt, { Jwt, JwtHeader, JwtPayload } from 'jsonwebtoken';
-import { TokenKeyCache } from './TokenKeyCache';
-import { ILogWriter } from '../logging/ILogWriter';
+import type { Jwt, JwtHeader, JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+import type { ILogWriter } from '../logging/ILogWriter';
+import type { TokenKeyCache } from './TokenKeyCache';
 interface JwtAuthorizationProps {
   tokenKeyCache: TokenKeyCache;
-  getKnownIssuers: () => Array<string>;
+  getKnownIssuers: () => string[];
   logWriter: ILogWriter;
 }
 
@@ -41,9 +42,12 @@ export class JwtAuthorization {
    * cache if it exists, otherwise it will fetch it from the issuer.
    */
   private getPublicKey = async (token: string): Promise<string> => {
-    const decoded = jwt.decode(token, { complete: true }) as Jwt;
+    const decoded = jwt.decode(token, { complete: true }) as Jwt | null;
+    if (!decoded) {
+      throw new Error('Invalid token: unable to decode');
+    }
     const payload: JwtPayload = decoded.payload as JwtPayload;
-    const header: JwtHeader = decoded.header;
+    const header: JwtHeader = decoded.header as JwtHeader;
 
     // Verify that the token has a key id
     this.VerifyTokenHasKeyId(header);
@@ -52,11 +56,13 @@ export class JwtAuthorization {
     // Verify that the issuer is known
     this.verifyTokenIssuerIsKnown(payload);
 
-    const publicKey = await this.props.tokenKeyCache.getKey(payload.iss!, header.kid!);
+    const iss = payload.iss as string;
+    const kid = header.kid as string;
+    const publicKey = await this.props.tokenKeyCache.getKey(iss, kid);
     return publicKey;
   };
 
-  private verifyTokenIssuerIsKnown(payload: jwt.JwtPayload) {
+  private verifyTokenIssuerIsKnown(payload: jwt.JwtPayload): void {
     if (!this.props.getKnownIssuers().some((x) => x === payload.iss)) {
       const errorText = 'Jwt payload has no known issuer';
       this.props.logWriter.warn(`${errorText}. payload: ${JSON.stringify(payload)}`);
@@ -64,7 +70,7 @@ export class JwtAuthorization {
     }
   }
 
-  private VerifyTokenHasIssuer(payload: jwt.JwtPayload) {
+  private VerifyTokenHasIssuer(payload: jwt.JwtPayload): void {
     if (!payload.iss) {
       const errorText = 'Jwt payload has no issuer';
       this.props.logWriter.warn(`${errorText}. payload: ${JSON.stringify(payload)}`);
@@ -72,7 +78,7 @@ export class JwtAuthorization {
     }
   }
 
-  private VerifyTokenHasKeyId(header: jwt.JwtHeader) {
+  private VerifyTokenHasKeyId(header: jwt.JwtHeader): void {
     if (!header.kid) {
       const errorText = 'Jwt header has no key id';
       this.props.logWriter.warn(`${errorText}. header: ${JSON.stringify(header)}`);

@@ -4,4 +4,3 @@ coverage
 cdk.out
 docs
 infra/cdk/assets
-packages/backend-core

@@ -1,7 +1,7 @@
-import { ILogWriter } from '../logging';
-import { AuthorizationRequirement } from '../security/AuthorizationTypes';
+import type { ILogWriter } from '../logging';
+import type { AuthorizationRequirement } from '../security/AuthorizationTypes';
 import { ControllerBase } from './ControllerBase';
-import { HttpHandler, HttpMiddleware } from './http';
+import type { HttpHandler, HttpMiddleware } from './http';
 
 /**
  * Base class for controllers that require authorization with optional group-based permissions
@@ -17,7 +17,9 @@ export abstract class GroupAuthorizedController extends ControllerBase {
   constructor(
     baseUrl: string,
     logWriter: ILogWriter,
-    authorizerOrFactory: HttpMiddleware | ((requirement?: AuthorizationRequirement) => HttpMiddleware)
+    authorizerOrFactory:
+      | HttpMiddleware
+      | ((requirement?: AuthorizationRequirement) => HttpMiddleware),
   ) {
     super(baseUrl, logWriter);
 
@@ -33,14 +35,20 @@ export abstract class GroupAuthorizedController extends ControllerBase {
       this.legacyAuthorizer = authorizerOrFactory as HttpMiddleware;
     } else {
       // Authorizer factory (requirement?) => middleware
-      this.createAuthorizer = authorizerOrFactory as (requirement?: AuthorizationRequirement) => HttpMiddleware;
+      this.createAuthorizer = authorizerOrFactory as (
+        requirement?: AuthorizationRequirement,
+      ) => HttpMiddleware;
     }
   }
 
   /**
    * Add a GET route with optional authorization requirements
    */
-  protected addGet(path: string, handler: HttpHandler, authRequirement?: AuthorizationRequirement) {
+  protected addGet(
+    path: string,
+    handler: HttpHandler,
+    authRequirement?: AuthorizationRequirement,
+  ): void {
     const authorizer = this.getAuthorizer(authRequirement);
     this.expressRouter.get(path, this.wrapMiddleware(authorizer), this.wrap(handler));
   }
@@ -48,7 +56,11 @@ export abstract class GroupAuthorizedController extends ControllerBase {
   /**
    * Add a POST route with optional authorization requirements
    */
-  protected addPost(path: string, handler: HttpHandler, authRequirement?: AuthorizationRequirement) {
+  protected addPost(
+    path: string,
+    handler: HttpHandler,
+    authRequirement?: AuthorizationRequirement,
+  ): void {
     const authorizer = this.getAuthorizer(authRequirement);
     this.expressRouter.post(path, this.wrapMiddleware(authorizer), this.wrap(handler));
   }
@@ -56,7 +68,11 @@ export abstract class GroupAuthorizedController extends ControllerBase {
   /**
    * Add a PUT route with optional authorization requirements
    */
-  protected addPut(path: string, handler: HttpHandler, authRequirement?: AuthorizationRequirement) {
+  protected addPut(
+    path: string,
+    handler: HttpHandler,
+    authRequirement?: AuthorizationRequirement,
+  ): void {
     const authorizer = this.getAuthorizer(authRequirement);
     this.expressRouter.put(path, this.wrapMiddleware(authorizer), this.wrap(handler));
   }
@@ -64,7 +80,11 @@ export abstract class GroupAuthorizedController extends ControllerBase {
   /**
    * Add a DELETE route with optional authorization requirements
    */
-  protected addDelete(path: string, handler: HttpHandler, authRequirement?: AuthorizationRequirement) {
+  protected addDelete(
+    path: string,
+    handler: HttpHandler,
+    authRequirement?: AuthorizationRequirement,
+  ): void {
     const authorizer = this.getAuthorizer(authRequirement);
     this.expressRouter.delete(path, this.wrapMiddleware(authorizer), this.wrap(handler));
   }

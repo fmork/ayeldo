@@ -1,8 +1,8 @@
 import jwkToPem from 'jwk-to-pem';
-import { HttpClient } from '../IO/HttpClient';
-import { ILogWriter } from '../logging/ILogWriter';
-import { JwksResponse } from '../models/security/JwksResponse';
-import { WellKnownOpenIdConfiguration } from '../models/security/WellKnownOpenIdConfiguration';
+import type { HttpClient } from '../IO/HttpClient';
+import type { ILogWriter } from '../logging/ILogWriter';
+import type { JwksResponse } from '../models/security/JwksResponse';
+import type { WellKnownOpenIdConfiguration } from '../models/security/WellKnownOpenIdConfiguration';
 
 interface TokenKeyCacheProps {
   httpClient: HttpClient;

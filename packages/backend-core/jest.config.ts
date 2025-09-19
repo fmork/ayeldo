@@ -1,12 +1,14 @@
-import { Config } from 'jest';
+import type { Config } from 'jest';
+/* eslint-disable @typescript-eslint/no-var-requires */
+const fs = require('fs');
+const path = require('path');
 
-/** @type {import('ts-jest').JestConfigWithTsJest} */
-// const { pathsToModuleNameMapper } = require('ts-jest');
-// In the following statement, replace `./tsconfig` with the path to your `tsconfig` file
-// which contains the path mapping (ie the `compilerOptions.paths` option):
-const { compilerOptions } = require('./tsconfig.json');
+const tsConfigPath = path.resolve(__dirname, './tsconfig.json');
+const tsConfigRaw = fs.existsSync(tsConfigPath) ? fs.readFileSync(tsConfigPath, 'utf8') : '{}';
+const tsConfig = JSON.parse(tsConfigRaw) as { compilerOptions?: { baseUrl?: string } };
+const compilerOptions = tsConfig.compilerOptions ?? {};
 
-const compilerOptionPathMappings: Record<string, string> = {}; //pathsToModuleNameMapper(compilerOptions.paths);
+const compilerOptionPathMappings: Record<string, string> = {};
 compilerOptionPathMappings['node-fetch'] = '<rootDir>/node_modules/node-fetch-jest';
 
 const config: Config = {
@@ -14,7 +16,7 @@ const config: Config = {
   testEnvironment: 'node',
   roots: ['.'],
   testMatch: ['**/*.test.ts'],
-  modulePaths: [compilerOptions.baseUrl], // <-- This will be set to 'baseUrl' value
+  modulePaths: compilerOptions.baseUrl ? [compilerOptions.baseUrl] : [],
   moduleNameMapper: compilerOptionPathMappings,
   collectCoverageFrom: ['src/**/*'],
 };

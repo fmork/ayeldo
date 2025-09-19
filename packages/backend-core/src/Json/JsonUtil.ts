@@ -1,4 +1,4 @@
-import { ILogWriter } from '../logging';
+import type { ILogWriter } from '../logging';
 
 interface JsonUtilProps {
   logWriter: ILogWriter;
@@ -6,13 +6,14 @@ interface JsonUtilProps {
 
 export class JsonUtil {
   constructor(private readonly props: JsonUtilProps) {}
-  public getParsedRequestBody<T>(body: any): T {
-    const methodSignatureString = () => `${this.constructor.name}.getParsedBody(${JSON.stringify(body)})`;
+  public getParsedRequestBody<T>(body: unknown): T {
+    const methodSignatureString = (): string =>
+      `${this.constructor.name}.getParsedBody(${JSON.stringify(body)})`;
 
     try {
       if (Buffer.isBuffer(body)) {
         // The request body is a Buffer
-        return JSON.parse(body.toString()) as T;
+        return JSON.parse((body as Buffer).toString()) as T;
       }
 
       return body as T;

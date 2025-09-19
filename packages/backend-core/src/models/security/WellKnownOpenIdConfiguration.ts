@@ -1,4 +1,4 @@
-import { MtlsEndpointAliases } from './MtlsEndpointAliases';
+import type { MtlsEndpointAliases } from './MtlsEndpointAliases';
 
 export interface WellKnownOpenIdConfiguration {
   issuer: string;

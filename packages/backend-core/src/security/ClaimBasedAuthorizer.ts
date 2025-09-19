@@ -1,11 +1,11 @@
-import { HttpMiddleware, HttpRequest, HttpResponse } from "../controllers/http";
-import { ILogWriter } from "../logging/ILogWriter";
-import { AuthorizationRequirement } from "./AuthorizationTypes";
-import { JwtAuthorization } from "./JwtAuthorization";
+import type { HttpMiddleware, HttpRequest, HttpResponse } from '../controllers/http';
+import type { ILogWriter } from '../logging/ILogWriter';
+import type { AuthorizationRequirement } from './AuthorizationTypes';
+import type { JwtAuthorization } from './JwtAuthorization';
 
 export interface AuthorizationResult {
   success: boolean;
-  user?: any;
+  user?: unknown;
   error?: {
     status: number;
     message: string;
@@ -40,7 +40,7 @@ interface ClaimBasedAuthorizerProps {
 export class ClaimBasedAuthorizer {
   constructor(private readonly props: ClaimBasedAuthorizerProps) {
     if (!props.claimNames || props.claimNames.length === 0) {
-      throw new Error("At least one claim name must be specified");
+      throw new Error('At least one claim name must be specified');
     }
   }
 
@@ -50,74 +50,65 @@ export class ClaimBasedAuthorizer {
    */
   public authorizeToken = async (
     token: string,
-    requirement?: AuthorizationRequirement
+    requirement?: AuthorizationRequirement,
   ): Promise<AuthorizationResult> => {
     try {
       if (!token) {
-        this.props.logWriter.warn("Token is missing");
+        this.props.logWriter.warn('Token is missing');
         return {
           success: false,
           error: {
             status: 401,
-            message: "Authorization token is missing",
+            message: 'Authorization token is missing',
           },
         };
       }
 
       // Verify the JWT token
-      const verified = await this.props.jwtAuthorization.getVerifiedToken(
-        token
-      );
+      const verified = await this.props.jwtAuthorization.getVerifiedToken(token);
 
       // Check claim requirements if specified
-      const requiredValues =
-        requirement?.requiredValues || requirement?.requiredGroups;
+      const requiredValues = requirement?.requiredValues || requirement?.requiredGroups;
       if (requiredValues && requiredValues.length > 0) {
-        const userClaimValues = this.extractClaimValues(verified);
+        const userClaimValues = this.extractClaimValues(verified as Record<string, unknown>);
         const hasRequiredValue = requiredValues.some((requiredValue) =>
-          userClaimValues.includes(requiredValue)
+          userClaimValues.includes(requiredValue),
         );
 
         if (!hasRequiredValue) {
           this.props.logWriter.warn(
             `Access denied: User claim values [${userClaimValues.join(
-              ", "
-            )}] do not contain any required values [${requiredValues.join(
-              ", "
-            )}]`
+              ', ',
+            )}] do not contain any required values [${requiredValues.join(', ')}]`,
           );
           return {
             success: false,
             error: {
               status: 403,
-              message:
-                "Insufficient permissions - required claim values not found",
+              message: 'Insufficient permissions - required claim values not found',
             },
           };
         }
 
         this.props.logWriter.info(
           `Access granted: User has required claim values. User values: [${userClaimValues.join(
-            ", "
-          )}], Required: [${requiredValues.join(", ")}]`
+            ', ',
+          )}], Required: [${requiredValues.join(', ')}]`,
         );
       }
 
       return {
         success: true,
-        user: verified,
+        user: verified as unknown,
       };
     } catch (error) {
       const _error = error as Error;
-      this.props.logWriter.error(
-        `Authorization error: ${_error.message}`,
-        _error
-      );
+      this.props.logWriter.error(`Authorization error: ${_error.message}`, _error);
       return {
         success: false,
         error: {
           status: 401,
-          message: "Invalid or expired token",
+          message: 'Invalid or expired token',
         },
       };
     }
@@ -126,27 +117,19 @@ export class ClaimBasedAuthorizer {
   /**
    * Creates an authorization middleware that validates the token and checks for required claim values
    */
-  public createAuthorizer = (
-    requirement?: AuthorizationRequirement
-  ): HttpMiddleware => {
-    return async (
-      req: HttpRequest,
-      res: HttpResponse,
-      next: () => void
-    ): Promise<void> => {
+  public createAuthorizer = (requirement?: AuthorizationRequirement): HttpMiddleware => {
+    return async (req: HttpRequest, res: HttpResponse, next: () => void): Promise<void> => {
       const authHeader = req.headers.authorization;
       if (!authHeader) {
-        this.props.logWriter.warn("Authorization header missing");
-        res.status(401).json({ message: "Authorization token is missing" });
+        this.props.logWriter.warn('Authorization header missing');
+        res.status(401).json({ message: 'Authorization token is missing' });
         return;
       }
 
-      const token = authHeader.split(" ")[1];
+      const token = authHeader.split(' ')[1];
       if (!token) {
-        this.props.logWriter.warn(
-          "Bearer token missing from authorization header"
-        );
-        res.status(401).json({ message: "Bearer token is missing" });
+        this.props.logWriter.warn('Bearer token missing from authorization header');
+        res.status(401).json({ message: 'Bearer token is missing' });
         return;
       }
 
@@ -154,19 +137,18 @@ export class ClaimBasedAuthorizer {
       const result = await this.authorizeToken(token, requirement);
 
       if (!result.success) {
-        const error = result.error!;
+        const error = result.error ?? { status: 401, message: 'Unauthorized' };
         res.status(error.status).json({
           message: error.message,
           ...(requirement && {
-            requiredValues:
-              requirement.requiredValues || requirement.requiredGroups,
+            requiredValues: requirement.requiredValues || requirement.requiredGroups,
           }),
         });
         return;
       }
 
       // Attach user info to request
-      (req as any).user = result.user;
+      (req as unknown as Record<string, unknown>).user = result.user as unknown;
       next();
     };
   };
@@ -176,22 +158,22 @@ export class ClaimBasedAuthorizer {
    * Checks each configured claim name in order until a valid value is found
    * Supports both string and array claim values
    */
-  private extractClaimValues = (jwtPayload: any): string[] => {
+  private extractClaimValues = (jwtPayload: Record<string, unknown> | undefined): string[] => {
     if (!jwtPayload) {
       return [];
     }
 
     // Try each configured claim name in order
     for (const claimName of this.props.claimNames) {
-      const claimValue = jwtPayload[claimName];
+      const claimValue = jwtPayload[claimName] as unknown;
 
       // Handle array claims (e.g., groups: ["admin", "user"])
       if (Array.isArray(claimValue)) {
-        return claimValue.filter((value) => typeof value === "string");
+        return claimValue.filter((value) => typeof value === 'string');
       }
 
       // Handle string claims (e.g., role: "admin")
-      if (typeof claimValue === "string") {
+      if (typeof claimValue === 'string') {
         return [claimValue];
       }
     }

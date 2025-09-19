@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
-import { ILogWriter } from '../../src/logging/ILogWriter';
-import { AuthorizationRequirement } from '../../src/security/AuthorizationTypes';
+import type { Request, Response } from 'express';
+import type { ILogWriter } from '../../src/logging/ILogWriter';
+import type { AuthorizationRequirement } from '../../src/security/AuthorizationTypes';
 import { GroupBasedAuthorizer } from '../../src/security/GroupBasedAuthorizer';
-import { JwtAuthorization } from '../../src/security/JwtAuthorization';
+import type { JwtAuthorization } from '../../src/security/JwtAuthorization';
 
 describe('GroupBasedAuthorizer', () => {
   let mockJwtAuthorization: jest.Mocked<JwtAuthorization>;
@@ -116,7 +116,7 @@ describe('GroupBasedAuthorizer', () => {
       expect((mockRequest as any).user).toBe(mockPayload);
       expect(mockNext).toHaveBeenCalled();
       expect(mockLogWriter.info).toHaveBeenCalledWith(
-        'Access granted: User has required claim values. User values: [events-admins, general-users], Required: [events-admins]'
+        'Access granted: User has required claim values. User values: [events-admins, general-users], Required: [events-admins]',
       );
     });
 
@@ -162,7 +162,7 @@ describe('GroupBasedAuthorizer', () => {
       });
       expect(mockNext).not.toHaveBeenCalled();
       expect(mockLogWriter.warn).toHaveBeenCalledWith(
-        'Access denied: User claim values [basic-users] do not contain any required values [events-admins]'
+        'Access denied: User claim values [basic-users] do not contain any required values [events-admins]',
       );
     });
 
@@ -225,7 +225,7 @@ describe('GroupBasedAuthorizer', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(403);
       expect(mockNext).not.toHaveBeenCalled();
       expect(mockLogWriter.warn).toHaveBeenCalledWith(
-        'Access denied: User claim values [] do not contain any required values [events-admins]'
+        'Access denied: User claim values [] do not contain any required values [events-admins]',
       );
     });
   });
@@ -277,7 +277,7 @@ describe('GroupBasedAuthorizer', () => {
 
       expect(mockNext).toHaveBeenCalled();
       expect(mockLogWriter.info).toHaveBeenCalledWith(
-        'Access granted: User has required claim values. User values: [admin, editor], Required: [admin]'
+        'Access granted: User has required claim values. User values: [admin, editor], Required: [admin]',
       );
     });
 
@@ -307,7 +307,7 @@ describe('GroupBasedAuthorizer', () => {
 
       expect(mockNext).toHaveBeenCalled();
       expect(mockLogWriter.info).toHaveBeenCalledWith(
-        'Access granted: User has required claim values. User values: [admin], Required: [admin]'
+        'Access granted: User has required claim values. User values: [admin], Required: [admin]',
       );
     });
 
@@ -362,7 +362,7 @@ describe('GroupBasedAuthorizer', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(403);
       expect(mockNext).not.toHaveBeenCalled();
       expect(mockLogWriter.warn).toHaveBeenCalledWith(
-        'Access denied: User claim values [] do not contain any required values [admin]'
+        'Access denied: User claim values [] do not contain any required values [admin]',
       );
     });
   });

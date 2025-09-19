@@ -1,5 +1,5 @@
-import { Jwk } from './Jwk';
+import type { Jwk } from './Jwk';
 
 export interface JwksResponse {
-  keys: Array<Jwk>;
+  keys: Jwk[];
 }

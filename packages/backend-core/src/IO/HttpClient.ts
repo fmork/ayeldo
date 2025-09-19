@@ -1,5 +1,5 @@
-import { BodyRequest } from './BodyRequest';
-import { HttpRequest, HttpResponse } from './HttpRequest';
+import type { BodyRequest } from './BodyRequest';
+import type { HttpRequest, HttpResponse } from './HttpRequest';
 
 export abstract class HttpClient {
   abstract get(request: HttpRequest): Promise<HttpResponse>;

@@ -5,6 +5,4 @@ export interface AuthorizationRequirement {
   requiredGroups?: string[];
 }
 
-export interface RouteAuthorizationConfig {
-  [path: string]: AuthorizationRequirement;
-}
+export type RouteAuthorizationConfig = Record<string, AuthorizationRequirement>;

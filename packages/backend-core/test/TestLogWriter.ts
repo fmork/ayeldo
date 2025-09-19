@@ -1,7 +1,7 @@
-import { ILogWriter } from '../src/logging/ILogWriter';
+import type { ILogWriter } from '../src/logging/ILogWriter';
 
 export class TestLogWriter implements ILogWriter {
-  private readonly logs: Array<string>;
+  private readonly logs: string[];
 
   constructor() {
     this.logs = new Array<string>();
@@ -22,7 +22,7 @@ export class TestLogWriter implements ILogWriter {
     const logText = `[${new Date().toISOString()}][${level}] ${text} `;
     this.logs.push(logText);
   }
-  public flushLogs(writer: (...data: any[]) => void): void {
+  public flushLogs(writer: (...data: unknown[]) => void): void {
     for (const log of this.logs) {
       writer(log);
     }
