@@ -2,7 +2,7 @@ import type { AlbumDto } from '@ayeldo/types';
 import { frontendConfig } from '../../app/FrontendConfigurationContext';
 import { getCsrfToken } from '../csrf/getCsrfToken';
 
-interface RegisterUploadResponse {
+export interface RegisterUploadResponse {
   readonly imageId: string;
   readonly upload: {
     readonly url: string;
@@ -75,4 +75,3 @@ export async function fetchAlbumMetadata(params: {
   if (!response.ok) throw new Error(`Failed to fetch album (${response.status})`);
   return (await response.json()) as AlbumDto;
 }
-

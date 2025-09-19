@@ -204,14 +204,14 @@ const AlbumsPage: FC = () => {
                     <Typography variant="caption" color="text.secondary">
                       Created {new Date(album.createdAt).toLocaleString()}
                     </Typography>
-                    <Button
-                      component={RouterLink}
-                      to={`/albums/${album.id}`}
-                      size="small"
-                      variant="text"
-                    >
-                      Open album
-                    </Button>
+                      <Button
+                        component={RouterLink}
+                        to={`/my/albums/${album.id}`}
+                        size="small"
+                        variant="text"
+                      >
+                        Open album
+                      </Button>
                   </Stack>
                 </CardContent>
               </Card>

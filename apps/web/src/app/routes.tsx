@@ -14,6 +14,7 @@ import MyLayout from '../features/my/components/myLayout';
 import AnalyticsPage from '../features/my/pages/analyticsPage';
 import DashboardPage from '../features/my/pages/dashboardPage';
 import AlbumsPage from '../features/my/pages/albumsPage';
+import AlbumDetailPage from '../features/my/pages/albumDetailPage';
 import OrdersPage from '../features/my/pages/ordersPage';
 import SettingsPage from '../features/my/pages/settingsPage';
 import Layout from './components/Layout';
@@ -42,6 +43,7 @@ const AppRoutes: FC = () => {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="albums" element={<AlbumsPage />} />
+            <Route path="albums/:id" element={<AlbumDetailPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="settings" element={<SettingsPage />} />
