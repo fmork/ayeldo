@@ -48,7 +48,22 @@ export const siteConfig = createSiteConfigurationFromEnv();
 logWriter.info(
   `Site configuration: webOrigin=${siteConfig.origins.webOrigin}, apiOrigin=${siteConfig.origins.apiBaseUrl}`,
 );
-logWriter.info(`OIDC configuration status: ENABLED`);
+logWriter.info(
+  `OIDC configuration status: ${siteConfig.oidc.authority && siteConfig.oidc.clientId && siteConfig.oidc.clientSecret ? 'ENABLED' : 'DISABLED'}`,
+);
+
+// Validate OIDC configuration
+if (!siteConfig.oidc.authority || !siteConfig.oidc.clientId || !siteConfig.oidc.clientSecret) {
+  // In test environment, skip the error and just log a warning
+  if (process.env['JEST_WORKER_ID'] || process.env['NODE_ENV'] === 'test') {
+    logWriter.warn('OIDC is not configured. Auth endpoints will not be available.');
+    logWriter.warn('To enable OIDC, set: OIDC_ISSUER_URL, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET');
+  } else {
+    throw new Error(
+      'OIDC configuration is required but not provided. Please configure oidcAuthority, oidcClientId, and oidcClientSecret.',
+    );
+  }
+}
 
 // Env - simplified schema now that OIDC is handled by SiteConfiguration
 export const env = loadEnv(
