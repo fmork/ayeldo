@@ -245,12 +245,13 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
 
 When an AI agent generates code, it should:
 
-1. **Check references** (`C4 DSL`, `todo.md`, `dynamo.md`, `events.md`).
-2. **Update itself on** manual code changes, so that it does not overwrite and corrupt files.
-3. **Follow coding rules** (strict TS, zod validation, async/await, no any).
-4. **Respect architecture** (API → Services, ports, events).
-5. **Produce tests** for new domain logic.
-6. **Verify correctness** so that generated code does not contain errors. **ALWAYS** `scripts/build.sh` before a task is handed off in order to verify that nothing is broken. **Verify your working directory** before running the script. This script emits an ESLint TypeScript version warning: ignore this warning.
-7. **Document** new features in `docs/` as needed.
+1. **NEVER EVER RUN CDK DEPLOY**
+2. **Check references** (`C4 DSL`, `todo.md`, `dynamo.md`, `events.md`).
+3. **Update itself on** manual code changes, so that it does not overwrite and corrupt files.
+4. **Follow coding rules** (strict TS, zod validation, async/await, no any).
+5. **Respect architecture** (API → Services, ports, events).
+6. **Produce tests** for new domain logic.
+7. **Verify correctness** so that generated code does not contain errors. **ALWAYS** `scripts/build.sh` before a task is handed off in order to verify that nothing is broken. **Verify your working directory** before running the script. This script emits an ESLint TypeScript version warning: ignore this warning.
+8. **Document** new features in `docs/` as needed.
 
 ---
