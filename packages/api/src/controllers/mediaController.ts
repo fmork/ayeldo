@@ -37,18 +37,14 @@ export class MediaController extends PublicController {
       await this.performRequest(
         () => {
           const cdnHost = process.env['CDN_HOST'];
-          if (cdnHost) {
-            return this.flow.listAlbumImagesWithCdnUrls(
-              (req as unknown as { params: Record<string, unknown> }).params,
-              (req as unknown as { query: unknown }).query,
-              cdnHost,
-            );
-          } else {
-            return this.flow.listAlbumImages(
-              (req as unknown as { params: Record<string, unknown> }).params,
-              (req as unknown as { query: unknown }).query,
-            );
+          if (!cdnHost) {
+            throw new Error('CDN_HOST environment variable is required');
           }
+          return this.flow.listAlbumImagesWithCdnUrls(
+            (req as unknown as { params: Record<string, unknown> }).params,
+            (req as unknown as { query: unknown }).query,
+            cdnHost,
+          );
         },
         res,
         () => 200,
