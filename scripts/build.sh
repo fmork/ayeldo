@@ -8,6 +8,7 @@ cd "$REPO_ROOT"
 
 echo "GitHub Access Token is set: ${GITHUB_ACCESS_TOKEN:+yes}"
 
+
 # Install workspace dependencies deterministically (single pass)
 pnpm install --frozen-lockfile --prefer-offline
 
@@ -16,6 +17,9 @@ pnpm -w run lint
 
 # Build TypeScript projects in topological order via project references
 pnpm -w run typecheck
+
+# Build all packages and web (in parallel where possible)
+pnpm -w run build
 
 # Run tests (packages only; web uses vitest separately)
 pnpm -w run test

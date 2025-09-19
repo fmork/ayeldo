@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
 import type { ILogWriter } from '../logging';
-import type { HttpHandler, HttpResponse, HttpRouter } from './http';
+import type { HttpHandler, HttpMiddleware, HttpResponse, HttpRouter } from './http';
 import { ExpressHttpRouter, ExpressRequestAdapter, ExpressResponseAdapter } from './http';
 
 export abstract class ControllerBase {
@@ -57,9 +57,7 @@ export abstract class ControllerBase {
   }
 
   // Helper to wrap an HttpMiddleware into an Express middleware
-  protected wrapMiddleware(
-    middleware: (req: unknown, res: unknown, next: () => void) => Promise<void> | void,
-  ) {
+  protected wrapMiddleware(middleware: HttpMiddleware) {
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const httpReq = new ExpressRequestAdapter(req);
       const httpRes = new ExpressResponseAdapter(res);
