@@ -25,5 +25,26 @@
     "home": "Home",
     "albumDemo": "Album Demo",
     "cart": "Cart"
+  },
+  "albums": {
+    "visitor_view": "Visitor view",
+    "upload_images": "Upload Images",
+    "uploading_files": "Uploading {{count}} file(s)...",
+    "images_count": "Images ({{count}})",
+    "no_images": "No images in this album yet. Upload some images to get started.",
+    "failed_to_load_album": "Failed to load album: {{error}}",
+    "failed_to_load_album_images": "Failed to load album images: {{error}}",
+    "album_not_found": "Album not found",
+    "please_log_in": "Please log in to view this album",
+    "dropzone_instructions": "Drag and drop files here, or click to select. You can continue browsing while uploads proceed in the background.",
+    "select_files": "Select files",
+    "error_title_required": "Album title is required.",
+    "error_unable_create": "Unable to create the album right now. Please try again.",
+    "create_new_album": "Create a new album",
+    "create_album_instructions": "Give your album a short title and an optional description. You can add media after creating it.",
+    "field_title": "Album title",
+    "field_description": "Description",
+    "creating": "Creating…",
+    "create_album": "Create album"
   }
 }

@@ -5,6 +5,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import type { ChangeEvent, DragEvent, FC } from 'react';
 import { useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useUploadQueueActions } from '../../../app/contexts/UploadQueueContext';
 
 interface AlbumUploadDropzoneProps {
@@ -14,6 +15,7 @@ interface AlbumUploadDropzoneProps {
 
 const AlbumUploadDropzone: FC<AlbumUploadDropzoneProps> = ({ tenantId, albumId }) => {
   const { enqueueFiles } = useUploadQueueActions();
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
@@ -82,13 +84,13 @@ const AlbumUploadDropzone: FC<AlbumUploadDropzoneProps> = ({ tenantId, albumId }
         <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
           <CloudUploadOutlinedIcon color={isDragging ? 'primary' : 'action'} sx={{ fontSize: 48 }} />
           <Box>
-            <Typography variant="h6">Upload images</Typography>
+            <Typography variant="h6">{t('albums.upload_images')}</Typography>
             <Typography variant="body2" color="text.secondary">
-              Drag and drop files here, or click to select. You can continue browsing while uploads proceed in the background.
+              {t('albums.dropzone_instructions')}
             </Typography>
           </Box>
           <Button variant="contained" onClick={openFileDialog} startIcon={<CloudUploadOutlinedIcon />}>
-            Select files
+            {t('albums.select_files')}
           </Button>
         </Box>
       </Paper>
@@ -97,4 +99,3 @@ const AlbumUploadDropzone: FC<AlbumUploadDropzoneProps> = ({ tenantId, albumId }
 };
 
 export default AlbumUploadDropzone;
-

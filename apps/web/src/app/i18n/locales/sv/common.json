@@ -9,5 +9,26 @@
     "home": "Hem",
     "albumDemo": "Albumdemo",
     "cart": "Kundvagn"
+  },
+  "albums": {
+    "visitor_view": "Besöksvy",
+    "upload_images": "Ladda upp bilder",
+    "uploading_files": "Laddar upp {{count}} fil(er)...",
+    "images_count": "Bilder ({{count}})",
+    "no_images": "Inga bilder i detta album ännu. Ladda upp några bilder för att komma igång.",
+    "failed_to_load_album": "Kunde inte ladda album: {{error}}",
+    "failed_to_load_album_images": "Kunde inte ladda albumets bilder: {{error}}",
+    "album_not_found": "Album hittades inte",
+    "please_log_in": "Logga in för att se detta album",
+    "dropzone_instructions": "Dra och släpp filer här, eller klicka för att välja. Du kan fortsätta bläddra medan uppladdningar pågår i bakgrunden.",
+    "select_files": "Välj filer",
+    "error_title_required": "Albumtitel krävs.",
+    "error_unable_create": "Kunde inte skapa albumet just nu. Försök igen senare.",
+    "create_new_album": "Skapa ett nytt album",
+    "create_album_instructions": "Ge ditt album en kort titel och en valfri beskrivning. Du kan lägga till media efter att du skapat det.",
+    "field_title": "Albumtitel",
+    "field_description": "Beskrivning",
+    "creating": "Skapar…",
+    "create_album": "Skapa album"
   }
 }

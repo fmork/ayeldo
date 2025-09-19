@@ -1,5 +1,7 @@
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardMedia from '@mui/material/CardMedia';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -9,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
 import type { FC } from 'react';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import PageIsLoading from '../../../app/components/PageIsLoading';
 import { useSession } from '../../../app/contexts/SessionContext';
@@ -25,6 +28,7 @@ const AlbumDetailPage: FC = () => {
   const albumId = params.albumId ?? params.id;
   const routeTenantId = params.tenantId;
   const { jobs } = useUploadQueue();
+  const { t } = useTranslation();
 
   const queryParams = useMemo(() => {
     if (!session?.loggedIn || !session.tenantIds || session.tenantIds.length === 0 || !albumId) {
@@ -44,7 +48,7 @@ const AlbumDetailPage: FC = () => {
   if (albumError) {
     return (
       <Alert severity="error">
-        Failed to load album: {String(albumError)}
+        {t('albums.failed_to_load_album', { error: String(albumError) })}
       </Alert>
     );
   }
@@ -52,25 +56,17 @@ const AlbumDetailPage: FC = () => {
   if (imagesError) {
     return (
       <Alert severity="error">
-        Failed to load album images: {String(imagesError)}
+        {t('albums.failed_to_load_album_images', { error: String(imagesError) })}
       </Alert>
     );
   }
 
   if (!album) {
-    return (
-      <Alert severity="error">
-        Album not found
-      </Alert>
-    );
+    return <Alert severity="error">{t('albums.album_not_found')}</Alert>;
   }
 
   if (!session?.loggedIn || !session.tenantIds || session.tenantIds.length === 0 || !albumId) {
-    return (
-      <Alert severity="error">
-        Please log in to view this album
-      </Alert>
-    );
+    return <Alert severity="error">{t('albums.please_log_in')}</Alert>;
   }
 
   // Prefer an explicit tenantId from the route when present (admin routes).
@@ -80,20 +76,30 @@ const AlbumDetailPage: FC = () => {
 
   return (
     <Stack spacing={3}>
-      <Typography variant="h4">{album.title}</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Typography variant="h4">{album.title}</Typography>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<OpenInNewIcon />}
+          href={`/tenants/${tenantId}/albums/${albumId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t('albums.visitor_view')}
+        </Button>
+      </Box>
 
-      {album.description && (
-        <Typography variant="body1">{album.description}</Typography>
-      )}
+      {album.description && <Typography variant="body1">{album.description}</Typography>}
 
       <Box>
-        <Typography variant="h6" gutterBottom>Upload Images</Typography>
+        <Typography variant="h6" gutterBottom>{t('albums.upload_images')}</Typography>
         <AlbumUploadDropzone tenantId={tenantId} albumId={albumId} />
 
         {uploadingFiles.length > 0 && (
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle2" gutterBottom>
-              Uploading {uploadingFiles.length} file(s)...
+              {t('albums.uploading_files', { count: uploadingFiles.length })}
             </Typography>
             <Stack spacing={1}>
               {uploadingFiles.map((job, index: number) => (
@@ -111,12 +117,12 @@ const AlbumDetailPage: FC = () => {
 
       <Box>
         <Typography variant="h6" gutterBottom>
-          Images ({images?.length || 0})
+          {t('albums.images_count', { count: images?.length || 0 })}
         </Typography>
 
         {!images || images.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
-            No images in this album yet. Upload some images to get started.
+            {t('albums.no_images')}
           </Typography>
         ) : (
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 2 }}>
