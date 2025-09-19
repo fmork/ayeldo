@@ -16,11 +16,11 @@ const requestLogger = new RequestLogMiddleware({ logWriter });
 // picks it up when it installs middleware.
 // requestLogger.logRequest = enhancedLogRequest.bind(requestLogger);
 const serverPort: number =
-  siteConfig.serverPort ??
+  siteConfig.server.port ??
   (process.env['PORT'] ? Number.parseInt(process.env['PORT'] as string, 10) : 3000);
 
 logWriter.info(
-  `Starting API server on port ${serverPort}, API origin: ${siteConfig.apiOrigin}, Web origin: ${siteConfig.webOrigin}`,
+  `Starting API server on port ${serverPort}, API origin: ${siteConfig.origins.apiBaseUrl}, Web origin: ${siteConfig.origins.webOrigin}`,
 );
 
 export const server = new Server({
@@ -46,8 +46,8 @@ export const server = new Server({
   },
   corsOptions: {
     origin: [
-      siteConfig.webOrigin,
-      siteConfig.apiOrigin,
+      siteConfig.origins.webOrigin,
+      siteConfig.origins.apiBaseUrl,
       // Development origins
       /^http:\/\/localhost:\d+$/,
       /^https:\/\/localhost:\d+$/,

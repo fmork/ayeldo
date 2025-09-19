@@ -3,29 +3,40 @@
 // runs they may set process.env before constructing the instance.
 
 export class SiteConfiguration {
-  private readonly _webOrigin: string;
-  private readonly _apiBaseUrl: string;
-  // Note: the project previously used a distinct "BFF" service. The HTTP API now
-  // includes those responsibilities. `_bffOrigin` is retained for backward compatibility
-  // but represents the HTTP API origin (preferred name: API origin).
-  private readonly _apiBasePath: string;
-  private readonly _csrfHeaderName: string;
-  private readonly _oidcScopes: string;
-  private readonly _oidcRedirectPath: string;
-  private readonly _oidcAuthority: string | undefined;
-  private readonly _oidcClientId: string | undefined;
-  private readonly _oidcClientSecret: string | undefined;
-  private readonly _sessionEncKey: string | undefined;
-  private readonly _apiJwtSecret: string | undefined;
-  // Infra/deployment hints
-  private readonly _tableName: string | undefined;
-  private readonly _awsRegion: string | undefined;
-  private readonly _eventBusName: string | undefined;
-  private readonly _ddbEndpoint: string | undefined;
-  private readonly _cdnHost: string | undefined;
-  private readonly _serverPort: number | undefined;
-  private readonly _mediaBucket: string | undefined;
-  private readonly _imageVariantsRaw: string | undefined;
+  // Grouped internal structures for clarity
+  private readonly _origins: {
+    webOrigin: string;
+    apiBaseUrl: string; // raw origin (no path)
+    apiBasePath: string;
+  };
+
+  private readonly _oidc: {
+    authority?: string;
+    clientId?: string;
+    clientSecret?: string;
+    scopes: string;
+    redirectPath: string;
+  };
+
+  private readonly _security: {
+    csrfHeaderName: string;
+    sessionEncKey?: string;
+    apiJwtSecret?: string;
+  };
+
+  private readonly _infra: {
+    tableName?: string;
+    awsRegion?: string;
+    eventBusName?: string;
+    ddbEndpoint?: string;
+    cdnHost?: string;
+    mediaBucket?: string;
+    imageVariantsRaw?: string;
+  };
+
+  private readonly _server: {
+    port?: number | undefined;
+  };
 
   public constructor() {
     // Read from environment variables. Use globalThis to avoid assuming Node
@@ -45,133 +56,180 @@ export class SiteConfiguration {
       throw new Error('Missing required environment variable: API_BASE_URL');
     }
 
-    this._webOrigin = rawWebOrigin.replace(/\/$/, '');
-    this._apiBaseUrl = rawApiBaseUrl.replace(/\/$/, '');
+    this._origins = {
+      webOrigin: rawWebOrigin.replace(/\/$/, ''),
+      apiBaseUrl: rawApiBaseUrl.replace(/\/$/, ''),
+      apiBasePath: env['API_BASE_PATH'] ?? '/api',
+    };
 
-    this._apiBasePath = env['API_BASE_PATH'] ?? '/api';
-    this._csrfHeaderName = env['CSRF_HEADER_NAME'] ?? 'X-CSRF-Token';
+    this._security = {
+      csrfHeaderName: env['CSRF_HEADER_NAME'] ?? 'X-CSRF-Token',
+      sessionEncKey: env['SESSION_ENC_KEY'],
+      apiJwtSecret: env['API_JWT_SECRET'],
+    };
 
-    this._oidcScopes = env['OIDC_SCOPES'] ?? 'openid email profile';
-    this._oidcRedirectPath = env['OIDC_REDIRECT_URI'] ?? '/auth/callback';
+    this._oidc = {
+      authority: env['OIDC_ISSUER_URL'],
+      clientId: env['OIDC_CLIENT_ID'],
+      clientSecret: env['OIDC_CLIENT_SECRET'],
+      scopes: env['OIDC_SCOPES'] ?? 'openid email profile',
+      redirectPath: env['OIDC_REDIRECT_URI'] ?? '/auth/callback',
+    };
 
-    this._oidcAuthority = env['OIDC_ISSUER_URL'];
-    this._oidcClientId = env['OIDC_CLIENT_ID'];
-    this._oidcClientSecret = env['OIDC_CLIENT_SECRET'];
+    this._infra = {
+      tableName: env['TABLE_NAME'],
+      awsRegion: env['AWS_REGION'],
+      eventBusName: env['EVENTS_BUS_NAME'] ?? env['EVENT_BUS_NAME'],
+      ddbEndpoint: env['DDB_ENDPOINT'],
+      cdnHost: env['CDN_HOST'],
+      mediaBucket: env['MEDIA_BUCKET'],
+      imageVariantsRaw: env['IMAGE_VARIANTS'],
+    };
 
-    this._sessionEncKey = env['SESSION_ENC_KEY'];
-    this._apiJwtSecret = env['API_JWT_SECRET'];
+    this._server = {
+      port: env['PORT'] ? Number.parseInt(env['PORT'], 10) : undefined,
+    };
+  }
 
-    // Infra/deployment
-    this._tableName = env['TABLE_NAME'];
-    this._awsRegion = env['AWS_REGION'];
-    this._eventBusName = env['EVENTS_BUS_NAME'] ?? env['EVENT_BUS_NAME'];
-    this._ddbEndpoint = env['DDB_ENDPOINT'];
-    this._cdnHost = env['CDN_HOST'];
-    this._serverPort = env['PORT'] ? Number.parseInt(env['PORT'], 10) : undefined;
-    this._mediaBucket = env['MEDIA_BUCKET'];
-    this._imageVariantsRaw = env['IMAGE_VARIANTS'];
+  // Public grouped accessors
+  public get origins(): Readonly<{ webOrigin: string; apiBaseUrl: string; apiBasePath: string }> {
+    return Object.freeze({ ...this._origins });
+  }
+
+  public get oidc(): Readonly<{
+    authority?: string;
+    clientId?: string;
+    clientSecret?: string;
+    scopes: string;
+    redirectPath: string;
+  }> {
+    return Object.freeze({ ...this._oidc });
+  }
+
+  public get security(): Readonly<{
+    csrfHeaderName: string;
+    sessionEncKey?: string;
+    apiJwtSecret?: string;
+  }> {
+    return Object.freeze({ ...this._security });
+  }
+
+  public get infra(): Readonly<{
+    tableName?: string;
+    awsRegion?: string;
+    eventBusName?: string;
+    ddbEndpoint?: string;
+    cdnHost?: string;
+    mediaBucket?: string;
+    imageVariantsRaw?: string;
+  }> {
+    return Object.freeze({ ...this._infra });
+  }
+
+  public get server(): Readonly<{ port?: number | undefined }> {
+    return Object.freeze({ ...this._server });
   }
 
   // Infra getters
   public get tableName(): string | undefined {
-    return this._tableName;
+    return this._infra.tableName;
   }
 
   public get awsRegion(): string | undefined {
-    return this._awsRegion;
+    return this._infra.awsRegion;
   }
 
   public get eventBusName(): string | undefined {
-    return this._eventBusName;
+    return this._infra.eventBusName;
   }
 
   public get ddbEndpoint(): string | undefined {
-    return this._ddbEndpoint;
+    return this._infra.ddbEndpoint;
   }
 
   public get cdnHost(): string | undefined {
-    return this._cdnHost;
+    return this._infra.cdnHost;
   }
 
   public get serverPort(): number | undefined {
-    return this._serverPort;
+    return this._server.port;
   }
 
   public get mediaBucket(): string | undefined {
-    return this._mediaBucket;
+    return this._infra.mediaBucket;
   }
 
   public get imageVariantsRaw(): string | undefined {
-    return this._imageVariantsRaw;
+    return this._infra.imageVariantsRaw;
   }
 
   public get webOrigin(): string {
-    return this._webOrigin;
+    return this._origins.webOrigin;
   }
 
   // Backwards-compatible alias for documentation clarity: API origin (includes former BFF)
   public get apiOrigin(): string {
-    return this._apiBaseUrl;
+    return this._origins.apiBaseUrl;
   }
 
   public get apiBasePath(): string {
-    return this._apiBasePath;
+    return this._origins.apiBasePath;
   }
 
   public get csrfHeaderName(): string {
-    return this._csrfHeaderName;
+    return this._security.csrfHeaderName;
   }
 
   // Full base URL the browser should call (HTTP API)
   public get apiBaseUrl(): string {
-    return `${this._apiBaseUrl}${this.ensureLeadingSlash(this._apiBasePath)}`;
+    return `${this._origins.apiBaseUrl}${this.ensureLeadingSlash(this._origins.apiBasePath)}`;
   }
 
   // OIDC configuration getters with inference
   public get oidcAuthority(): string | undefined {
-    return this._oidcAuthority;
+    return this._oidc.authority;
   }
 
   public get oidcClientId(): string | undefined {
-    return this._oidcClientId;
+    return this._oidc.clientId;
   }
 
   public get oidcClientSecret(): string | undefined {
-    return this._oidcClientSecret;
+    return this._oidc.clientSecret;
   }
 
   public get oidcScopes(): string {
-    return this._oidcScopes;
+    return this._oidc.scopes;
   }
 
   public get oidcRedirectUri(): string {
-    return `${this._apiBaseUrl}${this.ensureLeadingSlash(this._oidcRedirectPath)}`;
+    return `${this._origins.apiBaseUrl}${this.ensureLeadingSlash(this._oidc.redirectPath)}`;
   }
 
   public get sessionEncKey(): string | undefined {
-    return this._sessionEncKey;
+    return this._security.sessionEncKey;
   }
 
   public get apiJwtSecret(): string | undefined {
-    return this._apiJwtSecret;
+    return this._security.apiJwtSecret;
   }
 
   // Inferred OIDC URLs based on authority
   public get oidcAuthUrl(): string | undefined {
-    if (!this._oidcAuthority) return undefined;
-    const cleanAuthority = this._oidcAuthority.replace(/\/$/, '');
+    if (!this._oidc.authority) return undefined;
+    const cleanAuthority = this._oidc.authority.replace(/\/$/, '');
     return `${cleanAuthority}/oauth2/authorize`;
   }
 
   public get oidcTokenUrl(): string | undefined {
-    if (!this._oidcAuthority) return undefined;
-    const cleanAuthority = this._oidcAuthority.replace(/\/$/, '');
+    if (!this._oidc.authority) return undefined;
+    const cleanAuthority = this._oidc.authority.replace(/\/$/, '');
     return `${cleanAuthority}/oauth2/token`;
   }
 
   public get oidcJwksUrl(): string | undefined {
-    if (!this._oidcAuthority) return undefined;
-    const cleanAuthority = this._oidcAuthority.replace(/\/$/, '');
+    if (!this._oidc.authority) return undefined;
+    const cleanAuthority = this._oidc.authority.replace(/\/$/, '');
     return `${cleanAuthority}/.well-known/jwks.json`;
   }
 
@@ -182,7 +240,7 @@ export class SiteConfiguration {
   } {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (csrfToken) {
-      headers[this._csrfHeaderName] = csrfToken;
+      headers[this._security.csrfHeaderName] = csrfToken;
     }
     return {
       credentials: 'include',
@@ -194,8 +252,8 @@ export class SiteConfiguration {
   public get cookieDomain(): string | undefined {
     try {
       // Extract hostname from webOrigin and API Origin
-      const webHostname = this._webOrigin.replace(/^https?:\/\//, '').split('/')[0];
-      const apiHostname = this._apiBaseUrl.replace(/^https?:\/\//, '').split('/')[0];
+      const webHostname = this._origins.webOrigin.replace(/^https?:\/\//, '').split('/')[0];
+      const apiHostname = this._origins.apiBaseUrl.replace(/^https?:\/\//, '').split('/')[0];
 
       // Remove port if present
       const webHost = webHostname.split(':')[0];
@@ -229,26 +287,26 @@ export class SiteConfiguration {
       WEB_ORIGIN: this.webOrigin,
     };
 
-    if (this._oidcAuthority && this._oidcClientId && this._oidcClientSecret) {
-      env['OIDC_ISSUER_URL'] = this._oidcAuthority;
+    if (this.oidcAuthority && this.oidcClientId && this.oidcClientSecret) {
+      env['OIDC_ISSUER_URL'] = this.oidcAuthority;
       const authUrl = this.oidcAuthUrl;
       const tokenUrl = this.oidcTokenUrl;
       const jwksUrl = this.oidcJwksUrl;
       if (authUrl) env['OIDC_AUTH_URL'] = authUrl;
       if (tokenUrl) env['OIDC_TOKEN_URL'] = tokenUrl;
       if (jwksUrl) env['OIDC_JWKS_URL'] = jwksUrl;
-      env['OIDC_CLIENT_ID'] = this._oidcClientId;
-      env['OIDC_CLIENT_SECRET'] = this._oidcClientSecret;
-      env['OIDC_SCOPES'] = this._oidcScopes;
+      env['OIDC_CLIENT_ID'] = this.oidcClientId as string;
+      env['OIDC_CLIENT_SECRET'] = this.oidcClientSecret as string;
+      env['OIDC_SCOPES'] = this.oidcScopes;
       env['OIDC_REDIRECT_URI'] = this.oidcRedirectUri;
     }
 
-    if (this._sessionEncKey) {
-      env['SESSION_ENC_KEY'] = this._sessionEncKey;
+    if (this.sessionEncKey) {
+      env['SESSION_ENC_KEY'] = this.sessionEncKey;
     }
 
-    if (this._apiJwtSecret) {
-      env['API_JWT_SECRET'] = this._apiJwtSecret;
+    if (this.apiJwtSecret) {
+      env['API_JWT_SECRET'] = this.apiJwtSecret;
     }
 
     return env;

@@ -50,14 +50,14 @@ export const siteConfig = createSiteConfigurationFromEnv();
 // Log configuration status
 // Note: `bffOrigin` currently represents the HTTP API origin (formerly called BFF).
 logWriter.info(
-  `Site configuration: webOrigin=${siteConfig.webOrigin}, apiOrigin=${siteConfig.apiOrigin}`,
+  `Site configuration: webOrigin=${siteConfig.origins.webOrigin}, apiOrigin=${siteConfig.origins.apiBaseUrl}`,
 );
 logWriter.info(
-  `OIDC configuration status: ${siteConfig.oidcAuthority && siteConfig.oidcClientId && siteConfig.oidcClientSecret ? 'ENABLED' : 'DISABLED'}`,
+  `OIDC configuration status: ${siteConfig.oidc.authority && siteConfig.oidc.clientId && siteConfig.oidc.clientSecret ? 'ENABLED' : 'DISABLED'}`,
 );
 
 // Validate OIDC configuration
-if (!siteConfig.oidcAuthority || !siteConfig.oidcClientId || !siteConfig.oidcClientSecret) {
+if (!siteConfig.oidc.authority || !siteConfig.oidc.clientId || !siteConfig.oidc.clientSecret) {
   // In test environment, skip the error and just log a warning
   if (process.env['JEST_WORKER_ID'] || process.env['NODE_ENV'] === 'test') {
     logWriter.warn('OIDC is not configured. Auth endpoints will not be available.');

@@ -37,7 +37,8 @@ export class MediaController extends PublicController {
     this.addGet('/tenants/:tenantId/albums/:albumId/images', async (req, res) => {
       await this.performRequest(
         () => {
-          const cdnHost = siteConfig.cdnHost ?? process.env['CDN_HOST'];
+          const cdnHost =
+            siteConfig.infra.cdnHost ?? (process.env['CDN_HOST'] as string | undefined);
           if (!cdnHost) {
             throw new Error('CDN_HOST configuration is required');
           }
