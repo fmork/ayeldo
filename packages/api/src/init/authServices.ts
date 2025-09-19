@@ -52,6 +52,7 @@ export const sessions = new SessionService({
   issuer: 'bff',
   audience: 'api',
   logger: logWriter,
+  oidc,
 });
 
 export const authFlowService = new AuthFlowService({

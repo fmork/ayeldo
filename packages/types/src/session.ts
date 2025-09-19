@@ -24,6 +24,9 @@ export interface SessionRecord {
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly ttl: number; // epoch seconds
+  /** Optional convenience metadata for fast checks (kept in sync with tokensEnc) */
+  readonly accessExpiresAt?: number; // epoch seconds
+  readonly refreshExpiresAt?: number; // epoch seconds | undefined
   readonly tokensEnc: EncBlob;
 }
 

@@ -15,6 +15,7 @@ export interface SessionServiceProps {
   readonly issuer: string;
   readonly audience: string;
   readonly logger: ILogWriter;
+  readonly oidc?: OidcClientOpenId;
 }
 
 function toCodeChallenge(verifier: string): string {
@@ -31,6 +32,7 @@ export class SessionService {
   private readonly issuer: string;
   private readonly audience: string;
   private readonly logger: ILogWriter;
+  private readonly oidc: OidcClientOpenId | undefined;
 
   public constructor(props: SessionServiceProps) {
     this.store = props.store;
@@ -41,6 +43,7 @@ export class SessionService {
     this.issuer = props.issuer;
     this.audience = props.audience;
     this.logger = props.logger;
+    this.oidc = props.oidc;
   }
 
   public createLoginState(): {
@@ -101,7 +104,8 @@ export class SessionService {
       (profile.name !== undefined
         ? profile.name
         : this.combineNames(profile.givenName, profile.familyName));
-    const ttl = nowSec + 7 * 24 * 3600; // 7 days default
+    // TTL derived from token lifetime: session TTL == 2 * access_token lifetime
+    const ttl = nowSec + 2 * tokens.expires_in;
     const rec: SessionRecord = {
       sid,
       sub: profile.sub ?? '',
@@ -160,20 +164,85 @@ export class SessionService {
 
     try {
       const tokens = decryptTokens(this.encKeyB64, session.tokensEnc);
-      const nowSec = Math.floor(Date.now() / 1000);
+      let nowSec = Math.floor(Date.now() / 1000);
 
-      // Check if tokens are still valid (with 1 minute buffer)
-      if (tokens.expiresAt <= nowSec + 60) {
-        this.logger.warn(`Access token expired for session ${sid}`);
+      // If access token is still valid (1 minute buffer), return it and consider rolling TTL update
+      if (tokens.expiresAt > nowSec + 60) {
+        // Fire-and-forget update to extend session TTL when needed
+        this.extendSessionTtlIfNeeded(session, tokens.expiresAt).catch(() => undefined);
+        return tokens.accessToken;
+      }
+
+      this.logger.info(`Access token expired for session ${sid}, attempting refresh`);
+
+      // Attempt to refresh if we have an OIDC client and a refresh token
+      if (!this.oidc) {
+        this.logger.warn('No OIDC client available to perform token refresh');
         return undefined;
       }
 
-      return tokens.accessToken;
+      if (!tokens.refreshToken) {
+        this.logger.warn(`No refresh token present for session ${sid}`);
+        return undefined;
+      }
+
+      try {
+        const refreshed = await this.oidc.refreshToken(tokens.refreshToken);
+        nowSec = Math.floor(Date.now() / 1000);
+        const newBundle: TokenBundle = {
+          accessToken: refreshed.access_token,
+          idToken: refreshed.id_token,
+          refreshToken: refreshed.refresh_token ?? tokens.refreshToken,
+          expiresAt: nowSec + refreshed.expires_in,
+        };
+
+        // Encrypt and update session record atomically
+        const newEnc = encryptTokens(this.encKeyB64, this.encKid, newBundle);
+        const newTtl = nowSec + 2 * refreshed.expires_in;
+        const updatedRec: SessionRecord = {
+          ...session,
+          updatedAt: new Date().toISOString(),
+          ttl: newTtl,
+          tokensEnc: newEnc,
+        } as const;
+
+        await this.store.putSession(updatedRec);
+        this.logger.info(`Session ${sid} refreshed and updated`);
+        return newBundle.accessToken;
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        this.logger.warn(`Failed to refresh token for session ${sid}: ${error.message}`);
+        // On failure, clear session to force re-auth
+        await this.store.deleteSession(sid);
+        return undefined;
+      }
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       this.logger.error(`Failed to decrypt tokens for session ${sid}`, error);
       return undefined;
     }
+  }
+
+  private async extendSessionTtlIfNeeded(
+    session: SessionRecord,
+    accessExpiresAt: number,
+  ): Promise<void> {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const accessRemaining = accessExpiresAt - nowSec;
+    const sessionRemaining = (session.ttl ?? 0) - nowSec;
+    const updatedAtSec = Math.floor(new Date(session.updatedAt).getTime() / 1000);
+
+    const shouldUpdate = sessionRemaining < accessRemaining || nowSec - updatedAtSec > 60;
+    if (!shouldUpdate) return;
+
+    const newTtl = nowSec + 2 * accessRemaining;
+    const updatedRec: SessionRecord = {
+      ...session,
+      updatedAt: new Date().toISOString(),
+      ttl: newTtl,
+    } as const;
+
+    await this.store.putSession(updatedRec);
   }
 
   public signApiJwt(sub: string, tenantId?: string, roles?: readonly string[]): string {

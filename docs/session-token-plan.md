@@ -218,13 +218,21 @@ Use these checkboxes to track progress. Convention here:
 - [-] = in-progress
 - [ ] = not started
 
-- [-] Analyze current session & token model — Locate session storage, session creation flow, and existing token handling. (Discovery in-progress)
-- [ ] Design TTL & rolling policy — Define exact calculations and rolling-window rules.
-- [ ] Update session storage schema — Add fields (accessToken, refreshToken, expiries, lastSeen) and plan migration.
-- [ ] Implement middleware to refresh session TTL (rolling) — Update session on requests with write-throttling.
-- [ ] Implement automatic access token refresh — Use refresh token when access token expired and update session atomically.
-- [ ] Handle refresh failures and re-auth flows — Clear sessions, return 401 or redirect, emit audit events.
+- [x] Analyze current session & token model — Locate session storage, session creation flow, and existing token handling. (Discovery completed)
+- [x] Design TTL & rolling policy — Define exact calculations and rolling-window rules. (Completed)
+- [x] Update session storage schema — Add fields (accessToken, refreshToken, expiries, lastSeen) and plan migration. (Completed)
+- [x] Implement middleware to refresh session TTL (rolling) — Update session on requests with write-throttling. (Completed)
+- [x] Implement automatic access token refresh — Use refresh token when access token expired and update session atomically. (Completed)
+- [x] Handle refresh failures and re-auth flows — Clear sessions, return 401 or redirect, emit audit events. (Completed)
 - [ ] Add unit and integration tests — Mock token endpoint flows and middleware behavior.
 - [ ] Add config & env variables — Feature flag, thresholds, token endpoint config.
 - [ ] Documentation & security review — Threat model, token storage, runbook.
 - [ ] Rollout & monitoring — Canary, metrics, alerts.
+
+Last updated: 2025-09-19
+
+Notes on progress:
+
+- Implemented TTL calculation at login (session TTL = 2 \* access_token lifetime) in `SessionService.completeLogin`.
+- Implemented rolling TTL updates and a lightweight write-throttle in `SessionService.getOidcAccessToken` (updates when session remaining life is below threshold or `updatedAt` older than 60s).
+- Implemented automatic token refresh using the OIDC client; on refresh success we update encrypted tokens and session TTL; on failure we remove the session to force re-auth.

@@ -97,4 +97,18 @@ export class OidcClientOpenId {
       token_type: tokenSet.token_type as string,
     } as const;
   }
+
+  public async refreshToken(refreshToken: string): Promise<TokenResponse> {
+    // openid-client provides refresh at runtime; narrow types aren't declared above, so cast to any
+    // to avoid TS complaints while keeping runtime behavior.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tokenSet = await (this.client as any).refresh(refreshToken);
+    return {
+      access_token: tokenSet.access_token as string,
+      id_token: tokenSet.id_token as string,
+      refresh_token: tokenSet.refresh_token as string,
+      expires_in: Number(tokenSet.expires_in ?? 0),
+      token_type: tokenSet.token_type as string,
+    } as const;
+  }
 }
