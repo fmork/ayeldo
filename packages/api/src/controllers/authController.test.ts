@@ -80,11 +80,23 @@ describe('AuthController', () => {
     }) as any;
 
   const mkSiteConfig = (): SiteConfiguration => {
+    // Required envs for SiteConfiguration (tests must provide all values)
     process.env['WEB_ORIGIN'] = process.env['WEB_ORIGIN'] ?? 'http://localhost:3001';
     process.env['API_BASE_URL'] = process.env['API_BASE_URL'] ?? 'http://localhost:3000';
     process.env['OIDC_ISSUER_URL'] = process.env['OIDC_ISSUER_URL'] ?? 'https://auth.example.com';
     process.env['OIDC_CLIENT_ID'] = process.env['OIDC_CLIENT_ID'] ?? 'test-client-id';
     process.env['OIDC_CLIENT_SECRET'] = process.env['OIDC_CLIENT_SECRET'] ?? 'test-client-secret';
+    process.env['SESSION_ENC_KEY'] =
+      process.env['SESSION_ENC_KEY'] ?? 'c2Vzc2lvbl9lbmNfMzJieXRlc19iYXNlNjQ=';
+    process.env['API_JWT_SECRET'] = process.env['API_JWT_SECRET'] ?? 'YnZmX2p3dF9zZWNyZXRfYmFzZTY0';
+    process.env['TABLE_NAME'] = process.env['TABLE_NAME'] ?? 'AppTable';
+    process.env['AWS_REGION'] = process.env['AWS_REGION'] ?? 'us-east-1';
+    process.env['EVENTS_BUS_NAME'] = process.env['EVENTS_BUS_NAME'] ?? 'default';
+    process.env['DDB_ENDPOINT'] = process.env['DDB_ENDPOINT'] ?? 'http://localhost:8000';
+    process.env['CDN_HOST'] = process.env['CDN_HOST'] ?? 'http://cdn.local';
+    process.env['MEDIA_BUCKET'] = process.env['MEDIA_BUCKET'] ?? 'media-bucket';
+    process.env['IMAGE_VARIANTS'] = process.env['IMAGE_VARIANTS'] ?? 'small,medium,large';
+    process.env['PORT'] = process.env['PORT'] ?? '3000';
     return new SiteConfiguration();
   };
 

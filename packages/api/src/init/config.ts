@@ -36,11 +36,7 @@ export const claimBasedAuthorizer = new ClaimBasedAuthorizer({
 // Helper to create SiteConfiguration from environment variables
 function createSiteConfigurationFromEnv(): SiteConfiguration {
   // SiteConfiguration now reads configuration directly from environment variables.
-  // Ensure defaults commonly used in local/test runs are present on process.env
-  process.env['API_BASE_URL'] = process.env['API_BASE_URL'] ?? 'http://localhost:3000';
-  process.env['WEB_ORIGIN'] = process.env['WEB_ORIGIN'] ?? 'http://localhost:3001';
-
-  // Construct without args; the class reads from environment.
+  // Construct without args; the class will throw if required envs are missing.
   return new SiteConfiguration();
 }
 
@@ -50,24 +46,9 @@ export const siteConfig = createSiteConfigurationFromEnv();
 // Log configuration status
 // Note: `bffOrigin` currently represents the HTTP API origin (formerly called BFF).
 logWriter.info(
-  `Site configuration: webOrigin=${siteConfig.webOrigin}, apiOrigin=${siteConfig.apiOrigin}`,
+  `Site configuration: webOrigin=${siteConfig.origins.webOrigin}, apiOrigin=${siteConfig.origins.apiBaseUrl}`,
 );
-logWriter.info(
-  `OIDC configuration status: ${siteConfig.oidcAuthority && siteConfig.oidcClientId && siteConfig.oidcClientSecret ? 'ENABLED' : 'DISABLED'}`,
-);
-
-// Validate OIDC configuration
-if (!siteConfig.oidcAuthority || !siteConfig.oidcClientId || !siteConfig.oidcClientSecret) {
-  // In test environment, skip the error and just log a warning
-  if (process.env['JEST_WORKER_ID'] || process.env['NODE_ENV'] === 'test') {
-    logWriter.warn('OIDC is not configured. Auth endpoints will not be available.');
-    logWriter.warn('To enable OIDC, set: OIDC_ISSUER_URL, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET');
-  } else {
-    throw new Error(
-      'OIDC configuration is required but not provided. Please configure oidcAuthority, oidcClientId, and oidcClientSecret.',
-    );
-  }
-}
+logWriter.info(`OIDC configuration status: ENABLED`);
 
 // Env - simplified schema now that OIDC is handled by SiteConfiguration
 export const env = loadEnv(

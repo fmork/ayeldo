@@ -10,7 +10,7 @@ import { ddb, eventPublisher } from './infrastructure';
 
 // DynamoDB table name (prefer siteConfig)
 import { siteConfig } from './config';
-const tableName = siteConfig.tableName ?? process.env['TABLE_NAME'] ?? 'AppTable';
+const tableName = siteConfig.infra.tableName ?? process.env['TABLE_NAME'] ?? 'AppTable';
 
 // Tenant repository and service (used by admin controller)
 const tenantRepo = new TenantRepoDdb({ tableName, client: ddb });
