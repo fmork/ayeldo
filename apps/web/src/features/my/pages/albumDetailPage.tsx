@@ -132,13 +132,12 @@ const AlbumDetailPage: FC = () => {
         ) : (
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 2 }}>
             {images.map((image: ImageWithCdnDto) => {
-              // Find thumbnail variant or fallback to original
+              // Prefer the thumbnail variant; otherwise pick the largest available variant.
               const thumbnailVariant = image.variants?.find(v => v.label === 'thumbnail');
-              const imageUrl = thumbnailVariant?.cdnUrl || image.originalCdnUrl;
+              const largestVariant = image.variants?.slice().sort((a, b) => b.width - a.width)[0];
+              const imageUrl = thumbnailVariant?.cdnUrl ?? largestVariant?.cdnUrl;
 
-              if (!imageUrl) {
-                return null;
-              }
+              if (!imageUrl) return null;
 
               return (
                 <AlbumImageCard

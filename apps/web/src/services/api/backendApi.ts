@@ -1,31 +1,21 @@
-import type { AlbumDto, SessionInfo } from '@ayeldo/types';
+import type {
+  AlbumDto,
+  SessionInfo,
+  ImageDto as SharedImageDto,
+  ImageVariantDto as SharedImageVariantDto,
+} from '@ayeldo/types';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { frontendConfig } from '../../app/FrontendConfigurationContext';
 
-// Extended image types for CDN support
-export interface ImageVariantDto {
-  readonly label: string;
-  readonly key: string;
-  readonly width: number;
-  readonly height: number;
-  readonly sizeBytes: number;
-  readonly cdnUrl?: string;
-}
+// Reuse shared DTOs and augment with CDN fields used by the API responses.
+export type ImageVariantDto = SharedImageVariantDto & { readonly cdnUrl?: string };
 
-export interface ImageWithCdnDto {
-  readonly id: string;
-  readonly tenantId: string;
-  readonly albumId: string;
-  readonly filename: string;
-  readonly contentType: string;
-  readonly sizeBytes: number;
-  readonly width: number;
-  readonly height: number;
-  readonly createdAt: string;
-  readonly originalCdnUrl?: string;
+// Use the shared ImageDto directly; variants are augmented below with cdnUrl.
+// Keep the shared ImageDto but override the variants property so the frontend
+// sees the augmented variant shape that includes cdnUrl.
+export type ImageWithCdnDto = SharedImageDto & {
   readonly variants?: readonly ImageVariantDto[];
-  readonly processedAt?: string;
-}
+};
 
 export const backendApi = createApi({
   reducerPath: 'backendApi',

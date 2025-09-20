@@ -43,11 +43,17 @@ function pickBestVariantUrl(variants: readonly ImageVariantDto[] | undefined, ta
   return last?.cdnUrl;
 }
 
+function pickLargestVariantUrl(variants: readonly ImageVariantDto[] | undefined): string | undefined {
+  if (!variants || variants.length === 0) return undefined;
+  const sorted = [...variants].filter(v => v && v.cdnUrl).sort((a, b) => b.width - a.width);
+  return sorted[0]?.cdnUrl;
+}
+
 const AlbumImageCard: FC<AlbumImageCardProps> = ({ image, imageUrl, alt = '', sx }) => {
   const [open, setOpen] = useState(false);
   // If an image object is provided, try to build a responsive srcSet and pick a default src
-  // Prefer a variant URL close to the grid cell size; fallback to originalCdnUrl then imageUrl
-  const src = pickBestVariantUrl(image?.variants) ?? image?.originalCdnUrl ?? imageUrl ?? '';
+  // Prefer a variant URL close to the grid cell size; fallback to the largest available variant then imageUrl
+  const src = pickBestVariantUrl(image?.variants) ?? pickLargestVariantUrl(image?.variants) ?? imageUrl ?? '';
   const srcSet = buildSrcSetFromVariants(image?.variants);
   // Provide a reasonable sizes hint: card will typically be ~200px in grid lists; allow the browser to pick
   const sizes = '(max-width: 600px) 50vw, 200px';
@@ -58,7 +64,7 @@ const AlbumImageCard: FC<AlbumImageCardProps> = ({ image, imageUrl, alt = '', sx
 
   // Choose the XL variant for the overlay. Variant label is expected to be 'xl'.
   const xlVariant = image?.variants?.find((v) => v.label === 'xl') ?? undefined;
-  const overlaySrc = xlVariant?.cdnUrl ?? image?.originalCdnUrl ?? imageUrl ?? '';
+  const overlaySrc = xlVariant?.cdnUrl ?? pickLargestVariantUrl(image?.variants) ?? imageUrl ?? '';
 
   return (
     <>
