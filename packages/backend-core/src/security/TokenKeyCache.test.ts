@@ -51,7 +51,6 @@ const getHttpClientMock = (): HttpClient => {
   when(httpClientMock.get(anything())).thenCall((request: any) => {
     if (request.url === 'https://auth-host/.well-known/openid-configuration') {
       const result = JSON.parse(wellKnownOidcConfigurationString) as WellKnownOpenIdConfiguration;
-      console.info(`Returning wellKnownOidcConfigurationString: ${JSON.stringify(result)}`);
       return Promise.resolve({ body: JSON.stringify(result) } as HttpResponse);
     }
 
@@ -60,7 +59,6 @@ const getHttpClientMock = (): HttpClient => {
         resolve(__dirname, '../../test/testdata/jwks.json'),
       ).toString();
       const result = JSON.parse(jwksJsonString) as JwksResponse;
-      console.info(`Returning jwksJsonString: ${JSON.stringify(result)}`);
 
       return Promise.resolve({
         body: JSON.stringify(result),
