@@ -1,6 +1,7 @@
 import CloseIcon from '@mui/icons-material/Close';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
 import CardMedia from '@mui/material/CardMedia';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
@@ -61,6 +62,7 @@ const AlbumImageCard: FC<AlbumImageCardProps> = ({ image, imageUrl, alt = '', sx
   // Debug: unconditionally log the full image object so we can inspect what
   // data the component gets (temporary troubleshooting).
   console.info('AlbumImageCard received image:', image || { imageUrl: imageUrl });
+  const headerTitle = (image?.imageId ?? alt ?? '').trim();
 
   // Choose the XL variant for the overlay. Variant label is expected to be 'xl'.
   const xlVariant = image?.variants?.find((v) => v.label === 'xl') ?? undefined;
@@ -69,6 +71,13 @@ const AlbumImageCard: FC<AlbumImageCardProps> = ({ image, imageUrl, alt = '', sx
   return (
     <>
       <Card onClick={() => setOpen(true)} sx={{ cursor: 'pointer' }}>
+        {headerTitle.length > 0 ? (
+          <CardHeader
+            title={headerTitle}
+            titleTypographyProps={{ variant: 'subtitle2', noWrap: true }}
+            sx={{ pb: 0, pt: 1, px: 1.5 }}
+          />
+        ) : null}
         <CardMedia
           component="img"
           image={src}
