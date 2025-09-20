@@ -1,12 +1,14 @@
 import CloseIcon from '@mui/icons-material/Close';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
 import CardMedia from '@mui/material/CardMedia';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import IconButton from '@mui/material/IconButton';
 import type { SxProps, Theme } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import type { FC } from 'react';
 import { useState } from 'react';
 
@@ -70,28 +72,67 @@ const AlbumImageCard: FC<AlbumImageCardProps> = ({ image, imageUrl, alt = '', sx
 
   return (
     <>
-      <Card onClick={() => setOpen(true)} sx={{ cursor: 'pointer' }}>
-        {headerTitle.length > 0 ? (
-          <CardHeader
-            title={headerTitle}
-            titleTypographyProps={{ variant: 'subtitle2', noWrap: true }}
-            sx={{ pb: 0, pt: 1, px: 1.5 }}
+      <Card onClick={() => setOpen(true)} sx={{ cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
+        <Box sx={{ position: 'relative' }}>
+          <CardMedia
+            component="img"
+            image={src}
+            srcSet={srcSet}
+            sizes={srcSet ? sizes : undefined}
+            alt={alt}
+            sx={{
+              aspectRatio: '1',
+              objectFit: 'cover',
+              width: '100%',
+              height: '100%',
+              ...(sx || {}),
+            }}
           />
-        ) : null}
-        <CardMedia
-          component="img"
-          image={src}
-          srcSet={srcSet}
-          sizes={srcSet ? sizes : undefined}
-          alt={alt}
-          sx={{
-            aspectRatio: '1',
-            objectFit: 'cover',
-            width: '100%',
-            height: '100%',
-            ...(sx || {}),
-          }}
-        />
+          {headerTitle.length > 0 ? (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                px: 1.5,
+                py: 1,
+                backgroundColor: (theme) => alpha(theme.palette.common.black, 0.55),
+                color: 'common.white',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Typography variant="subtitle2" noWrap>
+                {headerTitle}
+              </Typography>
+            </Box>
+          ) : null}
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 0.25,
+              backgroundColor: (theme) => alpha(theme.palette.background.paper, 0.65),
+              borderTopLeftRadius: 1,
+              px: 0.5,
+              py: 0.5,
+            }}
+          >
+            <IconButton
+              size="small"
+              sx={{ p: 0.25 }}
+              onClick={(event) => {
+                event.stopPropagation();
+              }}
+            >
+              <CheckBoxOutlineBlankIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Box>
       </Card>
 
       <Dialog
