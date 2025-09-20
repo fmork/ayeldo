@@ -1,6 +1,6 @@
 import { Album } from '@ayeldo/core';
-import type { IAlbumRepo } from '@ayeldo/core';
-import type { AlbumDto } from '@ayeldo/types';
+import type { IAlbumRepo, IImageRepo } from '@ayeldo/core';
+import type { AlbumDto, ImageDto } from '@ayeldo/types';
 import { z } from 'zod';
 import { makeUuid } from '@ayeldo/utils';
 
@@ -55,23 +55,50 @@ export const listAlbumsSchema = z.object({
 
 export type ListAlbumsInput = z.infer<typeof listAlbumsSchema>;
 
+export interface ListAlbumsResult {
+  readonly albums: readonly AlbumDto[];
+  readonly images: readonly ImageDto[];
+}
+
 export async function listAlbums(
   input: ListAlbumsInput,
-  deps: { albumRepo: IAlbumRepo },
-): Promise<readonly AlbumDto[]> {
+  deps: { albumRepo: IAlbumRepo; imageRepo: IImageRepo },
+): Promise<ListAlbumsResult> {
     const { tenantId, parentAlbumId } = listAlbumsSchema.parse(input);
 
     const albums = parentAlbumId
       ? await deps.albumRepo.listChildren(tenantId, parentAlbumId)
       : await deps.albumRepo.listRoot(tenantId);
 
-    return albums.map((album) => ({
-      id: album.id,
-      tenantId: album.tenantId,
-      title: album.title,
-      ...(album.description !== undefined ? { description: album.description } : {}),
-      ...(album.parentAlbumId !== undefined ? { parentAlbumId: album.parentAlbumId } : {}),
-      createdAt: album.createdAt,
-    } as const));
-}
+    const images = parentAlbumId
+      ? await deps.imageRepo.listByAlbum(tenantId, parentAlbumId)
+      : [];
 
+    return {
+      albums: albums.map((album) => ({
+        id: album.id,
+        tenantId: album.tenantId,
+        title: album.title,
+        ...(album.description !== undefined ? { description: album.description } : {}),
+        ...(album.parentAlbumId !== undefined ? { parentAlbumId: album.parentAlbumId } : {}),
+        createdAt: album.createdAt,
+      } as const)),
+      images: images.map(
+        (image) =>
+          ({
+            id: image.id,
+            imageId: image.imageId,
+            tenantId: image.tenantId,
+            albumId: image.albumId,
+            filename: image.filename,
+            contentType: image.contentType,
+            sizeBytes: image.sizeBytes,
+            width: image.width,
+            height: image.height,
+            createdAt: image.createdAt,
+            ...(image.variants.length > 0 ? { variants: image.variants } : {}),
+            ...(image.processedAt ? { processedAt: image.processedAt } : {}),
+          }) as const,
+      ),
+    } as const;
+}

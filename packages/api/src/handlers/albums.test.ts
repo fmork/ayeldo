@@ -1,10 +1,10 @@
-import { Album } from '@ayeldo/core';
-import type { IAlbumRepo } from '@ayeldo/core';
-import type { AlbumDto } from '@ayeldo/types';
+import { Album, Image } from '@ayeldo/core';
+import type { IAlbumRepo, IImageRepo } from '@ayeldo/core';
+import type { AlbumDto, ImageDto } from '@ayeldo/types';
 import { createAlbum, listAlbums } from './albums';
 
 describe('albums handlers', () => {
-  const makeRepo = (overrides?: Partial<IAlbumRepo>): IAlbumRepo => {
+  const makeAlbumRepo = (overrides?: Partial<IAlbumRepo>): IAlbumRepo => {
     return {
       getById: jest.fn().mockResolvedValue(undefined),
       listRoot: jest.fn().mockResolvedValue([]),
@@ -14,8 +14,17 @@ describe('albums handlers', () => {
     } as IAlbumRepo;
   };
 
+  const makeImageRepo = (overrides?: Partial<IImageRepo>): IImageRepo => {
+    return {
+      getById: jest.fn().mockResolvedValue(undefined),
+      listByAlbum: jest.fn().mockResolvedValue([]),
+      put: jest.fn().mockResolvedValue(undefined),
+      ...overrides,
+    } as IImageRepo;
+  };
+
   test('createAlbum persists and returns created dto', async () => {
-    const repo = makeRepo();
+    const repo = makeAlbumRepo();
     const result = await createAlbum(
       { tenantId: 'tenant-1', title: 'My Album', description: 'Test album' },
       { albumRepo: repo },
@@ -29,7 +38,7 @@ describe('albums handlers', () => {
   });
 
   test('createAlbum validates parent existence', async () => {
-    const repo = makeRepo();
+    const repo = makeAlbumRepo();
     await expect(
       createAlbum(
         { tenantId: 't1', title: 'Child', parentAlbumId: 'missing' },
@@ -47,12 +56,15 @@ describe('albums handlers', () => {
         createdAt: new Date().toISOString(),
       },
     ];
-    const repo = makeRepo({ listRoot: jest.fn().mockResolvedValue(albums.map((dto) => new Album(dto))) });
+    const albumRepo = makeAlbumRepo({ listRoot: jest.fn().mockResolvedValue(albums.map((dto) => new Album(dto))) });
+    const imageRepo = makeImageRepo();
 
-    const result = await listAlbums({ tenantId: 't1' }, { albumRepo: repo });
-    expect(result).toHaveLength(1);
-    expect(result[0]?.id).toBe('a1');
-    expect(repo.listRoot).toHaveBeenCalledWith('t1');
+    const result = await listAlbums({ tenantId: 't1' }, { albumRepo, imageRepo });
+    expect(result.albums).toHaveLength(1);
+    expect(result.albums[0]?.id).toBe('a1');
+    expect(result.images).toHaveLength(0);
+    expect(albumRepo.listRoot).toHaveBeenCalledWith('t1');
+    expect(imageRepo.listByAlbum).not.toHaveBeenCalled();
   });
 
   test('listAlbums returns child albums when parent provided', async () => {
@@ -63,14 +75,34 @@ describe('albums handlers', () => {
       parentAlbumId: 'parent',
       createdAt: new Date().toISOString(),
     };
-    const repo = makeRepo({
+    const albumRepo = makeAlbumRepo({
       listChildren: jest.fn().mockResolvedValue([new Album(dto)]),
     });
+    const image: ImageDto = {
+      id: 'img1',
+      imageId: 'img1',
+      tenantId: 't1',
+      albumId: 'parent',
+      filename: 'file.jpg',
+      contentType: 'image/jpeg',
+      sizeBytes: 100,
+      width: 10,
+      height: 10,
+      createdAt: new Date().toISOString(),
+    };
+    const imageRepo = makeImageRepo({
+      listByAlbum: jest.fn().mockResolvedValue([new Image(image)]),
+    });
 
-    const result = await listAlbums({ tenantId: 't1', parentAlbumId: 'parent' }, { albumRepo: repo });
-    expect(result).toHaveLength(1);
-    expect(result[0]?.parentAlbumId).toBe('parent');
-    expect(repo.listChildren).toHaveBeenCalledWith('t1', 'parent');
+    const result = await listAlbums(
+      { tenantId: 't1', parentAlbumId: 'parent' },
+      { albumRepo, imageRepo },
+    );
+    expect(result.albums).toHaveLength(1);
+    expect(result.albums[0]?.parentAlbumId).toBe('parent');
+    expect(result.images).toHaveLength(1);
+    expect(result.images[0]?.id).toBe('img1');
+    expect(albumRepo.listChildren).toHaveBeenCalledWith('t1', 'parent');
+    expect(imageRepo.listByAlbum).toHaveBeenCalledWith('t1', 'parent');
   });
 });
-

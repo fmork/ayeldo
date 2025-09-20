@@ -7,7 +7,7 @@ import { TenantAdminController } from '../controllers/tenantAdminController';
 import { SessionBasedAuthorizer } from '../services/sessionBasedAuthorizer';
 import { authFlowService, sessions } from './authServices';
 import { claimBasedAuthorizer, jsonUtil, logWriter, siteConfig } from './config';
-import { albumRepo, cartRepo, eventPublisher, httpClient, priceListRepo } from './infrastructure';
+import { albumRepo, cartRepo, eventPublisher, httpClient, imageRepo, priceListRepo } from './infrastructure';
 import { getUploadProvider, getLogger } from '../init';
 import { onboardingService, tenantService } from './tenantServices';
 
@@ -52,6 +52,7 @@ export const albumsController = new AlbumsController({
   baseUrl: '',
   logWriter,
   albumRepo,
+  imageRepo,
   jsonUtil,
   uploadProvider: getUploadProvider(),
   publisher: eventPublisher,

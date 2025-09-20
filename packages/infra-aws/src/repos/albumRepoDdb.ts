@@ -52,7 +52,8 @@ export class AlbumRepoDdb implements IAlbumRepo {
       filter: '#pk = :pk',
       scanIndexForward: true,
     });
-    return items.map((i) => new Album(fromAlbumItem(i)));
+    const albumItems = items.filter((item) => item.type === 'Album' || item.SK.startsWith('ALBUM#'));
+    return albumItems.map((i) => new Album(fromAlbumItem(i)));
   }
 
   public async put(entity: Album): Promise<void> {

@@ -1,27 +1,31 @@
-import type { IAlbumRepo } from '@ayeldo/core';
+import type { IAlbumRepo, IImageRepo } from '@ayeldo/core';
 import type { AlbumDto } from '@ayeldo/types';
 import { z } from 'zod';
 import { createAlbum, listAlbums } from '../handlers/albums';
+import type { ListAlbumsResult } from '../handlers/albums';
 
 export interface AlbumManagementServiceProps {
   readonly albumRepo: IAlbumRepo;
+  readonly imageRepo: IImageRepo;
 }
 
 export class AlbumManagementService {
   private readonly albumRepo: IAlbumRepo;
+  private readonly imageRepo: IImageRepo;
 
   public constructor(props: AlbumManagementServiceProps) {
     this.albumRepo = props.albumRepo;
+    this.imageRepo = props.imageRepo;
   }
 
-  public async listAlbums(input: unknown): Promise<readonly AlbumDto[]> {
+  public async listAlbums(input: unknown): Promise<ListAlbumsResult> {
     const params = z
       .object({
         tenantId: z.string().min(1),
         parentAlbumId: z.string().min(1).optional(),
       })
       .parse(input);
-    return listAlbums(params, { albumRepo: this.albumRepo });
+    return listAlbums(params, { albumRepo: this.albumRepo, imageRepo: this.imageRepo });
   }
 
   public async createAlbum(input: { tenantId: string; body: unknown }): Promise<AlbumDto> {
@@ -48,4 +52,3 @@ export class AlbumManagementService {
     );
   }
 }
-

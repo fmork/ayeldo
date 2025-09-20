@@ -6,7 +6,7 @@ import type {
   JsonUtil,
 } from '@ayeldo/backend-core';
 import { ClaimAuthorizedController } from '@ayeldo/backend-core';
-import type { IAlbumRepo, IEventPublisher, IUploadUrlProvider } from '@ayeldo/core';
+import type { IAlbumRepo, IEventPublisher, IImageRepo, IUploadUrlProvider } from '@ayeldo/core';
 import type { PinoLogWriter } from '@ayeldo/utils';
 import { z } from 'zod';
 import { requireCsrfForController } from '../middleware/csrfGuard';
@@ -17,6 +17,7 @@ export interface AlbumsControllerProps {
   readonly baseUrl: string;
   readonly logWriter: ILogWriter;
   readonly albumRepo: IAlbumRepo;
+  readonly imageRepo: IImageRepo;
   readonly jsonUtil: JsonUtil;
   readonly uploadProvider: IUploadUrlProvider;
   readonly publisher: IEventPublisher;
@@ -33,7 +34,10 @@ export class AlbumsController extends ClaimAuthorizedController {
 
   public constructor(props: AlbumsControllerProps) {
     super(props.baseUrl, props.logWriter, props.authorizer);
-    this.service = new AlbumManagementService({ albumRepo: props.albumRepo });
+    this.service = new AlbumManagementService({
+      albumRepo: props.albumRepo,
+      imageRepo: props.imageRepo,
+    });
     this.uploadService = new AlbumUploadService({
       albumRepo: props.albumRepo,
       uploadProvider: props.uploadProvider,
