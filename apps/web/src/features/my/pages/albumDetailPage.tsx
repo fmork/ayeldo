@@ -2,21 +2,20 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardMedia from '@mui/material/CardMedia';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
 import type { FC } from 'react';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import PageIsLoading from '../../../app/components/PageIsLoading';
 import { useSession } from '../../../app/contexts/SessionContext';
 import { useUploadQueue } from '../../../app/contexts/UploadQueueContext';
 import { useGetAlbumImagesQuery, useGetAlbumQuery, type ImageWithCdnDto } from '../../../services/api/backendApi';
+import AlbumImageCard from '../../albums/components/AlbumImageCard';
 import AlbumUploadDropzone from '../../albums/components/AlbumUploadDropzone';
 
 const AlbumDetailPage: FC = () => {
@@ -39,7 +38,13 @@ const AlbumDetailPage: FC = () => {
   }, [session, albumId]);
 
   const { data: album, isLoading: isAlbumLoading, error: albumError } = useGetAlbumQuery(queryParams);
-  const { data: images, isLoading: isImagesLoading, error: imagesError } = useGetAlbumImagesQuery(queryParams);
+  const { data: images, isLoading: isImagesLoading, error: imagesError } = useGetAlbumImagesQuery(queryParams, { refetchOnMountOrArgChange: true });
+
+  // Debug: log the full images structure whenever it's received so we can
+  // inspect variants and CDN URLs in the browser console during troubleshooting.
+  useEffect(() => {
+    console.info('AlbumDetailPage received images:', images);
+  }, [images]);
 
   if (isAlbumLoading || isImagesLoading) {
     return <PageIsLoading />;
@@ -136,19 +141,12 @@ const AlbumDetailPage: FC = () => {
               }
 
               return (
-                <Card key={image.id} sx={{ position: 'relative' }}>
-                  <CardMedia
-                    component="img"
-                    sx={{
-                      height: 200,
-                      objectFit: 'cover',
-                      cursor: 'pointer'
-                    }}
-                    image={imageUrl}
-                    alt={image.filename}
-                    title={image.filename}
-                  />
-                </Card>
+                <AlbumImageCard
+                  key={image.id}
+                  image={image}
+                  alt={image.filename}
+                  sx={{ height: 200, objectFit: 'cover', cursor: 'pointer' }}
+                />
               );
             })}
           </Box>

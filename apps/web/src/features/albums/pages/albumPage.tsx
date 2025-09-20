@@ -1,13 +1,12 @@
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardMedia from '@mui/material/CardMedia';
 import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import type { FC } from 'react';
+import { type FC } from 'react';
 import { useParams } from 'react-router-dom';
-import { useGetAlbumImagesQuery, useGetAlbumQuery, type ImageWithCdnDto } from '../../../services/api/backendApi';
+import { useGetAlbumImagesQuery, useGetAlbumQuery } from '../../../services/api/backendApi';
+import AlbumImageCard from '../components/AlbumImageCard';
 
 const VisitorAlbumPage: FC = () => {
   const { tenantId, albumId } = useParams<{ tenantId: string; albumId: string }>();
@@ -27,7 +26,7 @@ const VisitorAlbumPage: FC = () => {
     isLoading: imagesLoading,
   } = useGetAlbumImagesQuery(
     { tenantId: tenantId || '', albumId: albumId || '' },
-    { skip: !tenantId || !albumId }
+    { skip: !tenantId || !albumId, refetchOnMountOrArgChange: true }
   );
 
   if (!tenantId || !albumId) {
@@ -69,16 +68,7 @@ const VisitorAlbumPage: FC = () => {
     );
   }
 
-  const getImageUrl = (image: ImageWithCdnDto): string => {
-    // Prefer the first variant with CDN URL, fallback to original CDN URL
-    if (image.variants && image.variants.length > 0) {
-      const variantWithCdn = image.variants.find(v => v.cdnUrl);
-      if (variantWithCdn?.cdnUrl) {
-        return variantWithCdn.cdnUrl;
-      }
-    }
-    return image.originalCdnUrl || '';
-  };
+  // image URL selection is now handled by AlbumImageCard (it prefers variants)
 
   return (
     <Stack spacing={3} component="section">
@@ -109,20 +99,7 @@ const VisitorAlbumPage: FC = () => {
           }}
         >
           {images.map((image) => {
-            const imageUrl = getImageUrl(image);
-            return (
-              <Card key={image.id}>
-                <CardMedia
-                  component="img"
-                  image={imageUrl}
-                  alt={image.filename}
-                  sx={{
-                    aspectRatio: '1',
-                    objectFit: 'cover',
-                  }}
-                />
-              </Card>
-            );
+            return <AlbumImageCard key={image.id} image={image} alt={image.filename} />;
           })}
         </Box>
       )}
