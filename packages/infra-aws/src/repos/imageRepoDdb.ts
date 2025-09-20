@@ -38,7 +38,8 @@ export class ImageRepoDdb implements IImageRepo {
       filter: '#pk = :pk',
       scanIndexForward: true,
     });
-    return items.map((i) => new Image(fromImageItem(i)));
+    const imageItems = items.filter((item) => item.type === 'Image' || item.SK.startsWith('IMAGE#'));
+    return imageItems.map((i) => new Image(fromImageItem(i)));
   }
 
   public async put(entity: Image): Promise<void> {
