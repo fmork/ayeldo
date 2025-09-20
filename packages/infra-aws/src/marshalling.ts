@@ -139,13 +139,19 @@ export function toImageItem(dto: ImageDto): ImageItem {
 }
 
 export function fromImageItem(item: ImageItem): ImageDto {
-  const imageId = (item as { imageId?: string }).imageId ?? deriveImageIdFromFilename(item.filename);
+  const hasFilename = typeof item.filename === 'string' && item.filename.length > 0;
+  const sk = (item as { SK?: string }).SK ?? '';
+  const fallbackId = sk.startsWith('IMAGE#') ? sk.replace('IMAGE#', '') : sk;
+  const imageId =
+    (item as { imageId?: string }).imageId ??
+    (hasFilename ? deriveImageIdFromFilename(item.filename) : fallbackId);
+  const filename = hasFilename ? item.filename : `${imageId}.jpg`;
   return {
-    id: item.SK.replace('IMAGE#', ''),
+    id: fallbackId.length > 0 ? fallbackId : imageId,
     imageId,
     tenantId: item.tenantId,
     albumId: item.albumId,
-    filename: item.filename,
+    filename,
     contentType: item.contentType,
     sizeBytes: item.sizeBytes,
     width: item.width,
