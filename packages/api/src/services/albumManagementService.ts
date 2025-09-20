@@ -7,15 +7,18 @@ import type { ListAlbumsResult } from '../handlers/albums';
 export interface AlbumManagementServiceProps {
   readonly albumRepo: IAlbumRepo;
   readonly imageRepo: IImageRepo;
+  readonly cdnHost: string;
 }
 
 export class AlbumManagementService {
   private readonly albumRepo: IAlbumRepo;
   private readonly imageRepo: IImageRepo;
+  private readonly cdnHost: string;
 
   public constructor(props: AlbumManagementServiceProps) {
     this.albumRepo = props.albumRepo;
     this.imageRepo = props.imageRepo;
+    this.cdnHost = props.cdnHost;
   }
 
   public async listAlbums(input: unknown): Promise<ListAlbumsResult> {
@@ -25,7 +28,11 @@ export class AlbumManagementService {
         parentAlbumId: z.string().min(1).optional(),
       })
       .parse(input);
-    return listAlbums(params, { albumRepo: this.albumRepo, imageRepo: this.imageRepo });
+    return listAlbums(params, {
+      albumRepo: this.albumRepo,
+      imageRepo: this.imageRepo,
+      cdnHost: this.cdnHost,
+    });
   }
 
   public async createAlbum(input: { tenantId: string; body: unknown }): Promise<AlbumDto> {

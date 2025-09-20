@@ -53,6 +53,7 @@ export const albumsController = new AlbumsController({
   logWriter,
   albumRepo,
   imageRepo,
+  cdnHost: siteConfig.infra.cdnHost,
   jsonUtil,
   uploadProvider: getUploadProvider(),
   publisher: eventPublisher,

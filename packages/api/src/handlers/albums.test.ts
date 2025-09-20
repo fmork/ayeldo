@@ -59,7 +59,10 @@ describe('albums handlers', () => {
     const albumRepo = makeAlbumRepo({ listRoot: jest.fn().mockResolvedValue(albums.map((dto) => new Album(dto))) });
     const imageRepo = makeImageRepo();
 
-    const result = await listAlbums({ tenantId: 't1' }, { albumRepo, imageRepo });
+    const result = await listAlbums(
+      { tenantId: 't1' },
+      { albumRepo, imageRepo, cdnHost: 'cdn.test' },
+    );
     expect(result.albums).toHaveLength(1);
     expect(result.albums[0]?.id).toBe('a1');
     expect(result.images).toHaveLength(0);
@@ -96,12 +99,13 @@ describe('albums handlers', () => {
 
     const result = await listAlbums(
       { tenantId: 't1', parentAlbumId: 'parent' },
-      { albumRepo, imageRepo },
+      { albumRepo, imageRepo, cdnHost: 'cdn.test' },
     );
     expect(result.albums).toHaveLength(1);
     expect(result.albums[0]?.parentAlbumId).toBe('parent');
     expect(result.images).toHaveLength(1);
     expect(result.images[0]?.id).toBe('img1');
+    expect(result.images[0]?.variants).toBeUndefined();
     expect(albumRepo.listChildren).toHaveBeenCalledWith('t1', 'parent');
     expect(imageRepo.listByAlbum).toHaveBeenCalledWith('t1', 'parent');
   });

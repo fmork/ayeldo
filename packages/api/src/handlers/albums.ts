@@ -3,6 +3,7 @@ import type { IAlbumRepo, IImageRepo } from '@ayeldo/core';
 import type { AlbumDto, ImageDto } from '@ayeldo/types';
 import { z } from 'zod';
 import { makeUuid } from '@ayeldo/utils';
+import { enhanceImageWithCdnUrls, type ImageWithCdnDto } from '../types/enhancedImageDto';
 
 export const createAlbumSchema = z.object({
   tenantId: z.string().min(1),
@@ -57,12 +58,12 @@ export type ListAlbumsInput = z.infer<typeof listAlbumsSchema>;
 
 export interface ListAlbumsResult {
   readonly albums: readonly AlbumDto[];
-  readonly images: readonly ImageDto[];
+  readonly images: readonly ImageWithCdnDto[];
 }
 
 export async function listAlbums(
   input: ListAlbumsInput,
-  deps: { albumRepo: IAlbumRepo; imageRepo: IImageRepo },
+  deps: { albumRepo: IAlbumRepo; imageRepo: IImageRepo; cdnHost: string },
 ): Promise<ListAlbumsResult> {
     const { tenantId, parentAlbumId } = listAlbumsSchema.parse(input);
 
@@ -73,6 +74,23 @@ export async function listAlbums(
     const images = parentAlbumId
       ? await deps.imageRepo.listByAlbum(tenantId, parentAlbumId)
       : [];
+    const imageDtos = images.map((image) => ({
+      id: image.id,
+      imageId: image.imageId,
+      tenantId: image.tenantId,
+      albumId: image.albumId,
+      filename: image.filename,
+      contentType: image.contentType,
+      sizeBytes: image.sizeBytes,
+      width: image.width,
+      height: image.height,
+      createdAt: image.createdAt,
+      ...(image.variants.length > 0 ? { variants: image.variants } : {}),
+      ...(image.processedAt ? { processedAt: image.processedAt } : {}),
+    } as ImageDto));
+    const imagesWithCdn: readonly ImageWithCdnDto[] = imageDtos.map((image) =>
+      enhanceImageWithCdnUrls(image, deps.cdnHost),
+    );
 
     return {
       albums: albums.map((album) => ({
@@ -83,22 +101,6 @@ export async function listAlbums(
         ...(album.parentAlbumId !== undefined ? { parentAlbumId: album.parentAlbumId } : {}),
         createdAt: album.createdAt,
       } as const)),
-      images: images.map(
-        (image) =>
-          ({
-            id: image.id,
-            imageId: image.imageId,
-            tenantId: image.tenantId,
-            albumId: image.albumId,
-            filename: image.filename,
-            contentType: image.contentType,
-            sizeBytes: image.sizeBytes,
-            width: image.width,
-            height: image.height,
-            createdAt: image.createdAt,
-            ...(image.variants.length > 0 ? { variants: image.variants } : {}),
-            ...(image.processedAt ? { processedAt: image.processedAt } : {}),
-          }) as const,
-      ),
+      images: imagesWithCdn,
     } as const;
 }

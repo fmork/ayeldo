@@ -18,6 +18,7 @@ export interface AlbumsControllerProps {
   readonly logWriter: ILogWriter;
   readonly albumRepo: IAlbumRepo;
   readonly imageRepo: IImageRepo;
+  readonly cdnHost: string;
   readonly jsonUtil: JsonUtil;
   readonly uploadProvider: IUploadUrlProvider;
   readonly publisher: IEventPublisher;
@@ -37,6 +38,7 @@ export class AlbumsController extends ClaimAuthorizedController {
     this.service = new AlbumManagementService({
       albumRepo: props.albumRepo,
       imageRepo: props.imageRepo,
+      cdnHost: props.cdnHost,
     });
     this.uploadService = new AlbumUploadService({
       albumRepo: props.albumRepo,
