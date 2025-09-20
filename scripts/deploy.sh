@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+format_duration() {
+    local total_seconds="$1"
+    local hours=$(( total_seconds / 3600 ))
+    local minutes=$(( (total_seconds % 3600) / 60 ))
+    local seconds=$(( total_seconds % 60 ))
+    printf '%02dh:%02dm:%02ds' "$hours" "$minutes" "$seconds"
+}
+
 if [[ $BASH_SOURCE = */* ]]; then
     bundledir=${BASH_SOURCE%/*}/
 else
@@ -41,8 +49,12 @@ pnpm run build:artifacts
 echo
 echo Deploying...
 cd infra/cdk
+deploy_start=$(date +%s)
 pnpm run synth
 pnpm run deploy
+deploy_end=$(date +%s)
+deploy_duration=$(( deploy_end - deploy_start ))
+echo "CDK deployment took $(format_duration "$deploy_duration")"
 
 echo
 echo Done.
