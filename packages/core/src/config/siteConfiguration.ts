@@ -191,87 +191,14 @@ export class SiteConfiguration {
   }
 
   // Infra getters
-  public get tableName(): string {
-    return this._infra.tableName;
-  }
-
-  public get awsRegion(): string {
-    return this._infra.awsRegion;
-  }
-
-  public get eventBusName(): string {
-    return this._infra.eventBusName;
-  }
-
-  public get ddbEndpoint(): string {
-    return this._infra.ddbEndpoint;
-  }
-
-  public get cdnHost(): string {
-    return this._infra.cdnHost;
-  }
-
-  public get serverPort(): number {
-    return this._server.port;
-  }
-
-  public get mediaBucket(): string {
-    return this._infra.mediaBucket;
-  }
-
-  public get imageVariantsRaw(): string {
-    return this._infra.imageVariantsRaw;
-  }
-
-  public get webOrigin(): string {
-    return this._origins.webOrigin;
-  }
-
-  // Backwards-compatible alias for documentation clarity: API origin (includes former BFF)
-  public get apiOrigin(): string {
-    return this._origins.apiBaseUrl;
-  }
-
-  public get apiBasePath(): string {
-    return this._origins.apiBasePath;
-  }
-
-  public get csrfHeaderName(): string {
-    return this._security.csrfHeaderName;
-  }
-
   // Full base URL the browser should call (HTTP API)
   public get apiBaseUrl(): string {
     return `${this._origins.apiBaseUrl}${this.ensureLeadingSlash(this._origins.apiBasePath)}`;
   }
 
   // OIDC configuration getters with inference
-  public get oidcAuthority(): string {
-    return this._oidc.authority;
-  }
-
-  public get oidcClientId(): string {
-    return this._oidc.clientId;
-  }
-
-  public get oidcClientSecret(): string {
-    return this._oidc.clientSecret;
-  }
-
-  public get oidcScopes(): string {
-    return this._oidc.scopes;
-  }
-
   public get oidcRedirectUri(): string {
     return `${this._origins.apiBaseUrl}${this.ensureLeadingSlash(this._oidc.redirectPath)}`;
-  }
-
-  public get sessionEncKey(): string {
-    return this._security.sessionEncKey;
-  }
-
-  public get apiJwtSecret(): string {
-    return this._security.apiJwtSecret;
   }
 
   // Inferred OIDC URLs based on authority
@@ -291,21 +218,6 @@ export class SiteConfiguration {
     if (!this._oidc.authority) return undefined;
     const cleanAuthority = this._oidc.authority.replace(/\/$/, '');
     return `${cleanAuthority}/.well-known/jwks.json`;
-  }
-
-  // Utility for fetch wrappers
-  public defaultFetchOptions(csrfToken?: string): {
-    readonly credentials: 'include';
-    readonly headers: Readonly<Record<string, string>>;
-  } {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (csrfToken) {
-      headers[this._security.csrfHeaderName] = csrfToken;
-    }
-    return {
-      credentials: 'include',
-      headers: headers as Readonly<Record<string, string>>,
-    } as const;
   }
 
   // Get cookie domain for cross-subdomain access
@@ -338,38 +250,6 @@ export class SiteConfiguration {
       // If parsing fails, return undefined
     }
     return undefined;
-  }
-
-  // Get environment variables for Lambda deployment
-  public toLambdaEnvironment(): Record<string, string> {
-    const env: Record<string, string> = {
-      API_BASE_URL: this.apiBaseUrl,
-      WEB_ORIGIN: this.webOrigin,
-    };
-
-    if (this.oidcAuthority && this.oidcClientId && this.oidcClientSecret) {
-      env['OIDC_ISSUER_URL'] = this.oidcAuthority;
-      const authUrl = this.oidcAuthUrl;
-      const tokenUrl = this.oidcTokenUrl;
-      const jwksUrl = this.oidcJwksUrl;
-      if (authUrl) env['OIDC_AUTH_URL'] = authUrl;
-      if (tokenUrl) env['OIDC_TOKEN_URL'] = tokenUrl;
-      if (jwksUrl) env['OIDC_JWKS_URL'] = jwksUrl;
-      env['OIDC_CLIENT_ID'] = this.oidcClientId as string;
-      env['OIDC_CLIENT_SECRET'] = this.oidcClientSecret as string;
-      env['OIDC_SCOPES'] = this.oidcScopes;
-      env['OIDC_REDIRECT_URI'] = this.oidcRedirectUri;
-    }
-
-    if (this.sessionEncKey) {
-      env['SESSION_ENC_KEY'] = this.sessionEncKey;
-    }
-
-    if (this.apiJwtSecret) {
-      env['API_JWT_SECRET'] = this.apiJwtSecret;
-    }
-
-    return env;
   }
 
   private ensureLeadingSlash(p: string): string {
