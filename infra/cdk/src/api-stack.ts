@@ -1,4 +1,3 @@
-import { SiteConfiguration } from '@ayeldo/core';
 import type { StackProps } from 'aws-cdk-lib';
 import { CfnOutput, Duration, Stack } from 'aws-cdk-lib';
 import {
@@ -47,44 +46,13 @@ export class ApiStack extends Stack {
     );
     const tsconfigPath = path.resolve(__dirnameLocal, '../../../tsconfig.base.json');
 
-    // Helper to get optional environment variables
-    const maybe = (k: string): string | undefined => {
-      const v = process.env[k];
-      return v && v.trim().length > 0 ? v : undefined;
-    };
-
-    // Compute origins for SiteConfiguration
+    // Compute default origins
     const computedApiHost = props.domainConfig ? props.domainConfig.apiHost : 'localhost:3000';
     const computedWebHost = props.domainConfig ? props.domainConfig.webHost : 'localhost:3001';
     const apiOrigin = `https://${computedApiHost}`;
     const webOrigin = `https://${computedWebHost}`;
 
-    // Create SiteConfiguration to manage OIDC and other config. Historically this project
-    // used the acronym "BFF" for a backend-for-frontend service. The responsibilities are
-    // now served by the HTTP API; we keep the `bffOrigin` property for backward compatibility
-    // but it represents the API origin.
-    // Populate environment variables used by SiteConfiguration so the
-    // constructor can read them. CDK runs at synth-time; we set defaults
-    // derived from the stack props.
-    process.env['API_BASE_URL'] = process.env['API_BASE_URL'] ?? apiOrigin;
-    process.env['BFF_ORIGIN'] = process.env['BFF_ORIGIN'] ?? apiOrigin;
-    process.env['WEB_ORIGIN'] = process.env['WEB_ORIGIN'] ?? webOrigin;
-    if (maybe('FMORK_SITE_OIDC_AUTHORITY'))
-      process.env['OIDC_ISSUER_URL'] = maybe('FMORK_SITE_OIDC_AUTHORITY') as string;
-    if (maybe('FMORK_SITE_OIDC_CLIENT_ID'))
-      process.env['OIDC_CLIENT_ID'] = maybe('FMORK_SITE_OIDC_CLIENT_ID') as string;
-    if (maybe('FMORK_SITE_OIDC_CLIENT_SECRET'))
-      process.env['OIDC_CLIENT_SECRET'] = maybe('FMORK_SITE_OIDC_CLIENT_SECRET') as string;
-    if (maybe('FMORK_SITE_SESSION_ENC_KEY'))
-      process.env['SESSION_ENC_KEY'] = maybe('FMORK_SITE_SESSION_ENC_KEY') as string;
-    if (maybe('FMORK_SITE_API_JWT_SECRET'))
-      process.env['API_JWT_SECRET'] = maybe('FMORK_SITE_API_JWT_SECRET') as string;
-
-    // Construct SiteConfiguration which will read from process.env
-    const siteConfig = new SiteConfiguration();
-
-    // Get environment variables for Lambda from SiteConfiguration
-    const lambdaEnv = siteConfig.toLambdaEnvironment();
+    const lambdaEnv = buildRuntimeEnvironment({ apiOrigin, webOrigin });
 
     const handler = new NodejsFunction(this, 'ApiHandler', {
       entry: apiEntry,
@@ -108,19 +76,6 @@ export class ApiStack extends Stack {
         UPLOAD_BUCKET: props.mediaBucket.bucketName,
         ...(props.cdnHost && { CDN_HOST: props.cdnHost }),
         ...lambdaEnv,
-        // Allow explicit overrides for provider-specific endpoints and redirect URI
-        ...(maybe('FMORK_SITE_OIDC_AUTH_URL') && {
-          OIDC_AUTH_URL: maybe('FMORK_SITE_OIDC_AUTH_URL') as string,
-        }),
-        ...(maybe('FMORK_SITE_OIDC_TOKEN_URL') && {
-          OIDC_TOKEN_URL: maybe('FMORK_SITE_OIDC_TOKEN_URL') as string,
-        }),
-        ...(maybe('FMORK_SITE_OIDC_JWKS_URL') && {
-          OIDC_JWKS_URL: maybe('FMORK_SITE_OIDC_JWKS_URL') as string,
-        }),
-        ...(maybe('FMORK_SITE_OIDC_REDIRECT_URI') && {
-          OIDC_REDIRECT_URI: maybe('FMORK_SITE_OIDC_REDIRECT_URI') as string,
-        }),
       },
     });
 
@@ -192,4 +147,78 @@ export class ApiStack extends Stack {
 
     new CfnOutput(this, 'ApiEndpoint', { value: api.url });
   }
+}
+
+function buildRuntimeEnvironment(origins: { apiOrigin: string; webOrigin: string }): Record<string, string> {
+  const readEnv = (...keys: readonly string[]): string | undefined => {
+    for (const key of keys) {
+      const value = readOptionalEnv(key);
+      if (value !== undefined) {
+        return value;
+      }
+    }
+    return undefined;
+  };
+
+  const stripTrailingSlash = (value: string): string => value.replace(/\/$/, '');
+  const ensureLeadingSlash = (value: string): string => (value.startsWith('/') ? value : `/${value}`);
+
+  const rawApiBase = readEnv('API_BASE_URL', 'BFF_ORIGIN') ?? origins.apiOrigin;
+  const normalizedApiBase = stripTrailingSlash(rawApiBase);
+  const apiBasePath = readEnv('API_BASE_PATH') ?? '/api';
+  const normalizedApiBasePath = ensureLeadingSlash(apiBasePath);
+
+  const rawWebOrigin = readEnv('WEB_ORIGIN') ?? origins.webOrigin;
+  const normalizedWebOrigin = stripTrailingSlash(rawWebOrigin);
+
+  const runtimeEnv: Record<string, string> = {
+    API_BASE_URL: `${normalizedApiBase}${normalizedApiBasePath}`,
+    WEB_ORIGIN: normalizedWebOrigin,
+  };
+
+  const sessionEncKey = readEnv('SESSION_ENC_KEY', 'FMORK_SITE_SESSION_ENC_KEY');
+  if (sessionEncKey) {
+    runtimeEnv['SESSION_ENC_KEY'] = sessionEncKey;
+  }
+
+  const apiJwtSecret = readEnv('API_JWT_SECRET', 'FMORK_SITE_API_JWT_SECRET');
+  if (apiJwtSecret) {
+    runtimeEnv['API_JWT_SECRET'] = apiJwtSecret;
+  }
+
+  const oidcIssuer = readEnv('OIDC_ISSUER_URL', 'FMORK_SITE_OIDC_AUTHORITY');
+  const oidcClientId = readEnv('OIDC_CLIENT_ID', 'FMORK_SITE_OIDC_CLIENT_ID');
+  const oidcClientSecret = readEnv('OIDC_CLIENT_SECRET', 'FMORK_SITE_OIDC_CLIENT_SECRET');
+
+  if (oidcIssuer && oidcClientId && oidcClientSecret) {
+    const cleanAuthority = stripTrailingSlash(oidcIssuer);
+    runtimeEnv['OIDC_ISSUER_URL'] = cleanAuthority;
+    runtimeEnv['OIDC_CLIENT_ID'] = oidcClientId;
+    runtimeEnv['OIDC_CLIENT_SECRET'] = oidcClientSecret;
+    runtimeEnv['OIDC_SCOPES'] = readEnv('OIDC_SCOPES') ?? 'openid email profile';
+
+    const authUrl = readEnv('OIDC_AUTH_URL', 'FMORK_SITE_OIDC_AUTH_URL') ?? `${cleanAuthority}/oauth2/authorize`;
+    const tokenUrl = readEnv('OIDC_TOKEN_URL', 'FMORK_SITE_OIDC_TOKEN_URL') ?? `${cleanAuthority}/oauth2/token`;
+    const jwksUrl = readEnv('OIDC_JWKS_URL', 'FMORK_SITE_OIDC_JWKS_URL') ?? `${cleanAuthority}/.well-known/jwks.json`;
+    runtimeEnv['OIDC_AUTH_URL'] = authUrl;
+    runtimeEnv['OIDC_TOKEN_URL'] = tokenUrl;
+    runtimeEnv['OIDC_JWKS_URL'] = jwksUrl;
+
+    const redirectSetting = readEnv('OIDC_REDIRECT_URI', 'FMORK_SITE_OIDC_REDIRECT_URI') ?? '/auth/callback';
+    const redirectUri = redirectSetting.startsWith('http://') || redirectSetting.startsWith('https://')
+      ? redirectSetting
+      : `${normalizedApiBase}${ensureLeadingSlash(redirectSetting)}`;
+    runtimeEnv['OIDC_REDIRECT_URI'] = redirectUri;
+  }
+
+  return runtimeEnv;
+}
+
+function readOptionalEnv(key: string): string | undefined {
+  const value = process.env[key];
+  if (!value) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
