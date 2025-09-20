@@ -40,7 +40,7 @@ export class MyClass {
 
 By default, avoid optional properties unless absolutely necessary. I prefer simpler code without conditionals.
 
-### React components
+## React components
 
 ```typescript
 import { FC } from 'react';
@@ -61,22 +61,22 @@ export default SomePage;
 
 ```
 
-### API calls from React
+## API calls from React
 
 React clients should always use RTK toolkit for making API calls, unless there are very specific reasons not to.
 
-### Logging
+## Logging
 
 Use the `ILogWriter` interface from `@fmork/backend-core` for all logging. Instantiate loggers via `@ayeldo/utils`' pino-backed adapter (`createRootLogger`) and create request-scoped child loggers with `withRequestId(logger, requestId)`.
 
-### Outgoing HTTP requests in the backend
+## Outgoing HTTP requests in the backend
 
 Code that needs to make HTTP requests should take a dependency on `HttpClient` from `backend-core`.
 
 - Backend (API/Services): inject an `HttpClient` implementation (Axios or fetch/undici-based) via manual DI.
 - Frontend (Web/Vite): use a small typed fetch wrapper that calls the API with `credentials: 'include'` and an `X-CSRF-Token` header.
 
-### TypeScript Best Practices
+## TypeScript Best Practices
 
 - Strict mode (`"strict": true`) in `tsconfig`.
 - Don't use TypeScript enums.
@@ -130,6 +130,12 @@ Code that needs to make HTTP requests should take a dependency on `HttpClient` f
   - All significant state changes emit events (EventBridge).
   - Consumers must be **idempotent**.
   - Services should not call each other directly across bounded contexts.
+
+### Backend
+
+#### Configuration
+
+Dependency on environment variables in the backend are encapsulated into the `SiteConfiguration` class. No other code is to access environment variables through `process.env`.
 
 ---
 
