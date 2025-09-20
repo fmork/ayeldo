@@ -24,11 +24,19 @@
     "select_files": "Välj filer",
     "error_title_required": "Albumtitel krävs.",
     "error_unable_create": "Kunde inte skapa albumet just nu. Försök igen senare.",
+    "error_loading_albums": "Vi kunde inte ladda dina album. Försök igen senare.",
     "create_new_album": "Skapa ett nytt album",
     "create_album_instructions": "Ge ditt album en kort titel och en valfri beskrivning. Du kan lägga till media efter att du skapat det.",
+    "create_sub_album": "Skapa ett underalbum",
+    "create_sub_album_instructions": "Organisera det här albumet genom att skapa underalbum. Varje underalbum kan ha egna bilder och fler nivåer.",
     "field_title": "Albumtitel",
     "field_description": "Beskrivning",
     "creating": "Skapar…",
-    "create_album": "Skapa album"
+    "create_album": "Skapa album",
+    "creating_sub_album": "Skapar underalbum…",
+    "create_sub_album_button": "Skapa underalbum",
+    "child_albums": "Underalbum",
+    "no_albums": "Du har inga album ännu. Använd formuläret ovan för att skapa ditt första.",
+    "no_sub_albums": "Det här albumet innehåller inga underalbum ännu. Skapa ett för att organisera innehållet."
   }
 }

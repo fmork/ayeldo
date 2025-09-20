@@ -40,11 +40,19 @@
     "select_files": "Select files",
     "error_title_required": "Album title is required.",
     "error_unable_create": "Unable to create the album right now. Please try again.",
+    "error_loading_albums": "We could not load your albums. Please try again later.",
     "create_new_album": "Create a new album",
     "create_album_instructions": "Give your album a short title and an optional description. You can add media after creating it.",
+    "create_sub_album": "Create a sub-album",
+    "create_sub_album_instructions": "Organise this album by creating sub-albums. Each sub-album can contain its own images and nested albums.",
     "field_title": "Album title",
     "field_description": "Description",
     "creating": "Creating…",
-    "create_album": "Create album"
+    "create_album": "Create album",
+    "creating_sub_album": "Creating sub-album…",
+    "create_sub_album_button": "Create sub-album",
+    "child_albums": "Sub-albums",
+    "no_albums": "You do not have any albums yet. Use the form above to create your first one.",
+    "no_sub_albums": "This album does not contain any sub-albums yet. Create one to organise your content."
   }
 }

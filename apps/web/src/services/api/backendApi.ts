@@ -1,8 +1,8 @@
 import type {
   AlbumDto,
-  SessionInfo,
   ImageDto as SharedImageDto,
   ImageVariantDto as SharedImageVariantDto,
+  SessionInfo,
 } from '@ayeldo/types';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { frontendConfig } from '../../app/FrontendConfigurationContext';
@@ -14,6 +14,11 @@ export type ImageVariantDto = SharedImageVariantDto & { readonly cdnUrl?: string
 export type ImageWithCdnDto = Omit<SharedImageDto, 'variants'> & {
   readonly variants?: readonly ImageVariantDto[];
 };
+
+export interface AlbumsWithImagesDto {
+  readonly albums: readonly AlbumDto[];
+  readonly images: readonly ImageWithCdnDto[];
+}
 
 export const backendApi = createApi({
   reducerPath: 'backendApi',
@@ -34,7 +39,7 @@ export const backendApi = createApi({
         return `/auth/authorize-url${params}`;
       },
     }),
-    listAlbums: builder.query<readonly AlbumDto[], { tenantId: string; parentAlbumId?: string }>({
+    listAlbums: builder.query<AlbumsWithImagesDto, { tenantId: string; parentAlbumId?: string }>({
       query: ({ tenantId, parentAlbumId }) => {
         const params = parentAlbumId ? `?parentAlbumId=${encodeURIComponent(parentAlbumId)}` : '';
         return `/creator/tenants/${tenantId}/albums${params}`;
@@ -55,12 +60,18 @@ export const backendApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: (_result, _error, arg) => [
-        {
-          type: 'Album' as const,
-          id: `tenant:${arg.tenantId}:parent:${arg.parentAlbumId ?? 'root'}`,
-        },
-      ],
+      invalidatesTags: (_result, _error, arg) => {
+        const tags: { type: 'Album' | 'Image'; id: string }[] = [
+          {
+            type: 'Album',
+            id: `tenant:${arg.tenantId}:parent:${arg.parentAlbumId ?? 'root'}`,
+          },
+        ];
+        if (arg.parentAlbumId) {
+          tags.push({ type: 'Image', id: `album:${arg.parentAlbumId}` });
+        }
+        return tags;
+      },
     }),
     getAlbum: builder.query<AlbumDto, { tenantId: string; albumId: string }>({
       query: ({ tenantId, albumId }) => `/tenants/${tenantId}/albums/${albumId}`,

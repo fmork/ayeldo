@@ -21,7 +21,12 @@ const AlbumsPage: FC = () => {
   }, [session]);
 
   const albumsQueryArgs = tenantId ? { tenantId } : skipToken;
-  const { data: albums, isLoading: isAlbumsLoading, isFetching: isAlbumsFetching, isError: isAlbumsError } =
+  const {
+    data: albumsResponse,
+    isLoading: isAlbumsLoading,
+    isFetching: isAlbumsFetching,
+    isError: isAlbumsError,
+  } =
     useListAlbumsQuery(albumsQueryArgs);
 
   if (!session) {
@@ -58,14 +63,19 @@ const AlbumsPage: FC = () => {
         </Typography>
       </Box>
 
-      <CreateAlbumForm tenantId={tenantId} />
+      <CreateAlbumForm tenantId={tenantId} context={{ kind: 'root' }} />
 
       <Box>
         <Typography variant="h5" gutterBottom>
           Existing albums
         </Typography>
 
-        <AlbumsList albums={albums} isLoading={isLoadingAlbums} isError={!!isAlbumsError} />
+        <AlbumsList
+          albums={albumsResponse?.albums}
+          isLoading={isLoadingAlbums}
+          isError={!!isAlbumsError}
+          context={{ kind: 'root' }}
+        />
       </Box>
     </Stack>
   );

@@ -14,9 +14,15 @@ import { useParams } from 'react-router-dom';
 import PageIsLoading from '../../../app/components/PageIsLoading';
 import { useSession } from '../../../app/contexts/SessionContext';
 import { useUploadQueue } from '../../../app/contexts/UploadQueueContext';
-import { useGetAlbumImagesQuery, useGetAlbumQuery, type ImageWithCdnDto } from '../../../services/api/backendApi';
+import {
+  useGetAlbumQuery,
+  useListAlbumsQuery,
+  type ImageWithCdnDto,
+} from '../../../services/api/backendApi';
 import AlbumImageCard from '../../albums/components/AlbumImageCard';
 import AlbumUploadDropzone from '../../albums/components/AlbumUploadDropzone';
+import AlbumsList from '../components/AlbumsList';
+import CreateAlbumForm from '../components/CreateAlbumForm';
 
 const AlbumDetailPage: FC = () => {
   const session = useSession();
@@ -38,15 +44,29 @@ const AlbumDetailPage: FC = () => {
   }, [session, albumId]);
 
   const { data: album, isLoading: isAlbumLoading, error: albumError } = useGetAlbumQuery(queryParams);
-  const { data: images, isLoading: isImagesLoading, error: imagesError } = useGetAlbumImagesQuery(queryParams, { refetchOnMountOrArgChange: true });
+
+  const childAlbumsQueryArgs = useMemo(() => {
+    if (!session?.loggedIn || !session.tenantIds || session.tenantIds.length === 0 || !albumId) {
+      return skipToken;
+    }
+    return { tenantId: session.tenantIds[0], parentAlbumId: albumId };
+  }, [session, albumId]);
+
+  const {
+    data: childAlbumsResponse,
+    isLoading: isChildAlbumsLoading,
+    isFetching: isChildAlbumsFetching,
+    isError: isChildAlbumsError,
+  } = useListAlbumsQuery(childAlbumsQueryArgs);
 
   // Debug: log the full images structure whenever it's received so we can
   // inspect variants and CDN URLs in the browser console during troubleshooting.
   useEffect(() => {
-    console.info('AlbumDetailPage received images:', images);
-  }, [images]);
+    console.info('AlbumDetailPage received images:', childAlbumsResponse?.images);
+  }, [childAlbumsResponse]);
 
-  if (isAlbumLoading || isImagesLoading) {
+  const childAlbumsLoading = isChildAlbumsLoading || isChildAlbumsFetching;
+  if (isAlbumLoading || childAlbumsLoading) {
     return <PageIsLoading />;
   }
 
@@ -54,14 +74,6 @@ const AlbumDetailPage: FC = () => {
     return (
       <Alert severity="error">
         {t('albums.failed_to_load_album', { error: String(albumError) })}
-      </Alert>
-    );
-  }
-
-  if (imagesError) {
-    return (
-      <Alert severity="error">
-        {t('albums.failed_to_load_album_images', { error: String(imagesError) })}
       </Alert>
     );
   }
@@ -78,6 +90,7 @@ const AlbumDetailPage: FC = () => {
   const tenantId = routeTenantId ?? session.tenantIds[0];
   const uploadingFiles = jobs.filter(job => job.albumId === albumId &&
     ['queued', 'registering', 'uploading', 'completing'].includes(job.status));
+  const albumImages = childAlbumsResponse?.images ?? [];
 
   return (
     <Stack spacing={3}>
@@ -122,16 +135,33 @@ const AlbumDetailPage: FC = () => {
 
       <Box>
         <Typography variant="h6" gutterBottom>
-          {t('albums.images_count', { count: images?.length || 0 })}
+          {t('albums.child_albums')}
+        </Typography>
+        <CreateAlbumForm tenantId={tenantId} context={{ kind: 'child', parentAlbumId: albumId }} />
+        <Box sx={{ mt: 3 }}>
+          <AlbumsList
+            albums={childAlbumsResponse?.albums}
+            isLoading={childAlbumsLoading}
+            isError={Boolean(isChildAlbumsError)}
+            context={{ kind: 'child' }}
+          />
+        </Box>
+      </Box>
+
+      <Divider />
+
+      <Box>
+        <Typography variant="h6" gutterBottom>
+          {t('albums.images_count', { count: albumImages.length })}
         </Typography>
 
-        {!images || images.length === 0 ? (
+        {albumImages.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
             {t('albums.no_images')}
           </Typography>
         ) : (
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 2 }}>
-            {images.map((image: ImageWithCdnDto) => {
+            {albumImages.map((image: ImageWithCdnDto) => {
               // Prefer the thumbnail variant; otherwise pick the largest available variant.
               const thumbnailVariant = image.variants?.find(v => v.label === 'thumbnail');
               const largestVariant = image.variants?.slice().sort((a, b) => b.width - a.width)[0];

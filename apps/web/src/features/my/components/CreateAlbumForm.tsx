@@ -14,11 +14,16 @@ import { useCreateAlbumMutation } from '../../../services/api/backendApi';
 
 const MAX_DESCRIPTION_LENGTH = 2000;
 
+export type CreateAlbumFormContext =
+  | { readonly kind: 'root' }
+  | { readonly kind: 'child'; readonly parentAlbumId: string };
+
 interface Props {
-  readonly tenantId?: string;
+  readonly tenantId: string;
+  readonly context: CreateAlbumFormContext;
 }
 
-const CreateAlbumForm: FC<Props> = ({ tenantId }) => {
+const CreateAlbumForm: FC<Props> = ({ tenantId, context }) => {
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [formError, setFormError] = useState<string | undefined>();
@@ -26,6 +31,14 @@ const CreateAlbumForm: FC<Props> = ({ tenantId }) => {
 
   const [createAlbum, { isLoading: isCreating }] = useCreateAlbumMutation();
   const { t } = useTranslation();
+
+  const isChildAlbum = context.kind === 'child';
+  const heading = isChildAlbum ? t('albums.create_sub_album') : t('albums.create_new_album');
+  const instructions = isChildAlbum
+    ? t('albums.create_sub_album_instructions')
+    : t('albums.create_album_instructions');
+  const submitLabel = isChildAlbum ? t('albums.create_sub_album_button') : t('albums.create_album');
+  const submitLoadingLabel = isChildAlbum ? t('albums.creating_sub_album') : t('albums.creating');
 
   const handleCreateAlbum = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -42,9 +55,10 @@ const CreateAlbumForm: FC<Props> = ({ tenantId }) => {
 
     try {
       await createAlbum({
-        tenantId: tenantId as string,
+        tenantId,
         title: trimmedTitle,
         ...(trimmedDescription.length > 0 ? { description: trimmedDescription } : {}),
+        ...(isChildAlbum ? { parentAlbumId: context.parentAlbumId } : {}),
       }).unwrap();
       setTitle('');
       setDescription('');
@@ -58,9 +72,9 @@ const CreateAlbumForm: FC<Props> = ({ tenantId }) => {
       <CardContent>
         <Stack component="form" spacing={3} onSubmit={handleCreateAlbum} noValidate autoComplete="off">
           <Box>
-            <Typography variant="h6">{t('albums.create_new_album')}</Typography>
+            <Typography variant="h6">{heading}</Typography>
             <Typography variant="body2" color="text.secondary">
-              {t('albums.create_album_instructions')}
+              {instructions}
             </Typography>
           </Box>
 
@@ -96,8 +110,13 @@ const CreateAlbumForm: FC<Props> = ({ tenantId }) => {
           />
 
           <Box display="flex" justifyContent="flex-end">
-            <Button type="submit" variant="contained" disabled={isCreating} startIcon={<AddPhotoAlternateOutlinedIcon />}>
-              {isCreating ? t('albums.creating') : t('albums.create_album')}
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isCreating}
+              startIcon={<AddPhotoAlternateOutlinedIcon />}
+            >
+              {isCreating ? submitLoadingLabel : submitLabel}
             </Button>
           </Box>
         </Stack>
