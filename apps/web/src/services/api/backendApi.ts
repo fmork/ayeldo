@@ -18,6 +18,7 @@ export type ImageWithCdnDto = Omit<SharedImageDto, 'variants'> & {
 export interface AlbumsWithImagesDto {
   readonly albums: readonly AlbumDto[];
   readonly images: readonly ImageWithCdnDto[];
+  readonly ancestors: readonly AlbumDto[];
 }
 
 export const backendApi = createApi({

@@ -23,6 +23,7 @@ import AlbumImageCard from '../../albums/components/AlbumImageCard';
 import AlbumUploadDropzone from '../../albums/components/AlbumUploadDropzone';
 import AlbumsList from '../components/AlbumsList';
 import CreateAlbumForm from '../components/CreateAlbumForm';
+import AlbumBreadcrumbs from '../components/AlbumBreadcrumbs';
 
 const AlbumDetailPage: FC = () => {
   const session = useSession();
@@ -91,9 +92,14 @@ const AlbumDetailPage: FC = () => {
   const uploadingFiles = jobs.filter(job => job.albumId === albumId &&
     ['queued', 'registering', 'uploading', 'completing'].includes(job.status));
   const albumImages = childAlbumsResponse?.images ?? [];
+  const ancestors = childAlbumsResponse?.ancestors ?? [];
 
   return (
     <Stack spacing={3}>
+      <AlbumBreadcrumbs
+        ancestors={ancestors}
+        currentAlbum={album}
+      />
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Typography variant="h4">{album.title}</Typography>
         <Button

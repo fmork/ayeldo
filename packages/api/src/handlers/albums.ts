@@ -59,6 +59,7 @@ export type ListAlbumsInput = z.infer<typeof listAlbumsSchema>;
 export interface ListAlbumsResult {
   readonly albums: readonly AlbumDto[];
   readonly images: readonly ImageWithCdnDto[];
+  readonly ancestors: readonly AlbumDto[];
 }
 
 export async function listAlbums(
@@ -92,6 +93,29 @@ export async function listAlbums(
       enhanceImageWithCdnUrls(image, deps.cdnHost),
     );
 
+    const ancestors: AlbumDto[] = [];
+    if (parentAlbumId) {
+      let currentParentId: string | undefined = parentAlbumId;
+      while (currentParentId) {
+        const parentAlbum = await deps.albumRepo.getById(tenantId, currentParentId);
+        if (!parentAlbum) {
+          break;
+        }
+        ancestors.push({
+          id: parentAlbum.id,
+          tenantId: parentAlbum.tenantId,
+          title: parentAlbum.title,
+          ...(parentAlbum.description !== undefined ? { description: parentAlbum.description } : {}),
+          ...(parentAlbum.parentAlbumId !== undefined
+            ? { parentAlbumId: parentAlbum.parentAlbumId }
+            : {}),
+          createdAt: parentAlbum.createdAt,
+        });
+        currentParentId = parentAlbum.parentAlbumId;
+      }
+      ancestors.reverse();
+    }
+
     return {
       albums: albums.map((album) => ({
         id: album.id,
@@ -102,5 +126,6 @@ export async function listAlbums(
         createdAt: album.createdAt,
       } as const)),
       images: imagesWithCdn,
+      ancestors,
     } as const;
 }

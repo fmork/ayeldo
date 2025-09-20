@@ -66,6 +66,7 @@ describe('albums handlers', () => {
     expect(result.albums).toHaveLength(1);
     expect(result.albums[0]?.id).toBe('a1');
     expect(result.images).toHaveLength(0);
+    expect(result.ancestors).toHaveLength(0);
     expect(albumRepo.listRoot).toHaveBeenCalledWith('t1');
     expect(imageRepo.listByAlbum).not.toHaveBeenCalled();
   });
@@ -78,8 +79,20 @@ describe('albums handlers', () => {
       parentAlbumId: 'parent',
       createdAt: new Date().toISOString(),
     };
+    const parentEntity = new Album({
+      id: 'parent',
+      tenantId: 't1',
+      title: 'Parent Album',
+      createdAt: new Date().toISOString(),
+    });
     const albumRepo = makeAlbumRepo({
       listChildren: jest.fn().mockResolvedValue([new Album(dto)]),
+      getById: jest.fn().mockImplementation(async (_tenantId, albumId: string) => {
+        if (albumId === 'parent') {
+          return parentEntity;
+        }
+        return undefined;
+      }),
     });
     const image: ImageDto = {
       id: 'img1',
@@ -106,6 +119,8 @@ describe('albums handlers', () => {
     expect(result.images).toHaveLength(1);
     expect(result.images[0]?.id).toBe('img1');
     expect(result.images[0]?.variants).toBeUndefined();
+    expect(result.ancestors).toHaveLength(1);
+    expect(result.ancestors[0]?.id).toBe('parent');
     expect(albumRepo.listChildren).toHaveBeenCalledWith('t1', 'parent');
     expect(imageRepo.listByAlbum).toHaveBeenCalledWith('t1', 'parent');
   });
