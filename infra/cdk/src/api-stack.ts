@@ -54,6 +54,39 @@ export class ApiStack extends Stack {
 
     const lambdaEnv = buildRuntimeEnvironment({ apiOrigin, webOrigin });
 
+    // Ensure required SiteConfiguration infrastructure env vars are present. Prefer
+    // explicit environment overrides, otherwise fallback to CDK-provided resources.
+    const stackRegion = Stack.of(this).region;
+
+    if (!lambdaEnv['MEDIA_BUCKET']) {
+      lambdaEnv['MEDIA_BUCKET'] = readOptionalEnv('MEDIA_BUCKET') ?? props.mediaBucket.bucketName;
+    }
+
+    if (!lambdaEnv['CDN_HOST']) {
+      const envCdnHost = readOptionalEnv('CDN_HOST') ?? readOptionalEnv('FMORK_SITE_CDN_HOST');
+      lambdaEnv['CDN_HOST'] = envCdnHost ?? props.cdnHost ?? props.domainConfig?.cdnHost ?? 'localhost:3002';
+    }
+
+    if (!lambdaEnv['IMAGE_VARIANTS']) {
+      const envVariants = readOptionalEnv('IMAGE_VARIANTS');
+      lambdaEnv['IMAGE_VARIANTS'] =
+        envVariants ??
+        JSON.stringify([
+          { label: 'xl', longEdge: 1900 },
+          { label: 'lg', longEdge: 1200 },
+          { label: 'md', longEdge: 800 },
+        ]);
+    }
+
+    if (!lambdaEnv['DDB_ENDPOINT']) {
+      const envDdbEndpoint = readOptionalEnv('DDB_ENDPOINT');
+      lambdaEnv['DDB_ENDPOINT'] = envDdbEndpoint ?? `https://dynamodb.${stackRegion}.amazonaws.com`;
+    }
+
+    if (!lambdaEnv['PORT']) {
+      lambdaEnv['PORT'] = readOptionalEnv('PORT') ?? '3000';
+    }
+
     const handler = new NodejsFunction(this, 'ApiHandler', {
       entry: apiEntry,
       handler: 'main',
@@ -74,7 +107,6 @@ export class ApiStack extends Stack {
         TABLE_NAME: props.table.tableName,
         EVENTS_BUS_NAME: props.eventBus.eventBusName,
         UPLOAD_BUCKET: props.mediaBucket.bucketName,
-        ...(props.cdnHost && { CDN_HOST: props.cdnHost }),
         ...lambdaEnv,
       },
     });
