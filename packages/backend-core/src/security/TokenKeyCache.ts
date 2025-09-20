@@ -39,7 +39,10 @@ export class TokenKeyCache {
     return key;
   };
 
-  private getKeyFromIssuer = async (issuer: string, kid: string): Promise<jwkToPem.JWK | undefined> => {
+  private getKeyFromIssuer = async (
+    issuer: string,
+    kid: string,
+  ): Promise<jwkToPem.JWK | undefined> => {
     this.props.logWriter.info(`getKeyFromIssuer('${issuer}', '${kid}')`);
     const url = await this.getJwksUrl(issuer);
 
@@ -60,9 +63,10 @@ export class TokenKeyCache {
     return wellKnownOidcConfig.jwks_uri;
   };
 
-  private getOpenIdConfigurationFromIssuer = async (issuer: string): Promise<WellKnownOpenIdConfiguration> => {
+  private getOpenIdConfigurationFromIssuer = async (
+    issuer: string,
+  ): Promise<WellKnownOpenIdConfiguration> => {
     const url = this.getOpenIdConfigurationUrl(issuer);
-    console.info(url);
     const oidcConfigJson = await this.props.httpClient.get({ url: url });
     return JSON.parse(oidcConfigJson.body as string) as WellKnownOpenIdConfiguration;
   };
