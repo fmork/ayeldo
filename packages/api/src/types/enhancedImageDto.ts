@@ -11,6 +11,7 @@ export interface ImageWithCdnDto extends Omit<ImageDto, 'variants'> {
 export function enhanceImageWithCdnUrls(image: ImageDto, cdnHost: string): ImageWithCdnDto {
   return {
     id: image.id,
+    imageId: image.imageId,
     tenantId: image.tenantId,
     albumId: image.albumId,
     filename: image.filename,

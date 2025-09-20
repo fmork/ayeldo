@@ -2,7 +2,7 @@ import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { DeleteObjectCommand, GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import type { ILogWriter } from '@ayeldo/backend-core';
-import { Image } from '@ayeldo/core';
+import { Image, deriveImageIdFromFilename } from '@ayeldo/core';
 import { DdbDocumentClientAdapter, EventBridgePublisher, ImageRepoDdb } from '@ayeldo/infra-aws';
 import type { ImageProcessedEvent, ImageVariantDto } from '@ayeldo/types';
 import type { S3Event } from 'aws-lambda';
@@ -155,11 +155,14 @@ async function processRecord(record: S3Event['Records'][number]): Promise<void> 
       .getById(descriptor.tenantId, descriptor.imageId)
       .catch(() => undefined);
     const nowIso = new Date().toISOString();
+    const filename = existing?.filename ?? descriptor.filename;
+    const humanImageId = existing?.imageId ?? deriveImageIdFromFilename(filename);
     const imageEntity = new Image({
       id: descriptor.imageId,
+      imageId: humanImageId,
       tenantId: descriptor.tenantId,
       albumId: descriptor.albumId,
-      filename: existing?.filename ?? descriptor.filename,
+      filename,
       contentType: contentType ?? existing?.contentType ?? 'application/octet-stream',
       sizeBytes: originalStats.size,
       width: originalMeta.width ?? existing?.width ?? 0,

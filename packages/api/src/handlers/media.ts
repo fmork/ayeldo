@@ -72,6 +72,7 @@ export async function listAlbumImages(
     (img) =>
       ({
         id: img.id,
+        imageId: img.imageId,
         tenantId: img.tenantId,
         albumId: img.albumId,
         filename: img.filename,

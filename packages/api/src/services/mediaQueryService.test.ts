@@ -65,6 +65,7 @@ describe('MediaQueryService', () => {
     const images = [
       {
         id: 'i1',
+        imageId: 'f',
         tenantId: 't1',
         albumId: 'a1',
         filename: 'f.jpg',

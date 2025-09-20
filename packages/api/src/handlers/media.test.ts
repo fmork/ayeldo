@@ -54,6 +54,7 @@ describe('media handlers with policy guard', () => {
   test('listAlbumImages allows restricted when member', async () => {
     const image = {
       id: 'img1',
+      imageId: 'f',
       tenantId: 't',
       albumId: 'a',
       filename: 'f.jpg',

@@ -304,6 +304,7 @@ maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
     await imageRepo.put(
       new Image({
         id: img1,
+        imageId: 'a',
         tenantId: tenantA,
         albumId,
         filename: 'a.jpg',
@@ -317,6 +318,7 @@ maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
     await imageRepo.put(
       new Image({
         id: img2,
+        imageId: 'b',
         tenantId: tenantA,
         albumId,
         filename: 'b.jpg',
@@ -330,6 +332,7 @@ maybeDescribe('LocalStack DynamoDB integration (GSIs)', () => {
     await imageRepo.put(
       new Image({
         id: imgOtherTenant,
+        imageId: 'x',
         tenantId: tenantB,
         albumId,
         filename: 'x.jpg',

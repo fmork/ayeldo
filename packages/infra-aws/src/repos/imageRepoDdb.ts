@@ -44,6 +44,7 @@ export class ImageRepoDdb implements IImageRepo {
   public async put(entity: Image): Promise<void> {
     const dto = {
       id: entity.id,
+      imageId: entity.imageId,
       tenantId: entity.tenantId,
       albumId: entity.albumId,
       filename: entity.filename,

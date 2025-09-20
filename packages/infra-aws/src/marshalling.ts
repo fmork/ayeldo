@@ -1,3 +1,4 @@
+import { deriveImageIdFromFilename } from '@ayeldo/core';
 import type { AlbumDto, CartDto, ImageDto, OrderDto, PriceListDto } from '@ayeldo/types';
 import {
   gsi1AlbumChild,
@@ -30,6 +31,7 @@ export type AlbumItem = BaseItem & {
 
 export type ImageItem = BaseItem & {
   readonly type: 'Image';
+  readonly imageId: string;
   readonly albumId: string;
   readonly filename: string;
   readonly contentType: string;
@@ -123,6 +125,7 @@ export function toImageItem(dto: ImageDto): ImageItem {
     type: 'Image',
     tenantId: dto.tenantId,
     createdAt: dto.createdAt,
+    imageId: dto.imageId,
     albumId: dto.albumId,
     filename: dto.filename,
     contentType: dto.contentType,
@@ -136,8 +139,10 @@ export function toImageItem(dto: ImageDto): ImageItem {
 }
 
 export function fromImageItem(item: ImageItem): ImageDto {
+  const imageId = (item as { imageId?: string }).imageId ?? deriveImageIdFromFilename(item.filename);
   return {
     id: item.SK.replace('IMAGE#', ''),
+    imageId,
     tenantId: item.tenantId,
     albumId: item.albumId,
     filename: item.filename,

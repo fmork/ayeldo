@@ -53,6 +53,7 @@ export interface ImageVariantDto {
 
 export interface ImageDto {
   readonly id: ImageId;
+  readonly imageId: string;
   readonly tenantId: TenantId;
   readonly albumId: AlbumId;
   readonly filename: string;

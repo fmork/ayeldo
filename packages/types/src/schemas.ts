@@ -51,6 +51,7 @@ export const imageVariantSchema = z.object({
 
 const imageBaseSchema = z.object({
   id: z.string().min(1),
+  imageId: z.string().min(1),
   tenantId: z.string().min(1),
   albumId: z.string().min(1),
   filename: z.string().min(1),
