@@ -47,7 +47,7 @@ export class AlbumRepoDdb implements IAlbumRepo {
       tableName: this.tableName,
       indexName: GSI1_NAME,
       keyCondition: '#gpk = :gpk',
-      names: { '#gpk': 'GSI1PK' },
+      names: { '#gpk': 'GSI1PK', '#pk': 'PK' },
       values: { ':gpk': parentKey, ':pk': tenantPk },
       filter: '#pk = :pk',
       scanIndexForward: true,
