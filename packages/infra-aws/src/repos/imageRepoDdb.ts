@@ -1,8 +1,8 @@
 import type { IImageRepo } from '@ayeldo/core';
 import { Image } from '@ayeldo/core';
 import type { TenantId } from '@ayeldo/types';
-import { GSI1_NAME, pkTenant, skAlbum, skImage } from '../keys';
 import type { DdbClient } from '../ddbClient';
+import { GSI1_NAME, pkTenant, skAlbum, skImage } from '../keys';
 import { fromImageItem, toImageItem, type ImageItem } from '../marshalling';
 
 export interface ImageRepoDdbProps {
@@ -52,7 +52,6 @@ export class ImageRepoDdb implements IImageRepo {
       width: entity.width,
       height: entity.height,
       createdAt: entity.createdAt,
-      ...(entity.originalKey ? { originalKey: entity.originalKey } : {}),
       ...(entity.variants.length ? { variants: entity.variants } : {}),
       ...(entity.processedAt ? { processedAt: entity.processedAt } : {}),
     };

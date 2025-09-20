@@ -1,5 +1,14 @@
 import type { AlbumDto, CartDto, ImageDto, OrderDto, PriceListDto } from '@ayeldo/types';
-import { gsi1AlbumChild, gsi1ImageByAlbum, pkTenant, skAlbum, skCart, skImage, skOrder, skPriceList } from './keys';
+import {
+  gsi1AlbumChild,
+  gsi1ImageByAlbum,
+  pkTenant,
+  skAlbum,
+  skCart,
+  skImage,
+  skOrder,
+  skPriceList,
+} from './keys';
 
 export interface BaseItem {
   readonly PK: string;
@@ -47,7 +56,11 @@ export type PriceListItem = BaseItem & {
   readonly items: readonly { sku: string; label: string; unitPriceCents: number }[];
 };
 
-export interface CartItemRecord { imageId: string; sku: string; quantity: number }
+export interface CartItemRecord {
+  imageId: string;
+  sku: string;
+  quantity: number;
+}
 export type CartItem = BaseItem & {
   readonly type: 'Cart';
   readonly state: CartDto['state'];
@@ -116,7 +129,6 @@ export function toImageItem(dto: ImageDto): ImageItem {
     sizeBytes: dto.sizeBytes,
     width: dto.width,
     height: dto.height,
-    ...(dto.originalKey ? { originalKey: dto.originalKey } : {}),
     ...(dto.variants ? { variants: dto.variants } : {}),
     ...(dto.processedAt ? { processedAt: dto.processedAt } : {}),
     ...gsi1ImageByAlbum(dto.albumId, dto.id),
@@ -134,7 +146,6 @@ export function fromImageItem(item: ImageItem): ImageDto {
     width: item.width,
     height: item.height,
     createdAt: item.createdAt,
-    ...(item.originalKey ? { originalKey: item.originalKey } : {}),
     ...(item.variants ? { variants: item.variants } : {}),
     ...(item.processedAt ? { processedAt: item.processedAt } : {}),
   };

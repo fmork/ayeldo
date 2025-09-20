@@ -5,7 +5,6 @@ export interface ImageVariantWithCdnDto extends ImageVariantDto {
 }
 
 export interface ImageWithCdnDto extends Omit<ImageDto, 'variants'> {
-  readonly originalCdnUrl?: string;
   readonly variants?: readonly ImageVariantWithCdnDto[];
 }
 
@@ -20,9 +19,6 @@ export function enhanceImageWithCdnUrls(image: ImageDto, cdnHost: string): Image
     width: image.width,
     height: image.height,
     createdAt: image.createdAt,
-    ...(image.originalKey && {
-      originalCdnUrl: `https://${cdnHost}/${image.originalKey}`,
-    }),
     ...(image.variants &&
       image.variants.length > 0 && {
         variants: image.variants.map((variant) => ({

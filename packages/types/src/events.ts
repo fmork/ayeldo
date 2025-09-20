@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import type {
+  ImageVariantDto,
   TenantId,
   TenantMembershipId,
   TenantMembershipRole,
   TenantMembershipStatus,
   Uuid,
-  ImageVariantDto,
 } from './dtos';
 
 export interface EventEnvelope<TType extends string, TPayload> {
@@ -106,21 +106,23 @@ export type TenantMembershipRevokedEvent = z.infer<typeof tenantMembershipRevoke
 export interface ImageProcessedPayload {
   readonly albumId: string;
   readonly imageId: string;
-  readonly originalKey: string;
   readonly variants: readonly ImageVariantDto[];
 }
 
 export const imageProcessedPayloadSchema = z.object({
   albumId: z.string().min(1),
   imageId: z.string().min(1),
-  originalKey: z.string().min(1),
-  variants: z.array(z.object({
-    label: z.string().min(1),
-    key: z.string().min(1),
-    width: z.number().int().nonnegative(),
-    height: z.number().int().nonnegative(),
-    sizeBytes: z.number().int().nonnegative(),
-  })).readonly(),
+  variants: z
+    .array(
+      z.object({
+        label: z.string().min(1),
+        key: z.string().min(1),
+        width: z.number().int().nonnegative(),
+        height: z.number().int().nonnegative(),
+        sizeBytes: z.number().int().nonnegative(),
+      }),
+    )
+    .readonly(),
 });
 
 export const imageProcessedEventSchema = makeEventEnvelopeSchema(

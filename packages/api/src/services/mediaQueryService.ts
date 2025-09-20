@@ -79,7 +79,6 @@ export class MediaQueryService {
     }
     return {
       id: image.id,
-      ...(image.originalKey ? { originalKey: image.originalKey } : {}),
       ...(image.variants && image.variants.length > 0
         ? {
             variants: image.variants.map((v) => ({ label: v.label, key: v.key })),

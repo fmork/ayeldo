@@ -61,7 +61,6 @@ export interface ImageDto {
   readonly width: number;
   readonly height: number;
   readonly createdAt: string; // ISO timestamp
-  readonly originalKey?: string;
   readonly variants?: readonly ImageVariantDto[];
   readonly processedAt?: string;
 }

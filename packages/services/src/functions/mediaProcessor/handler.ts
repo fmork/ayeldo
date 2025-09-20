@@ -112,8 +112,11 @@ async function processRecord(record: S3Event['Records'][number]): Promise<void> 
     return;
   }
 
-  const prefix = path
+  const publicPrefix = path
     .join('public', descriptor.tenantId, descriptor.albumId, descriptor.imageId)
+    .replace(/\\/g, '/');
+  const originalPrefix = path
+    .join('originals', descriptor.tenantId, descriptor.albumId, descriptor.imageId)
     .replace(/\\/g, '/');
 
   const workDir = await mkdtemp(path.join(tmpdir(), 'media-'));
@@ -133,7 +136,7 @@ async function processRecord(record: S3Event['Records'][number]): Promise<void> 
     for (const variant of VARIANT_CONFIG) {
       const variantPath = path.join(workDir, `${variant.label}-${descriptor.filename}`);
       const info = await generateVariant(originalPath, variantPath, variant.longEdge);
-      const variantKey = `${prefix}/${variant.label}/${descriptor.filename}`;
+      const variantKey = `${publicPrefix}/${variant.label}/${descriptor.filename}`;
       await uploadFile(variantPath, variantKey, contentType);
       variants.push({
         label: variant.label,
@@ -145,8 +148,8 @@ async function processRecord(record: S3Event['Records'][number]): Promise<void> 
       await rm(variantPath, { force: true }).catch(() => undefined);
     }
 
-    const originalPublicKey = `${prefix}/original/${descriptor.filename}`;
-    await uploadFile(originalPath, originalPublicKey, contentType);
+    const originalKey = `${originalPrefix}/${descriptor.filename}`;
+    await uploadFile(originalPath, originalKey, contentType);
 
     const existing = await imageRepo
       .getById(descriptor.tenantId, descriptor.imageId)
@@ -162,7 +165,6 @@ async function processRecord(record: S3Event['Records'][number]): Promise<void> 
       width: originalMeta.width ?? existing?.width ?? 0,
       height: originalMeta.height ?? existing?.height ?? 0,
       createdAt: existing?.createdAt ?? nowIso,
-      originalKey: originalPublicKey,
       variants,
       processedAt: nowIso,
     });
@@ -177,7 +179,6 @@ async function processRecord(record: S3Event['Records'][number]): Promise<void> 
       payload: {
         albumId: descriptor.albumId,
         imageId: descriptor.imageId,
-        originalKey: originalPublicKey,
         variants,
       },
     };

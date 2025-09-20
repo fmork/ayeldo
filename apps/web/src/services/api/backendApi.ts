@@ -10,10 +10,8 @@ import { frontendConfig } from '../../app/FrontendConfigurationContext';
 // Reuse shared DTOs and augment with CDN fields used by the API responses.
 export type ImageVariantDto = SharedImageVariantDto & { readonly cdnUrl?: string };
 
-// Use the shared ImageDto directly; variants are augmented below with cdnUrl.
-// Keep the shared ImageDto but override the variants property so the frontend
-// sees the augmented variant shape that includes cdnUrl.
-export type ImageWithCdnDto = SharedImageDto & {
+// Use the shared ImageDto directly; augment to override variants to include cdnUrl.
+export type ImageWithCdnDto = Omit<SharedImageDto, 'variants'> & {
   readonly variants?: readonly ImageVariantDto[];
 };
 

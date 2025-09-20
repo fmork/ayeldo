@@ -80,7 +80,6 @@ export async function listAlbumImages(
         width: img.width,
         height: img.height,
         createdAt: img.createdAt,
-        ...(img.originalKey ? { originalKey: img.originalKey } : {}),
         ...(img.variants && img.variants.length > 0 ? { variants: img.variants } : {}),
         ...(img.processedAt ? { processedAt: img.processedAt } : {}),
       }) as const,
